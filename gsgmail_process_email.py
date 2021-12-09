@@ -1094,4 +1094,4 @@ class ProcessMail:
             self._base_connector.debug_print('Exception: ', e)
             return None
 
-        return hashlib.md5(input_dict_str.encode('utf-8')).hexdigest()
+        return hashlib.sha256(input_dict_str.encode('utf-8')).hexdigest()
