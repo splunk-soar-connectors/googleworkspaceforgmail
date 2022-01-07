@@ -15,10 +15,10 @@
     "latest_tested_versions": [
         "Cloud, September 27, 2021"
     ],
-    "app_version": "2.3.5",
+    "app_version": "2.3.6",
     "product_version_regex": ".*",
     "license": "Copyright (c) 2017-2021 Splunk Inc.",
-    "utctime_updated": "2021-11-10T00:21:42.000000Z",
+    "utctime_updated": "2022-01-07T22:36:01.000000Z",
     "pip_dependencies": {
         "wheel": [
             {
