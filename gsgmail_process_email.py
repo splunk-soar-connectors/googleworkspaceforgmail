@@ -1093,7 +1093,7 @@ class ProcessMail:
             return False
 
         fips_enabled = is_fips_enabled()
-        if (fips_enabled):
+        if fips_enabled:
             self.debug_print('fips is enabled')
         else:
             self.debug_print('fips is not enabled')
@@ -1107,4 +1107,18 @@ class ProcessMail:
             self._base_connector.debug_print('Exception: ', e)
             return None
 
-        return hashlib.md5(input_dict_str.encode('utf-8')).hexdigest()
+        fips_enabled = self._get_fips_enabled()
+        # if fips is not enabled, we should continue with our existing md5 usage for generating hashes
+        # to not impact existing customers
+        try:
+            dict_hash = input_dict_str.encode('utf-8')
+            if not fips_enabled:
+                dict_hash = hashlib.md5(dict_hash)
+            else:
+                dict_hash = hashlib.sha256(dict_hash)
+        except:
+            if not fips_enabled:
+                dict_hash = hashlib.md5(dict_hash.encode())
+            else:
+                dict_hash = hashlib.sha256(dict_hash.encode())
+        return dict_hash.hexdigest()
