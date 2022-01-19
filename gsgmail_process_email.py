@@ -1110,7 +1110,7 @@ class ProcessMail:
         fips_enabled = self._get_fips_enabled()
         # if fips is not enabled, we should continue with our existing md5 usage for generating hashes
         # to not impact existing customers
-        dict_hash = input_dict_str.encode('utf-8')
+        dict_hash = input_dict_str.encode()
         if not fips_enabled:
             dict_hash = hashlib.md5(dict_hash)
         else:
