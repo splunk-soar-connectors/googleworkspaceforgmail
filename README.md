@@ -11,7 +11,7 @@ Minimum Product Version: 4\.10\.0\.40961
 Integrates with G Suite for various investigative and containment actions
 
 [comment]: # " File: README.md"
-[comment]: # "  Copyright (c) 2017-2021 Splunk Inc."
+[comment]: # "  Copyright (c) 2017-2022 Splunk Inc."
 [comment]: # ""
 [comment]: # "  Licensed under Apache 2.0 (https://www.apache.org/licenses/LICENSE-2.0.txt)"
 [comment]: # ""
