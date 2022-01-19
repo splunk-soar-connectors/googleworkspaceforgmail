@@ -1086,6 +1086,19 @@ class ProcessMail:
 
         return phantom.APP_SUCCESS
 
+    def _get_fips_enabled(self):
+        try:
+            from phantom_common.install_info import is_fips_enabled
+        except ImportError:
+            return False
+
+        fips_enabled = is_fips_enabled()
+        if fips_enabled:
+            self._base_connector.debug_print('FIPS is enabled')
+        else:
+            self._base_connector.debug_print('FIPS is not enabled')
+        return fips_enabled
+
     def _create_dict_hash(self, input_dict):
 
         try:
@@ -1094,4 +1107,12 @@ class ProcessMail:
             self._base_connector.debug_print('Exception: ', e)
             return None
 
-        return hashlib.md5(input_dict_str.encode('utf-8')).hexdigest()
+        fips_enabled = self._get_fips_enabled()
+        # if fips is not enabled, we should continue with our existing md5 usage for generating hashes
+        # to not impact existing customers
+        dict_hash = input_dict_str.encode()
+        if not fips_enabled:
+            dict_hash = hashlib.md5(dict_hash)
+        else:
+            dict_hash = hashlib.sha256(dict_hash)
+        return dict_hash.hexdigest()
