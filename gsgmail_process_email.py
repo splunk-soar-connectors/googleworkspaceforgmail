@@ -1094,9 +1094,9 @@ class ProcessMail:
 
         fips_enabled = is_fips_enabled()
         if fips_enabled:
-            self.debug_print('fips is enabled')
+            self.debug_print('FIPS is enabled')
         else:
-            self.debug_print('fips is not enabled')
+            self.debug_print('FIPS is not enabled')
         return fips_enabled
 
     def _create_dict_hash(self, input_dict):
