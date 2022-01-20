@@ -2,7 +2,7 @@
 # G Suite for GMail
 
 Publisher: Splunk  
-Connector Version: 2\.3\.8  
+Connector Version: 2\.3\.9  
 Product Vendor: Google  
 Product Name: GMail  
 Product Version Supported (regex): "\.\*"  
