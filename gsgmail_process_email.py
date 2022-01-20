@@ -1,8 +1,17 @@
 # File: gsgmail_process_email.py
-# Copyright (c) 2017-2021 Splunk Inc.
 #
-# Licensed under Apache 2.0 (https://www.apache.org/licenses/LICENSE-2.0.txt)
-
+# Copyright (c) 2017-2022 Splunk Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied. See the License for the specific language governing permissions
+# and limitations under the License.
 import email
 import tempfile
 from collections import OrderedDict
@@ -1077,6 +1086,19 @@ class ProcessMail:
 
         return phantom.APP_SUCCESS
 
+    def _get_fips_enabled(self):
+        try:
+            from phantom_common.install_info import is_fips_enabled
+        except ImportError:
+            return False
+
+        fips_enabled = is_fips_enabled()
+        if fips_enabled:
+            self._base_connector.debug_print('FIPS is enabled')
+        else:
+            self._base_connector.debug_print('FIPS is not enabled')
+        return fips_enabled
+
     def _create_dict_hash(self, input_dict):
 
         try:
@@ -1085,4 +1107,12 @@ class ProcessMail:
             self._base_connector.debug_print('Exception: ', e)
             return None
 
-        return hashlib.md5(input_dict_str.encode('utf-8')).hexdigest()
+        fips_enabled = self._get_fips_enabled()
+        # if fips is not enabled, we should continue with our existing md5 usage for generating hashes
+        # to not impact existing customers
+        dict_hash = input_dict_str.encode()
+        if not fips_enabled:
+            dict_hash = hashlib.md5(dict_hash)
+        else:
+            dict_hash = hashlib.sha256(dict_hash)
+        return dict_hash.hexdigest()

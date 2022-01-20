@@ -1,0 +1,69 @@
+Splunk SOAR G Suite for GMail
+Copyright (c) 2017-2022 Splunk Inc.
+
+Third-party Software Attributions:
+
+Library: beautifulsoup4
+Version: 4.9.1
+License: MIT
+Copyright 2004-2017 Leonard Richardson
+Copyright 2004-2019 Leonard Richardson
+Copyright 2018 Isaac Muse
+
+Library: cachetools
+Version: 4.0.0
+License: MIT
+Copyright 2014-2019 Thomas Kemmer
+Copyright 2014-2019 Thomas Kemmer
+
+Library: google-api-python-client
+Version: 1.7.11
+License: Apache 2.0
+License: MIT
+Copyright 2014 Google Inc
+
+Library: google-auth
+Version: 1.30.2
+License: Apache 2.0
+Unknown copyright
+
+Library: google-auth-httplib2
+Version: 0.0.3
+License: Apache 2.0
+Unknown copyright
+
+Library: httplib2
+Version: 0.19.1
+License: MIT
+Copyright 2006 by Joe Gregorio
+
+Library: oauth2client
+Version: 4.1.2
+License: Apache 2.0
+Unknown copyright
+
+Library: pyasn1-modules
+Version: 0.2.8
+License: BSD 2
+Copyright 2005-2019 Ilya Etingof <etingof@gmail.com>
+
+Library: python-magic
+Version: 0.4.18
+License: MIT
+Copyright 2001-2014 Adam Hupp
+
+Library: requests
+Version: 2.25.0
+License: Apache 2.0
+Kenneth Reitz
+
+Library: rsa
+Version: 4.7.2
+License: Apache 2.0
+Copyright 2011 Sybren A
+
+Library: uritemplate
+Version: 3.0.1
+License: Apache 2.0
+License: BSD 3
+Ian Cordasco
