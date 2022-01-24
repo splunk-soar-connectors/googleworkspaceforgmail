@@ -13,7 +13,8 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 GSGMAIL_ERR_CODE_UNAVAILABLE = 'Error code unavailable'
-GSGMAIL_ERR_MESSAGE_UNAVAILABLE = 'Error message unavailable. Please check the asset configuration and|or action parameters'
+GSGMAIL_ERR_MESSAGE_UNAVAILABLE = (
+    'Error message unavailable. Please check the asset configuration and|or action parameters')
 GSGMAIL_UNICODE_DAMMIT_TYPE_ERROR_MESSAGE = (
     'Error occurred while connecting to the GMAIL server. '
     'Please check the asset configuration and|or the action parameters')
