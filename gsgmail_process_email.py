@@ -13,26 +13,28 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 import email
-import tempfile
-from collections import OrderedDict
-import os
-import re
-from bs4 import BeautifulSoup, UnicodeDammit
-import phantom.app as phantom
-import phantom.utils as ph_utils
-import mimetypes
-import socket
-from email.header import decode_header, make_header
-import shutil
 import hashlib
 import json
-import magic
+import mimetypes
+import os
 import random
+import re
+import shutil
+import socket
 import string
-import phantom.rules as phantom_rules
-from gsgmail_consts import *
 import sys
+import tempfile
+from collections import OrderedDict
+from email.header import decode_header, make_header
+
+import magic
+import phantom.app as phantom
+import phantom.rules as phantom_rules
+import phantom.utils as ph_utils
+from bs4 import BeautifulSoup, UnicodeDammit
 from requests.structures import CaseInsensitiveDict
+
+from gsgmail_consts import *
 
 _container_common = {
     "run_automation": False  # Don't run any playbooks, when this artifact is added
@@ -1019,7 +1021,8 @@ class ProcessMail:
 
         # success, message, vault_id = phantom_rules.vault_add(container_id, local_file_path, file_name)
         try:
-            success, message, vault_id = phantom_rules.vault_add(file_location=local_file_path, container=container_id, file_name=file_name, metadata=vault_attach_dict)
+            success, message, vault_id = phantom_rules.vault_add(
+                file_location=local_file_path, container=container_id, file_name=file_name, metadata=vault_attach_dict)
         except Exception as e:
             self._base_connector.debug_print(phantom.APP_ERR_FILE_ADD_TO_VAULT.format(e))
             return phantom.APP_ERROR, phantom.APP_ERROR

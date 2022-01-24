@@ -124,7 +124,7 @@
             },
             {
                 "module": "setuptools",
-                "input_file": "wheels/py3/setuptools-58.5.3-py3-none-any.whl"
+                "input_file": "wheels/py3/setuptools-59.6.0-py3-none-any.whl"
             },
             {
                 "module": "six",
@@ -132,7 +132,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.3-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.1-py3-none-any.whl"
             },
             {
                 "module": "uritemplate",
@@ -140,7 +140,7 @@
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.7-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.8-py2.py3-none-any.whl"
             }
         ]
     },

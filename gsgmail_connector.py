@@ -15,28 +15,28 @@
 #
 #
 # Phantom App imports
-import phantom.app as phantom
-from phantom.base_connector import BaseConnector
-from phantom.action_result import ActionResult
-from phantom.vault import Vault
-import phantom.utils as ph_utils
-
-from gsgmail_consts import *
-from bs4 import UnicodeDammit
-
-# Fix to add __init__.py in dependencies folder
-import os
-import requests
-import json
-import sys
 import base64
 import email
-from requests.structures import CaseInsensitiveDict
+import json
+# Fix to add __init__.py in dependencies folder
+import os
+import sys
+from copy import deepcopy
+from datetime import datetime
+
+import phantom.app as phantom
+import phantom.utils as ph_utils
+import requests
+from bs4 import UnicodeDammit
 from google.oauth2 import service_account
 from googleapiclient import errors
-from datetime import datetime
+from phantom.action_result import ActionResult
+from phantom.base_connector import BaseConnector
+from phantom.vault import Vault
+from requests.structures import CaseInsensitiveDict
+
+from gsgmail_consts import *
 from gsgmail_process_email import ProcessMail
-from copy import deepcopy
 
 init_path = '{}/dependencies/google/__init__.py'.format(  # noqa
     os.path.dirname(os.path.abspath(__file__))  # noqa
@@ -79,13 +79,19 @@ class GSuiteConnector(BaseConnector):
         try:
             credentials = service_account.Credentials.from_service_account_info(self._key_dict, scopes=scopes)
         except Exception as e:
-            return RetVal2(action_result.set_status(phantom.APP_ERROR, GSGMAIL_SERVICE_KEY_FAILURE, self._get_error_message_from_exception(e)), None)
+            return RetVal2(
+                action_result.set_status(
+                    phantom.APP_ERROR, GSGMAIL_SERVICE_KEY_FAILURE, self._get_error_message_from_exception(e)),
+                None)
 
         if delegated_user:
             try:
                 credentials = credentials.with_subject(delegated_user)
             except Exception as e:
-                return RetVal2(action_result.set_status(phantom.APP_ERROR, GSGMAIL_CREDENTIALS_FAILURE, self._get_error_message_from_exception(e)), None)
+                return RetVal2(
+                    action_result.set_status(
+                        phantom.APP_ERROR, GSGMAIL_CREDENTIALS_FAILURE, self._get_error_message_from_exception(e)),
+                    None)
 
         try:
             service = apiclient.discovery.build(api_name, api_version, credentials=credentials)
@@ -148,15 +154,18 @@ class GSuiteConnector(BaseConnector):
         try:
             parameter = int(parameter)
         except Exception:
-            action_result.set_status(phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg="", param=key))
+            action_result.set_status(
+                phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg="", param=key))
             return None
 
         if parameter < 0:
-            action_result.set_status(phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg="non-negative", param=key))
+            action_result.set_status(
+                phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg="non-negative", param=key))
             return None
 
         if not allow_zero and parameter == 0:
-            action_result.set_status(phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg="non-zero positive", param=key))
+            action_result.set_status(
+                phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg="non-zero positive", param=key))
             return None
 
         return parameter
@@ -641,7 +650,8 @@ class GSuiteConnector(BaseConnector):
         self.save_progress("Test Connectivity Passed")
         return action_result.set_status(phantom.APP_SUCCESS)
 
-    def _get_email_ids_to_process(self, service, action_result, max_results, ingest_manner, user_id='me', labels=[], include_spam_trash=False, q=None, include_sent=False,
+    def _get_email_ids_to_process(self, service, action_result, max_results, ingest_manner,
+                                  user_id='me', labels=[], include_spam_trash=False, q=None, include_sent=False,
                                   use_ingest_limit=False):
 
         kwargs = {
@@ -738,14 +748,22 @@ class GSuiteConnector(BaseConnector):
             return action_result.get_status()
 
         if self.is_poll_now():
-            max_emails = self._validate_integer(action_result, param.get(phantom.APP_JSON_CONTAINER_COUNT), 'container count', allow_zero=False)
+            max_emails = self._validate_integer(
+                action_result, param.get(phantom.APP_JSON_CONTAINER_COUNT), 'container count', allow_zero=False)
             if max_emails is None:
                 return action_result.get_status()
             self.save_progress(GSMAIL_POLL_NOW_PROGRESS)
         else:
-            first_run_max_emails = self._validate_integer(action_result, config.get('first_run_max_emails', GSMAIL_DEFAULT_FIRST_RUN_MAX_EMAIL), "first_max_emails",
-                                                          allow_zero=False)
-            max_containers = self._validate_integer(action_result, config.get('max_containers', GSMAIL_DEFAULT_MAX_CONTAINER), "max_containers", allow_zero=False)
+            first_run_max_emails = self._validate_integer(
+                action_result,
+                config.get('first_run_max_emails', GSMAIL_DEFAULT_FIRST_RUN_MAX_EMAIL),
+                "first_max_emails",
+                allow_zero=False)
+            max_containers = self._validate_integer(
+                action_result,
+                config.get('max_containers', GSMAIL_DEFAULT_MAX_CONTAINER),
+                "max_containers",
+                allow_zero=False)
             if first_run_max_emails is None or max_containers is None:
                 return action_result.get_status()
             if self._state.get('first_run', True):
@@ -813,7 +831,9 @@ class GSuiteConnector(BaseConnector):
             labels_val = config['label']
             labels = [x.strip() for x in labels_val.split(',')]
             labels = list(filter(None, labels))
-        return self._get_email_ids_to_process(service, action_result, max_emails, ingest_manner=ingest_manner, labels=labels, use_ingest_limit=True, include_sent=True)
+        return self._get_email_ids_to_process(
+            service, action_result, max_emails,
+            ingest_manner=ingest_manner, labels=labels, use_ingest_limit=True, include_sent=True)
 
     def finalize(self):
         # Save the state, this data is saved across actions and app upgrades
@@ -852,8 +872,9 @@ class GSuiteConnector(BaseConnector):
 
 if __name__ == '__main__':
 
-    import pudb
     import argparse
+
+    import pudb
 
     pudb.set_trace()
 
