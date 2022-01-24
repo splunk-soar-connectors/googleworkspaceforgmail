@@ -10,7 +10,7 @@
     "package_name": "phantom_gsgmail",
     "product_vendor": "Google",
     "product_name": "GMail",
-    "min_phantom_version": "4.10.0.40961",
+    "min_phantom_version": "5.0.0",
     "fips_compliant": true,
     "python_version": "3",
     "latest_tested_versions": [
