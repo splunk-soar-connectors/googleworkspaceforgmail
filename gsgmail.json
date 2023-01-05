@@ -14,7 +14,7 @@
     "fips_compliant": true,
     "python_version": "3",
     "latest_tested_versions": [
-        "Cloud, September 27, 2021"
+        "Cloud, January 05, 2022"
     ],
     "app_version": "2.3.11",
     "product_version_regex": ".*",
@@ -24,87 +24,87 @@
         "wheel": [
             {
                 "module": "beautifulsoup4",
-                "input_file": "wheels/beautifulsoup4-4.9.1-py3-none-any.whl"
+                "input_file": "wheels/py3/beautifulsoup4-4.9.1-py3-none-any.whl"
             },
             {
                 "module": "cachetools",
-                "input_file": "wheels/cachetools-4.0.0-py3-none-any.whl"
+                "input_file": "wheels/py3/cachetools-4.0.0-py3-none-any.whl"
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/certifi-2021.10.8-py2.py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.12.7-py3-none-any.whl"
             },
             {
                 "module": "chardet",
-                "input_file": "wheels/chardet-3.0.4-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/chardet-3.0.4-py2.py3-none-any.whl"
             },
             {
                 "module": "google_api_python_client",
-                "input_file": "wheels/google_api_python_client-1.7.11-py3-none-any.whl"
+                "input_file": "wheels/py3/google_api_python_client-1.7.11-py3-none-any.whl"
             },
             {
                 "module": "google_auth",
-                "input_file": "wheels/google_auth-1.30.2-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/google_auth-1.30.2-py2.py3-none-any.whl"
             },
             {
                 "module": "google_auth_httplib2",
-                "input_file": "wheels/google_auth_httplib2-0.0.3-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/google_auth_httplib2-0.0.3-py2.py3-none-any.whl"
             },
             {
                 "module": "httplib2",
-                "input_file": "wheels/httplib2-0.19.1-py3-none-any.whl"
+                "input_file": "wheels/py3/httplib2-0.19.1-py3-none-any.whl"
             },
             {
                 "module": "idna",
-                "input_file": "wheels/idna-2.10-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/idna-2.10-py2.py3-none-any.whl"
             },
             {
                 "module": "oauth2client",
-                "input_file": "wheels/oauth2client-4.1.2-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/oauth2client-4.1.2-py2.py3-none-any.whl"
             },
             {
                 "module": "pyasn1",
-                "input_file": "wheels/pyasn1-0.4.8-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/pyasn1-0.4.8-py2.py3-none-any.whl"
             },
             {
                 "module": "pyasn1_modules",
-                "input_file": "wheels/pyasn1_modules-0.2.8-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/pyasn1_modules-0.2.8-py2.py3-none-any.whl"
             },
             {
                 "module": "pyparsing",
-                "input_file": "wheels/pyparsing-2.4.7-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/pyparsing-2.4.7-py2.py3-none-any.whl"
             },
             {
                 "module": "python_magic",
-                "input_file": "wheels/python_magic-0.4.18-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/python_magic-0.4.18-py2.py3-none-any.whl"
             },
             {
                 "module": "requests",
-                "input_file": "wheels/requests-2.25.0-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/requests-2.25.0-py2.py3-none-any.whl"
             },
             {
                 "module": "rsa",
-                "input_file": "wheels/rsa-4.7.2-py3-none-any.whl"
+                "input_file": "wheels/py3/rsa-4.7.2-py3-none-any.whl"
             },
             {
                 "module": "setuptools",
-                "input_file": "wheels/setuptools-59.6.0-py3-none-any.whl"
+                "input_file": "wheels/py3/setuptools-59.6.0-py3-none-any.whl"
             },
             {
                 "module": "six",
-                "input_file": "wheels/six-1.16.0-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/six-1.16.0-py2.py3-none-any.whl"
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/soupsieve-2.3.1-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
             },
             {
                 "module": "uritemplate",
-                "input_file": "wheels/uritemplate-3.0.1-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/uritemplate-3.0.1-py2.py3-none-any.whl"
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/urllib3-1.26.8-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.13-py2.py3-none-any.whl"
             }
         ]
     },
@@ -1284,5 +1284,93 @@
                 "view": "gsgmail_view.get_email"
             }
         }
-    ]
+    ],
+    "pip39_dependencies": {
+        "wheel": [
+            {
+                "module": "beautifulsoup4",
+                "input_file": "wheels/py3/beautifulsoup4-4.9.1-py3-none-any.whl"
+            },
+            {
+                "module": "cachetools",
+                "input_file": "wheels/py3/cachetools-4.0.0-py3-none-any.whl"
+            },
+            {
+                "module": "certifi",
+                "input_file": "wheels/py3/certifi-2022.12.7-py3-none-any.whl"
+            },
+            {
+                "module": "chardet",
+                "input_file": "wheels/shared/chardet-3.0.4-py2.py3-none-any.whl"
+            },
+            {
+                "module": "google_api_python_client",
+                "input_file": "wheels/py3/google_api_python_client-1.7.11-py3-none-any.whl"
+            },
+            {
+                "module": "google_auth",
+                "input_file": "wheels/shared/google_auth-1.30.2-py2.py3-none-any.whl"
+            },
+            {
+                "module": "google_auth_httplib2",
+                "input_file": "wheels/shared/google_auth_httplib2-0.0.3-py2.py3-none-any.whl"
+            },
+            {
+                "module": "httplib2",
+                "input_file": "wheels/py3/httplib2-0.19.1-py3-none-any.whl"
+            },
+            {
+                "module": "idna",
+                "input_file": "wheels/shared/idna-2.10-py2.py3-none-any.whl"
+            },
+            {
+                "module": "oauth2client",
+                "input_file": "wheels/shared/oauth2client-4.1.2-py2.py3-none-any.whl"
+            },
+            {
+                "module": "pyasn1",
+                "input_file": "wheels/shared/pyasn1-0.4.8-py2.py3-none-any.whl"
+            },
+            {
+                "module": "pyasn1_modules",
+                "input_file": "wheels/shared/pyasn1_modules-0.2.8-py2.py3-none-any.whl"
+            },
+            {
+                "module": "pyparsing",
+                "input_file": "wheels/shared/pyparsing-2.4.7-py2.py3-none-any.whl"
+            },
+            {
+                "module": "python_magic",
+                "input_file": "wheels/shared/python_magic-0.4.18-py2.py3-none-any.whl"
+            },
+            {
+                "module": "requests",
+                "input_file": "wheels/shared/requests-2.25.0-py2.py3-none-any.whl"
+            },
+            {
+                "module": "rsa",
+                "input_file": "wheels/py3/rsa-4.7.2-py3-none-any.whl"
+            },
+            {
+                "module": "setuptools",
+                "input_file": "wheels/py3/setuptools-65.6.3-py3-none-any.whl"
+            },
+            {
+                "module": "six",
+                "input_file": "wheels/shared/six-1.16.0-py2.py3-none-any.whl"
+            },
+            {
+                "module": "soupsieve",
+                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
+            },
+            {
+                "module": "uritemplate",
+                "input_file": "wheels/shared/uritemplate-3.0.1-py2.py3-none-any.whl"
+            },
+            {
+                "module": "urllib3",
+                "input_file": "wheels/shared/urllib3-1.26.13-py2.py3-none-any.whl"
+            }
+        ]
+    }
 }
