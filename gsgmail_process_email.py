@@ -22,7 +22,6 @@ import re
 import shutil
 import socket
 import string
-import sys
 import tempfile
 from collections import OrderedDict
 from email.header import decode_header, make_header
@@ -87,12 +86,6 @@ class ProcessMail:
         self._container = dict()
         self._artifacts = list()
         self._attachments = list()
-        self._python_version = None
-
-        try:
-            self._python_version = int(sys.version_info[0])
-        except Exception:
-            raise Exception("Error occurred while getting the Phantom server's Python major version.")
 
     def _get_file_contains(self, file_path):
 
@@ -785,10 +778,7 @@ class ProcessMail:
 
         try:
             if input_str:
-                if self._python_version == 2:
-                    input_str = UnicodeDammit(input_str).unicode_markup.encode(charset)
-                else:
-                    input_str = UnicodeDammit(input_str).unicode_markup.encode(charset).decode(charset)
+                input_str = UnicodeDammit(input_str).unicode_markup.encode(charset).decode(charset)
         except Exception:
             try:
                 input_str = str(make_header(decode_header(input_str)))
@@ -1070,7 +1060,7 @@ class ProcessMail:
             del input_dict['source_data_identifier']
         dict_hash = None
 
-        # first get the phantom version
+        # first get the SOAR version
         phantom_version = self._base_connector.get_product_version()
 
         if not phantom_version:

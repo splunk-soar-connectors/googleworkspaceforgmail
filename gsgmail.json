@@ -124,7 +124,6 @@
         "label": {
             "description": "Mailbox Label (folder) to be polled",
             "data_type": "string",
-            "default": "",
             "order": 2
         },
         "ingest_manner": {
@@ -425,7 +424,7 @@
                     "data_path": "action_result.data.*.recoveryEmail",
                     "data_type": "string",
                     "example_values": [
-                        "admin@hermancorp.biz"
+                        "admin@testcorp.biz"
                     ]
                 },
                 {
@@ -574,7 +573,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "admin@hermancorp.biz"
+                        "admin@testcorp.biz"
                     ]
                 },
                 {
@@ -797,7 +796,7 @@
                     "column_name": "Email",
                     "column_order": 1,
                     "example_values": [
-                        "admin@hermancorp.biz"
+                        "admin@testcorp.biz"
                     ]
                 },
                 {
@@ -941,14 +940,15 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
                     "data_path": "action_result.parameter.email",
                     "data_type": "string",
                     "example_values": [
-                        "admin@hermancorp.biz"
+                        "admin@testcorp.biz"
                     ],
                     "contains": [
                         "email"
@@ -1031,7 +1031,7 @@
                     "data_path": "action_result.data.*.email_headers.*.delivered_to",
                     "data_type": "string",
                     "example_values": [
-                        "admin@hermancorp.biz"
+                        "admin@testcorp.biz"
                     ],
                     "contains": [
                         "email"
@@ -1079,7 +1079,7 @@
                     "data_path": "action_result.data.*.email_headers.*.received",
                     "data_type": "string",
                     "example_values": [
-                        "by 2002:a05:7110:5426:b029:b6:addf:f84f with SMTP id i6csp1772142geg;\r\n        Sat, 1 May 2021 20:26:21 -0700 (PDT)\nfrom mail-il1-x147.google.com (mail-il1-x147.google.com. [2607:f8b0:4864:20::147])\r\n        by mx.google.com with ESMTPS id b3si9189274iot.55.2021.05.01.20.26.20\r\n        for <admin@hermancorp.biz>\r\n        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);\r\n        Sat, 01 May 2021 20:26:21 -0700 (PDT)\nby mail-il1-x147.google.com with SMTP id d3-20020a9287430000b0290181f7671fa1so1924912ilm.9\r\n        for <admin@hermancorp.biz>; Sat, 01 May 2021 20:26:20 -0700 (PDT)"
+                        "by 2002:a05:7110:5426:b029:b6:addf:f84f with SMTP id i6csp1772142geg;\r\n        Sat, 1 May 2021 20:26:21 -0700 (PDT)\nfrom mail-il1-x147.google.com (mail-il1-x147.google.com. [2607:f8b0:4864:20::147])\r\n        by mx.google.com with ESMTPS id b3si9189274iot.55.2021.05.01.20.26.20\r\n        for <admin@testcorp.biz>\r\n        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);\r\n        Sat, 01 May 2021 20:26:21 -0700 (PDT)\nby mail-il1-x147.google.com with SMTP id d3-20020a9287430000b0290181f7671fa1so1924912ilm.9\r\n        for <admin@testcorp.biz>; Sat, 01 May 2021 20:26:20 -0700 (PDT)"
                     ]
                 },
                 {
@@ -1114,7 +1114,7 @@
                     "data_path": "action_result.data.*.email_headers.*.to",
                     "data_type": "string",
                     "example_values": [
-                        "admin@hermancorp.biz"
+                        "admin@testcorp.biz"
                     ],
                     "contains": [
                         "email"
@@ -1240,7 +1240,7 @@
                     "data_path": "action_result.data.*.to",
                     "data_type": "string",
                     "example_values": [
-                        "admin@hermancorp.biz"
+                        "admin@testcorp.biz"
                     ],
                     "contains": [
                         "email"

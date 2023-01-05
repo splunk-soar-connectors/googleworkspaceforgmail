@@ -25,7 +25,7 @@ GSGMAIL_USERS_FETCH_FAILURE = 'Failed to get users'
 GSGMAIL_INVALID_INTEGER_ERR_MSG = 'Please provide a valid {msg} integer value in the "{param}"'
 
 GSGMAIL_AUTH_GMAIL_READ = 'https://www.googleapis.com/auth/gmail.readonly'
-GSGMAIL_AUTH_GMAIL_ADMIN_DIR = 'https://www.googleapis.com/auth/admin.directory.user'
+GSGMAIL_AUTH_GMAIL_ADMIN_DIR = 'https://www.googleapis.com/auth/admin.directory.user.readonly'
 GSGMAIL_DELETE_EMAIL = 'https://mail.google.com/'
 
 GSMAIL_DEFAULT_FIRST_RUN_MAX_EMAIL = 1000

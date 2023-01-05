@@ -27,7 +27,6 @@ from datetime import datetime
 import phantom.app as phantom
 import phantom.utils as ph_utils
 import requests
-from bs4 import UnicodeDammit
 from google.oauth2 import service_account
 from googleapiclient import errors
 from phantom.action_result import ActionResult
@@ -65,7 +64,6 @@ class GSuiteConnector(BaseConnector):
         self._key_dict = None
         self._domain = None
         self._state = {}
-        self._python_version = None
         self._login_email = None
         self._dup_emails = 0
         self._last_email_epoch = None
@@ -107,11 +105,6 @@ class GSuiteConnector(BaseConnector):
         self._state = self.load_state()
         if self._state:
             self._last_email_epoch = self._state.get('last_email_epoch')
-        # Fetching the Python major version
-        try:
-            self._python_version = int(sys.version_info[0])
-        except Exception:
-            return self.set_status(phantom.APP_ERROR, "Error occurred while fetching the Phantom server's Python major version")
 
         config = self.get_config()
 
@@ -134,83 +127,60 @@ class GSuiteConnector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
-    def _handle_py_ver_compat_for_input_str(self, input_str, always_encode=False):
-        """
-        This method returns the encoded|original string based on the Python version.
-        :param input_str: Input string to be processed
-        :param always_encode: Used if the string needs to be encoded for python 3
-        :return: input_str (Processed input string based on following logic 'input_str - Python 3; encoded input_str - Python 2')
-        """
-
-        try:
-            if input_str and (self._python_version == 2 or always_encode):
-                input_str = UnicodeDammit(input_str).unicode_markup.encode('utf-8')
-        except Exception:
-            self.debug_print("Error occurred while handling python 2to3 compatibility for the input string")
-
-        return input_str
-
     def _validate_integer(self, action_result, parameter, key, allow_zero=False):
-        try:
-            parameter = int(parameter)
-        except Exception:
-            action_result.set_status(
-                phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg="", param=key))
-            return None
+        """
+        Validate an integer.
 
-        if parameter < 0:
-            action_result.set_status(
-                phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg="non-negative", param=key))
-            return None
+        :param action_result: Action result or BaseConnector object
+        :param parameter: input parameter
+        :param key: input parameter message key
+        :allow_zero: whether zero should be considered as valid value or not
+        :return: status phantom.APP_ERROR/phantom.APP_SUCCESS, integer value of the parameter or None in case of failure
+        """
+        if parameter is not None:
+            try:
+                if not float(parameter).is_integer():
+                    return action_result.set_status(phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg="", param=key)), None
 
-        if not allow_zero and parameter == 0:
-            action_result.set_status(
-                phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg="non-zero positive", param=key))
-            return None
+                parameter = int(parameter)
+            except Exception:
+                return action_result.set_status(phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg="", param=key)), None
 
-        return parameter
+            if parameter < 0:
+                return action_result.set_status(phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg="non-negative", param=key)), None
+            if not allow_zero and parameter == 0:
+                return action_result.set_status(phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg="non-zero positive", param=key)), None
+
+        return phantom.APP_SUCCESS, parameter
 
     def _get_error_message_from_exception(self, e):
-        """ This method is used to get appropriate error message from the exception.
+        """
+        Get appropriate error message from the exception.
         :param e: Exception object
         :return: error message
         """
-        error_code = GSGMAIL_ERR_CODE_UNAVAILABLE
+
+        error_code = None
         error_msg = GSGMAIL_ERR_MESSAGE_UNAVAILABLE
 
+        self.error_print("Error occurred.", e)
+
         try:
-            if e.args:
+            if hasattr(e, "args"):
                 if len(e.args) > 1:
                     error_code = e.args[0]
                     error_msg = e.args[1]
-                    try:
-                        error_json = json.loads(error_msg)
-                        error = error_json.get('error')
-                        if error:
-                            if error.get('message'):
-                                error_msg = error.get('message')
-                            if error.get('code'):
-                                error_code = error.get('code')
-                    except Exception:
-                        pass
                 elif len(e.args) == 1:
-                    error_code = GSGMAIL_ERR_CODE_UNAVAILABLE
                     error_msg = e.args[0]
-            else:
-                error_code = GSGMAIL_ERR_CODE_UNAVAILABLE
-                error_msg = GSGMAIL_ERR_MESSAGE_UNAVAILABLE
-        except Exception:
-            error_code = GSGMAIL_ERR_CODE_UNAVAILABLE
-            error_msg = GSGMAIL_ERR_MESSAGE_UNAVAILABLE
+        except Exception as e:
+            self.error_print("Error occurred while fetching exception information. Details: {}".format(str(e)))
 
-        try:
-            error_msg = self._handle_py_ver_compat_for_input_str(error_msg)
-        except TypeError:
-            error_msg = GSGMAIL_UNICODE_DAMMIT_TYPE_ERROR_MESSAGE
-        except Exception:
-            error_msg = GSGMAIL_ERR_MESSAGE_UNAVAILABLE
+        if not error_code:
+            error_text = "Error Message: {}".format(error_msg)
+        else:
+            error_text = "Error Code: {}. Error Message: {}".format(error_code, error_msg)
 
-        return "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
+        return error_text
 
     def _get_email_details(self, action_result, email_addr, email_id, service, results_format='metadata'):
         kwargs = {'userId': email_addr, 'id': email_id, 'format': results_format}
@@ -378,11 +348,11 @@ class GSuiteConnector(BaseConnector):
         query_string = ' '.join('{}:{}'.format(key, value) for key, value in query_dict.items() if value is not None)
 
         if 'body' in param:
-            query_string += " {0}".format(self._handle_py_ver_compat_for_input_str(param.get('body')))
+            query_string += " {0}".format(param.get('body'))
 
         # if query is present, then override everything
         if 'query' in param:
-            query_string = self._handle_py_ver_compat_for_input_str(param.get('query'))
+            query_string = param.get('query')
 
         """
         # Check if there is something present in the query string
@@ -390,13 +360,13 @@ class GSuiteConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, "Please specify at-least one search criteria")
         """
 
-        max_results = self._validate_integer(action_result, param.get('max_results', 100), "max_results")
-        if max_results is None:
+        ret_val, max_results = self._validate_integer(action_result, param.get('max_results', 100), "max_results")
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         kwargs = {'maxResults': max_results, 'userId': user_email, 'q': query_string}
 
-        page_token = self._handle_py_ver_compat_for_input_str(param.get('page_token'))
+        page_token = param.get('page_token')
         if page_token:
             kwargs.update({'pageToken': page_token})
 
@@ -447,7 +417,7 @@ class GSuiteConnector(BaseConnector):
 
         query_string = ""
         if 'internet_message_id' in param:
-            query_string += " rfc822msgid:{0}".format(self._handle_py_ver_compat_for_input_str(param['internet_message_id']))
+            query_string += " rfc822msgid:{0}".format(param['internet_message_id'])
 
         kwargs = {'q': query_string, 'userId': user_email}
 
@@ -588,13 +558,13 @@ class GSuiteConnector(BaseConnector):
 
         self.save_progress("Getting list of users for domain: {0}".format(self._domain))
 
-        max_users = self._validate_integer(action_result, param.get('max_items', 500), "max_items")
-        if max_users is None:
+        ret_val, max_users = self._validate_integer(action_result, param.get('max_items', 500), "max_items")
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         kwargs = {'domain': self._domain, 'maxResults': max_users, 'orderBy': 'email', 'sortOrder': 'ASCENDING'}
 
-        page_token = self._handle_py_ver_compat_for_input_str(param.get('page_token'))
+        page_token = param.get('page_token')
         if page_token:
             kwargs.update({'pageToken': page_token})
 
@@ -748,23 +718,23 @@ class GSuiteConnector(BaseConnector):
             return action_result.get_status()
 
         if self.is_poll_now():
-            max_emails = self._validate_integer(
+            ret_val, max_emails = self._validate_integer(
                 action_result, param.get(phantom.APP_JSON_CONTAINER_COUNT), 'container count', allow_zero=False)
-            if max_emails is None:
+            if phantom.is_fail(ret_val):
                 return action_result.get_status()
             self.save_progress(GSMAIL_POLL_NOW_PROGRESS)
         else:
-            first_run_max_emails = self._validate_integer(
+            ret_val1, first_run_max_emails = self._validate_integer(
                 action_result,
                 config.get('first_run_max_emails', GSMAIL_DEFAULT_FIRST_RUN_MAX_EMAIL),
                 "first_max_emails",
                 allow_zero=False)
-            max_containers = self._validate_integer(
+            ret_val2, max_containers = self._validate_integer(
                 action_result,
                 config.get('max_containers', GSMAIL_DEFAULT_MAX_CONTAINER),
                 "max_containers",
                 allow_zero=False)
-            if first_run_max_emails is None or max_containers is None:
+            if phantom.is_fail(ret_val1) or phantom.is_fail(ret_val2):
                 return action_result.get_status()
             if self._state.get('first_run', True):
                 self._state['first_run'] = False
