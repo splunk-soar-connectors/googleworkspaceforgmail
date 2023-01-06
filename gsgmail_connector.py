@@ -140,17 +140,18 @@ class GSuiteConnector(BaseConnector):
         if parameter is not None:
             try:
                 if not float(parameter).is_integer():
-                    return action_result.set_status(phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg="", param=key)), None
+                    return action_result.set_status(phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERROR_MESSAGE.format(msg="", param=key)), None
 
                 parameter = int(parameter)
             except Exception:
-                return action_result.set_status(phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg="", param=key)), None
+                return action_result.set_status(phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERROR_MESSAGE.format(msg="", param=key)), None
 
             if parameter < 0:
-                return action_result.set_status(phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg="non-negative", param=key)), None
+                message = GSGMAIL_INVALID_INTEGER_ERROR_MESSAGE.format(msg="non-negative", param=key)
+                return action_result.set_status(phantom.APP_ERROR, message), None
             if not allow_zero and parameter == 0:
                 msg = "non-zero positive"
-                return action_result.set_status(phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERR_MSG.format(msg=msg, param=key)), None
+                return action_result.set_status(phantom.APP_ERROR, GSGMAIL_INVALID_INTEGER_ERROR_MESSAGE.format(msg=msg, param=key)), None
 
         return phantom.APP_SUCCESS, parameter
 
@@ -162,7 +163,7 @@ class GSuiteConnector(BaseConnector):
         """
 
         error_code = None
-        error_msg = GSGMAIL_ERR_MESSAGE_UNAVAILABLE
+        error_message = GSGMAIL_ERROR_MESSAGE_UNAVAILABLE
 
         self.error_print("Error occurred.", e)
 
@@ -170,16 +171,16 @@ class GSuiteConnector(BaseConnector):
             if hasattr(e, "args"):
                 if len(e.args) > 1:
                     error_code = e.args[0]
-                    error_msg = e.args[1]
+                    error_message = e.args[1]
                 elif len(e.args) == 1:
-                    error_msg = e.args[0]
+                    error_message = e.args[0]
         except Exception as e:
             self.error_print("Error occurred while fetching exception information. Details: {}".format(str(e)))
 
         if not error_code:
-            error_text = "Error Message: {}".format(error_msg)
+            error_text = "Error Message: {}".format(error_message)
         else:
-            error_text = "Error Code: {}. Error Message: {}".format(error_code, error_msg)
+            error_text = "Error Code: {}. Error Message: {}".format(error_code, error_message)
 
         return error_text
 
@@ -244,9 +245,9 @@ class GSuiteConnector(BaseConnector):
             try:
                 headers.setdefault(x[0].lower().replace('-', '_').replace(' ', '_'), []).append(x[1])
             except Exception as e:
-                error_msg = self._get_error_message_from_exception(e)
+                error_message = self._get_error_message_from_exception(e)
                 err = "Error occurred while converting the header tuple into a dictionary"
-                self.debug_print("{}. {}".format(err, error_msg))
+                self.error_print("{}. {}".format(err, error_message))
         headers = {k.lower(): '\n'.join(v) for k, v in headers.items()}
 
         return dict(headers)
@@ -291,7 +292,8 @@ class GSuiteConnector(BaseConnector):
                     # Create vault item with attachment payload
                     attach_resp = Vault.create_attachment(part.get_payload(decode=True), container_id=container_id, file_name=file_name)
                 except Exception as e:
-                    self.debug_print('Unable to add attachment: {} Error: {}').format(str(file_name), str(e))
+                    message = self._get_error_message_from_exception(e)
+                    self.error_print('Unable to add attachment: {} Error: {}').format(str(file_name), message)
                 if attach_resp.get('succeeded'):
                     # Create vault artifact
                     artifact = {
@@ -457,7 +459,8 @@ class GSuiteConnector(BaseConnector):
                 try:
                     email_details_resp['parsed_plain_body'] = msg.get_payload(decode=True).decode(encoding=charset, errors="ignore")
                 except Exception as e:
-                    self.debug_print("Unable to add email body: {}").format(e)
+                    message = self._get_error_message_from_exception(e)
+                    self.error_print("Unable to add email body: {}").format(message)
 
             action_result.add_data(email_details_resp)
 
@@ -501,11 +504,11 @@ class GSuiteConnector(BaseConnector):
             try:
                 get_msg_resp = service.users().messages().get(**kwargs).execute()  # noqa
             except apiclient.errors.HttpError:
-                self.debug_print("Caught HttpError")
+                self.error_print("Caught HttpError")
                 bad_ids.add(email_id)
                 continue
             except Exception as e:
-                self.debug_print("Exception name: {}".format(e.__class__.__name__))
+                self.error_print("Exception name: {}".format(e.__class__.__name__))
                 error_message = self._get_error_message_from_exception(e)
                 return action_result.set_status(
                     phantom.APP_ERROR, 'Error checking email. ID: {} Reason: {}.'.format(email_id, error_message)
@@ -573,7 +576,6 @@ class GSuiteConnector(BaseConnector):
             users_resp = service.users().list(**kwargs).execute()
         except Exception as e:
             error_message = self._get_error_message_from_exception(e)
-            self.debug_print("Exception message: {}".format(error_message))
             return action_result.set_status(phantom.APP_ERROR, GSGMAIL_USERS_FETCH_FAILURE, error_message)
 
         users = users_resp.get('users', [])

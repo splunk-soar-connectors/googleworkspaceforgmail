@@ -638,7 +638,7 @@ class ProcessMail:
         parsed_mail[PROC_EMAIL_JSON_FROM] = mail.get('From', '')
         parsed_mail[PROC_EMAIL_JSON_TO] = mail.get('To', '')
         parsed_mail[PROC_EMAIL_JSON_DATE] = mail.get('Date', '')
-        parsed_mail[PROC_EMAIL_JSON_MSG_ID] = mail.get('Message-ID', '')
+        parsed_mail[PROC_EMAIL_JSON_MESSAGE_ID] = mail.get('Message-ID', '')
         parsed_mail[PROC_EMAIL_JSON_FILES] = files = []
         parsed_mail[PROC_EMAIL_JSON_BODIES] = bodies = []
         parsed_mail[PROC_EMAIL_JSON_START_TIME] = start_time_epoch
