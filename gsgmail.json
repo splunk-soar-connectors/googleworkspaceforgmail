@@ -16,7 +16,7 @@
     "latest_tested_versions": [
         "Cloud, January 05, 2023"
     ],
-    "app_version": "2.3.11",
+    "app_version": "2.4.0",
     "product_version_regex": ".*",
     "license": "Copyright (c) 2017-2023 Splunk Inc.",
     "utctime_updated": "2022-01-25T00:07:36.000000Z",
@@ -189,7 +189,7 @@
         {
             "action": "test connectivity",
             "description": "Validate the asset configuration for connectivity",
-            "verbose": "Action uses the Admin SDK API to get a list of users. Requires authorization with the following scope: <b>https://www.googleapis.com/auth/admin.directory.user</b>.",
+            "verbose": "Action uses the Admin SDK API to get a list of users. Requires authorization with the following scope: <b>https://www.googleapis.com/auth/admin.directory.user.readonly</b>.",
             "type": "test",
             "identifier": "test_connectivity",
             "read_only": true,
@@ -200,7 +200,7 @@
         {
             "action": "list users",
             "description": "Get the list of users",
-            "verbose": "Action uses the Admin SDK API to get a list of users. Requires authorization with the following scope: <b>https://www.googleapis.com/auth/admin.directory.user</b>.<br>The action will limit the number of users returned to <b>max_items</b> or (if not specified) 500. If the system has any more users, a next page token will be returned in <b>action_result.summary.next_page_token</b>. Use this value as input to <b>page_token</b> in subsequent calls to <b>list users</b>.",
+            "verbose": "Action uses the Admin SDK API to get a list of users. Requires authorization with the following scope: <b>https://www.googleapis.com/auth/admin.directory.user.readonly</b>.<br>The action will limit the number of users returned to <b>max_items</b> or (if not specified) 500. If the system has any more users, a next page token will be returned in <b>action_result.summary.next_page_token</b>. Use this value as input to <b>page_token</b> in subsequent calls to <b>list users</b>.",
             "type": "investigate",
             "identifier": "get_users",
             "read_only": true,
@@ -882,6 +882,7 @@
         {
             "action": "on poll",
             "description": "Callback action for the on-poll ingest functionality",
+            "verbose": "Requires authorization with the following scope: <b>https://www.googleapis.com/auth/gmail.readonly</b>",
             "type": "ingest",
             "identifier": "on_poll",
             "read_only": true,
