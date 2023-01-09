@@ -369,6 +369,20 @@
                     "data_type": "string"
                 },
                 {
+                    "data_path": "action_result.data.*.languages.*.languageCode",
+                    "data_type": "string",
+                    "example_values": [
+                        "en"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.languages.*.preference",
+                    "data_type": "string",
+                    "example_values": [
+                        "preferred"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.lastLoginTime",
                     "data_type": "string"
                 },
@@ -956,7 +970,7 @@
                 },
                 {
                     "data_path": "action_result.parameter.extract_attachments",
-                    "data_type": "numeric",
+                    "data_type": "boolean",
                     "example_values": [
                         false
                     ]
@@ -1153,6 +1167,13 @@
                     "data_type": "string",
                     "example_values": [
                         "GAMMA:<e3d885faf2cc04f261d3874bafe2dc8afc44a230-10004962-100081937@google.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.email_headers.*.x_notifications_bounce_info",
+                    "data_type": "string",
+                    "example_values": [
+                        "AXvZQxfkTaodaY87TxIiHBg1x3Tx1_dOt6hnshnCtGR9SITP7OmGWvNCCGRT9Tyj_2w4772syOqKk6YvkLiVDIng-Xq1VSkKuRhYdIs_aDGwcaNoVypJD4jay6E4wMyaK98V5kVnJjyqjdDHzqLvNjLlPyD_4FB_zfEH2Rn9I9vktuDD8oFQ9PKrZ23DD3xi9OZTp3lJf8nQe0bBukIV3MRyNw-xI7_iB30Auq1WVoyoQ0qTthrFGZuKDHGjkdblAV5LSJwNjAwNjA0MDQxNTM1NTk2OTMzMg"
                     ]
                 },
                 {
