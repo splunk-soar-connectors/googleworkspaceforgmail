@@ -124,6 +124,7 @@
         "label": {
             "description": "Mailbox Label (folder) to be polled",
             "data_type": "string",
+            "default": "",
             "order": 2
         },
         "ingest_manner": {
