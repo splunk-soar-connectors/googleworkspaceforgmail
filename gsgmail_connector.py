@@ -79,7 +79,7 @@ class GSuiteConnector(BaseConnector):
         except Exception as e:
             return RetVal2(
                 action_result.set_status(
-                    phantom.APP_ERROR, GSGMAIL_SERVICE_KEY_FAILURE, self._get_error_message_from_exception(e)),
+                    phantom.APP_ERROR, GSGMAIL_SERVICE_KEY_FAILED, self._get_error_message_from_exception(e)),
                 None)
 
         if delegated_user:
@@ -88,7 +88,7 @@ class GSuiteConnector(BaseConnector):
             except Exception as e:
                 return RetVal2(
                     action_result.set_status(
-                        phantom.APP_ERROR, GSGMAIL_CREDENTIALS_FAILURE, self._get_error_message_from_exception(e)),
+                        phantom.APP_ERROR, GSGMAIL_CREDENTIALS_FAILED, self._get_error_message_from_exception(e)),
                     None)
 
         try:
@@ -190,7 +190,7 @@ class GSuiteConnector(BaseConnector):
         try:
             email_details = service.users().messages().get(**kwargs).execute()
         except Exception as e:
-            return RetVal2(action_result.set_status(phantom.APP_ERROR, GSGMAIL_EMAIL_FETCH_FAILURE,
+            return RetVal2(action_result.set_status(phantom.APP_ERROR, GSGMAIL_EMAIL_FETCH_FAILED,
                                                     self._get_error_message_from_exception(e)))
 
         return RetVal2(phantom.APP_SUCCESS, email_details)
@@ -576,7 +576,7 @@ class GSuiteConnector(BaseConnector):
             users_resp = service.users().list(**kwargs).execute()
         except Exception as e:
             error_message = self._get_error_message_from_exception(e)
-            return action_result.set_status(phantom.APP_ERROR, GSGMAIL_USERS_FETCH_FAILURE, error_message)
+            return action_result.set_status(phantom.APP_ERROR, GSGMAIL_USERS_FETCH_FAILED, error_message)
 
         users = users_resp.get('users', [])
         num_users = len(users)

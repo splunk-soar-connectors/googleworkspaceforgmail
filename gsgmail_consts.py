@@ -1,6 +1,6 @@
 # File: gsgmail_consts.py
 #
-# Copyright (c) 2017-2022 Splunk Inc.
+# Copyright (c) 2017-2023 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ GSGMAIL_ERROR_MESSAGE_UNAVAILABLE = (
 GSGMAIL_UNICODE_DAMMIT_TYPE_ERROR_MESSAGE = (
     'Error occurred while connecting to the GMAIL server. '
     'Please check the asset configuration and|or the action parameters')
-GSGMAIL_SERVICE_KEY_FAILURE = 'Unable to load the credentials from the key JSON'  # pragma: allowlist secret
-GSGMAIL_CREDENTIALS_FAILURE = 'Failed to create delegated credentials'
-GSGMAIL_EMAIL_FETCH_FAILURE = 'Failed to get email details'
-GSGMAIL_USERS_FETCH_FAILURE = 'Failed to get users'
+GSGMAIL_SERVICE_KEY_FAILED = 'Unable to load the credentials from the key JSON'  # pragma: allowlist secret
+GSGMAIL_CREDENTIALS_FAILED = 'Failed to create delegated credentials'
+GSGMAIL_EMAIL_FETCH_FAILED = 'Failed to get email details'
+GSGMAIL_USERS_FETCH_FAILED = 'Failed to get users'
 GSGMAIL_INVALID_INTEGER_ERROR_MESSAGE = 'Please provide a valid {msg} integer value in the "{param}"'
 
 GSGMAIL_AUTH_GMAIL_READ = 'https://www.googleapis.com/auth/gmail.readonly'
