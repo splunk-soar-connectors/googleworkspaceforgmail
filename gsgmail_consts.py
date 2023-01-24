@@ -1,6 +1,6 @@
 # File: gsgmail_consts.py
 #
-# Copyright (c) 2017-2022 Splunk Inc.
+# Copyright (c) 2017-2023 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,20 +12,20 @@
 # the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
-GSGMAIL_ERR_CODE_UNAVAILABLE = 'Error code unavailable'
-GSGMAIL_ERR_MESSAGE_UNAVAILABLE = (
+
+GSGMAIL_ERROR_MESSAGE_UNAVAILABLE = (
     'Error message unavailable. Please check the asset configuration and|or action parameters')
 GSGMAIL_UNICODE_DAMMIT_TYPE_ERROR_MESSAGE = (
     'Error occurred while connecting to the GMAIL server. '
     'Please check the asset configuration and|or the action parameters')
-GSGMAIL_SERVICE_KEY_FAILURE = 'Unable to load the credentials from the key JSON'  # pragma: allowlist secret
-GSGMAIL_CREDENTIALS_FAILURE = 'Failed to create delegated credentials'
-GSGMAIL_EMAIL_FETCH_FAILURE = 'Failed to get email details'
-GSGMAIL_USERS_FETCH_FAILURE = 'Failed to get users'
-GSGMAIL_INVALID_INTEGER_ERR_MSG = 'Please provide a valid {msg} integer value in the "{param}"'
+GSGMAIL_SERVICE_KEY_FAILED = 'Unable to load the credentials from the key JSON'  # pragma: allowlist secret
+GSGMAIL_CREDENTIALS_FAILED = 'Failed to create delegated credentials'
+GSGMAIL_EMAIL_FETCH_FAILED = 'Failed to get email details'
+GSGMAIL_USERS_FETCH_FAILED = 'Failed to get users'
+GSGMAIL_INVALID_INTEGER_ERROR_MESSAGE = 'Please provide a valid {msg} integer value in the "{param}"'
 
 GSGMAIL_AUTH_GMAIL_READ = 'https://www.googleapis.com/auth/gmail.readonly'
-GSGMAIL_AUTH_GMAIL_ADMIN_DIR = 'https://www.googleapis.com/auth/admin.directory.user'
+GSGMAIL_AUTH_GMAIL_ADMIN_DIR = 'https://www.googleapis.com/auth/admin.directory.user.readonly'
 GSGMAIL_DELETE_EMAIL = 'https://mail.google.com/'
 
 GSMAIL_DEFAULT_FIRST_RUN_MAX_EMAIL = 1000
@@ -59,7 +59,7 @@ PROC_EMAIL_JSON_IPS = "ips"
 PROC_EMAIL_JSON_HASHES = "hashes"
 PROC_EMAIL_JSON_URLS = "urls"
 PROC_EMAIL_JSON_DOMAINS = "domains"
-PROC_EMAIL_JSON_MSG_ID = "message_id"
+PROC_EMAIL_JSON_MESSAGE_ID = "message_id"
 PROC_EMAIL_JSON_EMAIL_HEADERS = "email_headers"
 PROC_EMAIL_CONTENT_TYPE_MESSAGE = "message/rfc822"
 PROC_EMAIL_PARSED = "Email Parsed"

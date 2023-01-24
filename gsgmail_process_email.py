@@ -1,6 +1,6 @@
 # File: gsgmail_process_email.py
 #
-# Copyright (c) 2017-2022 Splunk Inc.
+# Copyright (c) 2017-2023 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import re
 import shutil
 import socket
 import string
-import sys
 import tempfile
 from collections import OrderedDict
 from email.header import decode_header, make_header
@@ -87,12 +86,6 @@ class ProcessMail:
         self._container = dict()
         self._artifacts = list()
         self._attachments = list()
-        self._python_version = None
-
-        try:
-            self._python_version = int(sys.version_info[0])
-        except Exception:
-            raise Exception("Error occurred while getting the Phantom server's Python major version.")
 
     def _get_file_contains(self, file_path):
 
@@ -645,7 +638,7 @@ class ProcessMail:
         parsed_mail[PROC_EMAIL_JSON_FROM] = mail.get('From', '')
         parsed_mail[PROC_EMAIL_JSON_TO] = mail.get('To', '')
         parsed_mail[PROC_EMAIL_JSON_DATE] = mail.get('Date', '')
-        parsed_mail[PROC_EMAIL_JSON_MSG_ID] = mail.get('Message-ID', '')
+        parsed_mail[PROC_EMAIL_JSON_MESSAGE_ID] = mail.get('Message-ID', '')
         parsed_mail[PROC_EMAIL_JSON_FILES] = files = []
         parsed_mail[PROC_EMAIL_JSON_BODIES] = bodies = []
         parsed_mail[PROC_EMAIL_JSON_START_TIME] = start_time_epoch
@@ -785,10 +778,7 @@ class ProcessMail:
 
         try:
             if input_str:
-                if self._python_version == 2:
-                    input_str = UnicodeDammit(input_str).unicode_markup.encode(charset)
-                else:
-                    input_str = UnicodeDammit(input_str).unicode_markup.encode(charset).decode(charset)
+                input_str = UnicodeDammit(input_str).unicode_markup.encode(charset).decode(charset)
         except Exception:
             try:
                 input_str = str(make_header(decode_header(input_str)))
@@ -1070,7 +1060,7 @@ class ProcessMail:
             del input_dict['source_data_identifier']
         dict_hash = None
 
-        # first get the phantom version
+        # first get the SOAR version
         phantom_version = self._base_connector.get_product_version()
 
         if not phantom_version:
