@@ -1105,7 +1105,7 @@ class ProcessMail:
         # to not impact existing customers
         dict_hash = input_dict_str.encode()
         if not fips_enabled:
-            dict_hash = hashlib.md5(dict_hash)  #nosemgrep
+            dict_hash = hashlib.md5(dict_hash)   # nosemgrep
         else:
             dict_hash = hashlib.sha256(dict_hash)
         return dict_hash.hexdigest()
