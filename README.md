@@ -2,16 +2,16 @@
 # G Suite for GMail
 
 Publisher: Splunk  
-Connector Version: 2\.3\.9  
+Connector Version: 2\.4\.0  
 Product Vendor: Google  
 Product Name: GMail  
 Product Version Supported (regex): "\.\*"  
-Minimum Product Version: 4\.10\.0\.40961  
+Minimum Product Version: 5\.4\.0  
 
 Integrates with G Suite for various investigative and containment actions
 
 [comment]: # " File: README.md"
-[comment]: # "  Copyright (c) 2017-2022 Splunk Inc."
+[comment]: # "  Copyright (c) 2017-2023 Splunk Inc."
 [comment]: # ""
 [comment]: # "  Licensed under Apache 2.0 (https://www.apache.org/licenses/LICENSE-2.0.txt)"
 [comment]: # ""
@@ -48,7 +48,7 @@ To enable scopes please complete the following steps:
     account JSON file (key named **client_id** ).
 -   In the **One or More API Scopes** field enter the list of scopes that you wish to grant access
     to the App. For example, to enable all the scopes required by this app enter:
-    https://mail.google.com/, https://www.googleapis.com/auth/admin.directory.user,
+    https://mail.google.com/, https://www.googleapis.com/auth/admin.directory.user.readonly,
     https://www.googleapis.com/auth/gmail.readonly
 -   Click **Authorize** .
 
@@ -117,7 +117,7 @@ Validate the asset configuration for connectivity
 Type: **test**  
 Read only: **True**
 
-Action uses the Admin SDK API to get a list of users\. Requires authorization with the following scope\: <b>https\://www\.googleapis\.com/auth/admin\.directory\.user</b>\.
+Action uses the Admin SDK API to get a list of users\. Requires authorization with the following scope\: <b>https\://www\.googleapis\.com/auth/admin\.directory\.user\.readonly</b>\.
 
 #### Action Parameters
 No parameters are required for this action
@@ -131,7 +131,7 @@ Get the list of users
 Type: **investigate**  
 Read only: **True**
 
-Action uses the Admin SDK API to get a list of users\. Requires authorization with the following scope\: <b>https\://www\.googleapis\.com/auth/admin\.directory\.user</b>\.<br>The action will limit the number of users returned to <b>max\_items</b> or \(if not specified\) 500\. If the system has any more users, a next page token will be returned in <b>action\_result\.summary\.next\_page\_token</b>\. Use this value as input to <b>page\_token</b> in subsequent calls to <b>list users</b>\.
+Action uses the Admin SDK API to get a list of users\. Requires authorization with the following scope\: <b>https\://www\.googleapis\.com/auth/admin\.directory\.user\.readonly</b>\.<br>The action will limit the number of users returned to <b>max\_items</b> or \(if not specified\) 500\. If the system has any more users, a next page token will be returned in <b>action\_result\.summary\.next\_page\_token</b>\. Use this value as input to <b>page\_token</b> in subsequent calls to <b>list users</b>\.
 
 #### Action Parameters
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
@@ -163,6 +163,8 @@ action\_result\.data\.\*\.isEnforcedIn2Sv | boolean |
 action\_result\.data\.\*\.isEnrolledIn2Sv | boolean | 
 action\_result\.data\.\*\.isMailboxSetup | boolean | 
 action\_result\.data\.\*\.kind | string | 
+action\_result\.data\.\*\.languages\.\*\.languageCode | string | 
+action\_result\.data\.\*\.languages\.\*\.preference | string | 
 action\_result\.data\.\*\.lastLoginTime | string | 
 action\_result\.data\.\*\.name\.familyName | string | 
 action\_result\.data\.\*\.name\.fullName | string | 
@@ -265,6 +267,8 @@ Callback action for the on\-poll ingest functionality
 Type: **ingest**  
 Read only: **True**
 
+Requires authorization with the following scope\: <b>https\://www\.googleapis\.com/auth/gmail\.readonly</b>\.
+
 #### Action Parameters
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
@@ -297,7 +301,7 @@ DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
 action\_result\.status | string | 
 action\_result\.parameter\.email | string |  `email` 
-action\_result\.parameter\.extract\_attachments | numeric | 
+action\_result\.parameter\.extract\_attachments | boolean | 
 action\_result\.parameter\.internet\_message\_id | string |  `internet message id` 
 action\_result\.data\.\*\.email\_headers\.\*\.arc\_authentication\_results | string | 
 action\_result\.data\.\*\.email\_headers\.\*\.arc\_message\_signature | string | 
@@ -324,6 +328,7 @@ action\_result\.data\.\*\.email\_headers\.\*\.x\_google\_dkim\_signature | strin
 action\_result\.data\.\*\.email\_headers\.\*\.x\_google\_id | string | 
 action\_result\.data\.\*\.email\_headers\.\*\.x\_google\_smtp\_source | string | 
 action\_result\.data\.\*\.email\_headers\.\*\.x\_notifications | string | 
+action\_result\.data\.\*\.email\_headers\.\*\.x\_notifications\_bounce\_info | string | 
 action\_result\.data\.\*\.email\_headers\.\*\.x\_received | string | 
 action\_result\.data\.\*\.from | string |  `email` 
 action\_result\.data\.\*\.historyId | string | 

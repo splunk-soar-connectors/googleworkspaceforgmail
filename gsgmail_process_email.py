@@ -1,6 +1,6 @@
 # File: gsgmail_process_email.py
 #
-# Copyright (c) 2017-2022 Splunk Inc.
+# Copyright (c) 2017-2023 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,26 +13,27 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 import email
-import tempfile
-from collections import OrderedDict
-import os
-import re
-from bs4 import BeautifulSoup, UnicodeDammit
-import phantom.app as phantom
-import phantom.utils as ph_utils
-import mimetypes
-import socket
-from email.header import decode_header, make_header
-import shutil
 import hashlib
 import json
-import magic
+import mimetypes
+import os
 import random
+import re
+import shutil
+import socket
 import string
+import tempfile
+from collections import OrderedDict
+from email.header import decode_header, make_header
+
+import magic
+import phantom.app as phantom
 import phantom.rules as phantom_rules
-from gsgmail_consts import *
-import sys
+import phantom.utils as ph_utils
+from bs4 import BeautifulSoup, UnicodeDammit
 from requests.structures import CaseInsensitiveDict
+
+from gsgmail_consts import *
 
 _container_common = {
     "run_automation": False  # Don't run any playbooks, when this artifact is added
@@ -85,12 +86,6 @@ class ProcessMail:
         self._container = dict()
         self._artifacts = list()
         self._attachments = list()
-        self._python_version = None
-
-        try:
-            self._python_version = int(sys.version_info[0])
-        except Exception:
-            raise Exception("Error occurred while getting the Phantom server's Python major version.")
 
     def _get_file_contains(self, file_path):
 
@@ -643,7 +638,7 @@ class ProcessMail:
         parsed_mail[PROC_EMAIL_JSON_FROM] = mail.get('From', '')
         parsed_mail[PROC_EMAIL_JSON_TO] = mail.get('To', '')
         parsed_mail[PROC_EMAIL_JSON_DATE] = mail.get('Date', '')
-        parsed_mail[PROC_EMAIL_JSON_MSG_ID] = mail.get('Message-ID', '')
+        parsed_mail[PROC_EMAIL_JSON_MESSAGE_ID] = mail.get('Message-ID', '')
         parsed_mail[PROC_EMAIL_JSON_FILES] = files = []
         parsed_mail[PROC_EMAIL_JSON_BODIES] = bodies = []
         parsed_mail[PROC_EMAIL_JSON_START_TIME] = start_time_epoch
@@ -783,10 +778,7 @@ class ProcessMail:
 
         try:
             if input_str:
-                if self._python_version == 2:
-                    input_str = UnicodeDammit(input_str).unicode_markup.encode(charset)
-                else:
-                    input_str = UnicodeDammit(input_str).unicode_markup.encode(charset).decode(charset)
+                input_str = UnicodeDammit(input_str).unicode_markup.encode(charset).decode(charset)
         except Exception:
             try:
                 input_str = str(make_header(decode_header(input_str)))
@@ -1019,7 +1011,8 @@ class ProcessMail:
 
         # success, message, vault_id = phantom_rules.vault_add(container_id, local_file_path, file_name)
         try:
-            success, message, vault_id = phantom_rules.vault_add(file_location=local_file_path, container=container_id, file_name=file_name, metadata=vault_attach_dict)
+            success, message, vault_id = phantom_rules.vault_add(
+                file_location=local_file_path, container=container_id, file_name=file_name, metadata=vault_attach_dict)
         except Exception as e:
             self._base_connector.debug_print(phantom.APP_ERR_FILE_ADD_TO_VAULT.format(e))
             return phantom.APP_ERROR, phantom.APP_ERROR
@@ -1067,7 +1060,7 @@ class ProcessMail:
             del input_dict['source_data_identifier']
         dict_hash = None
 
-        # first get the phantom version
+        # first get the SOAR version
         phantom_version = self._base_connector.get_product_version()
 
         if not phantom_version:
@@ -1112,7 +1105,7 @@ class ProcessMail:
         # to not impact existing customers
         dict_hash = input_dict_str.encode()
         if not fips_enabled:
-            dict_hash = hashlib.md5(dict_hash)
+            dict_hash = hashlib.md5(dict_hash)   # nosemgrep
         else:
             dict_hash = hashlib.sha256(dict_hash)
         return dict_hash.hexdigest()

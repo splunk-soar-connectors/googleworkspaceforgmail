@@ -10,53 +10,17 @@
     "package_name": "phantom_gsgmail",
     "product_vendor": "Google",
     "product_name": "GMail",
-    "min_phantom_version": "4.10.0.40961",
+    "min_phantom_version": "5.4.0",
     "fips_compliant": true,
     "python_version": "3",
     "latest_tested_versions": [
-        "Cloud, September 27, 2021"
+        "Cloud, January 05, 2023"
     ],
-    "app_version": "2.3.9",
+    "app_version": "2.4.0",
     "product_version_regex": ".*",
-    "license": "Copyright (c) 2017-2022 Splunk Inc.",
-    "utctime_updated": "2022-01-19T23:55:59.000000Z",
+    "license": "Copyright (c) 2017-2023 Splunk Inc.",
+    "utctime_updated": "2022-01-25T00:07:36.000000Z",
     "pip_dependencies": {
-        "wheel": [
-            {
-                "module": "oauth2client",
-                "input_file": "wheels/oauth2client_wheel/oauth2client-4.1.2-py2.py3-none-any.whl"
-            },
-            {
-                "module": "rsa",
-                "input_file": "wheels/rsa-4.0-py2.py3-none-any.whl"
-            },
-            {
-                "module": "pyasn1_modules",
-                "input_file": "wheels/pyasn1_modules-0.2.8-py2.py3-none-any.whl"
-            },
-            {
-                "module": "httplib2",
-                "input_file": "wheels/httplib2_wheel/httplib2-0.9.2-py2-none-any.whl"
-            },
-            {
-                "module": "google-auth",
-                "input_file": "wheels/google_auth-1.11.2-py2.py3-none-any.whl"
-            },
-            {
-                "module": "google-auth-httplib2",
-                "input_file": "wheels/google_auth_httplib2-0.0.3-py2.py3-none-any.whl"
-            },
-            {
-                "module": "google-api-python-client",
-                "input_file": "wheels/googleapiclient_wheel/google_api_python_client-1.6.4-py2.py3-none-any.whl"
-            },
-            {
-                "module": "uritemplate",
-                "input_file": "wheels/uritemplate-3.0.1-py2.py3-none-any.whl"
-            }
-        ]
-    },
-    "pip3_dependencies": {
         "wheel": [
             {
                 "module": "beautifulsoup4",
@@ -68,7 +32,7 @@
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/shared/certifi-2021.10.8-py2.py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.12.7-py3-none-any.whl"
             },
             {
                 "module": "chardet",
@@ -124,7 +88,7 @@
             },
             {
                 "module": "setuptools",
-                "input_file": "wheels/py3/setuptools-58.5.3-py3-none-any.whl"
+                "input_file": "wheels/py3/setuptools-59.6.0-py3-none-any.whl"
             },
             {
                 "module": "six",
@@ -132,7 +96,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.3-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
             },
             {
                 "module": "uritemplate",
@@ -140,7 +104,7 @@
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.7-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.13-py2.py3-none-any.whl"
             }
         ]
     },
@@ -226,7 +190,7 @@
         {
             "action": "test connectivity",
             "description": "Validate the asset configuration for connectivity",
-            "verbose": "Action uses the Admin SDK API to get a list of users. Requires authorization with the following scope: <b>https://www.googleapis.com/auth/admin.directory.user</b>.",
+            "verbose": "Action uses the Admin SDK API to get a list of users. Requires authorization with the following scope: <b>https://www.googleapis.com/auth/admin.directory.user.readonly</b>.",
             "type": "test",
             "identifier": "test_connectivity",
             "read_only": true,
@@ -237,7 +201,7 @@
         {
             "action": "list users",
             "description": "Get the list of users",
-            "verbose": "Action uses the Admin SDK API to get a list of users. Requires authorization with the following scope: <b>https://www.googleapis.com/auth/admin.directory.user</b>.<br>The action will limit the number of users returned to <b>max_items</b> or (if not specified) 500. If the system has any more users, a next page token will be returned in <b>action_result.summary.next_page_token</b>. Use this value as input to <b>page_token</b> in subsequent calls to <b>list users</b>.",
+            "verbose": "Action uses the Admin SDK API to get a list of users. Requires authorization with the following scope: <b>https://www.googleapis.com/auth/admin.directory.user.readonly</b>.<br>The action will limit the number of users returned to <b>max_items</b> or (if not specified) 500. If the system has any more users, a next page token will be returned in <b>action_result.summary.next_page_token</b>. Use this value as input to <b>page_token</b> in subsequent calls to <b>list users</b>.",
             "type": "investigate",
             "identifier": "get_users",
             "read_only": true,
@@ -406,6 +370,20 @@
                     "data_type": "string"
                 },
                 {
+                    "data_path": "action_result.data.*.languages.*.languageCode",
+                    "data_type": "string",
+                    "example_values": [
+                        "en"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.languages.*.preference",
+                    "data_type": "string",
+                    "example_values": [
+                        "preferred"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.lastLoginTime",
                     "data_type": "string"
                 },
@@ -461,7 +439,7 @@
                     "data_path": "action_result.data.*.recoveryEmail",
                     "data_type": "string",
                     "example_values": [
-                        "admin@hermancorp.biz"
+                        "admin@testcorp.biz"
                     ]
                 },
                 {
@@ -610,7 +588,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "admin@hermancorp.biz"
+                        "admin@testcorp.biz"
                     ]
                 },
                 {
@@ -833,7 +811,7 @@
                     "column_name": "Email",
                     "column_order": 1,
                     "example_values": [
-                        "admin@hermancorp.biz"
+                        "admin@testcorp.biz"
                     ]
                 },
                 {
@@ -905,6 +883,7 @@
         {
             "action": "on poll",
             "description": "Callback action for the on-poll ingest functionality",
+            "verbose": "Requires authorization with the following scope: <b>https://www.googleapis.com/auth/gmail.readonly</b>.",
             "type": "ingest",
             "identifier": "on_poll",
             "read_only": true,
@@ -977,14 +956,15 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
                     "data_path": "action_result.parameter.email",
                     "data_type": "string",
                     "example_values": [
-                        "admin@hermancorp.biz"
+                        "admin@testcorp.biz"
                     ],
                     "contains": [
                         "email"
@@ -992,7 +972,7 @@
                 },
                 {
                     "data_path": "action_result.parameter.extract_attachments",
-                    "data_type": "numeric",
+                    "data_type": "boolean",
                     "example_values": [
                         false
                     ]
@@ -1067,7 +1047,7 @@
                     "data_path": "action_result.data.*.email_headers.*.delivered_to",
                     "data_type": "string",
                     "example_values": [
-                        "admin@hermancorp.biz"
+                        "admin@testcorp.biz"
                     ],
                     "contains": [
                         "email"
@@ -1115,7 +1095,7 @@
                     "data_path": "action_result.data.*.email_headers.*.received",
                     "data_type": "string",
                     "example_values": [
-                        "by 2002:a05:7110:5426:b029:b6:addf:f84f with SMTP id i6csp1772142geg;\r\n        Sat, 1 May 2021 20:26:21 -0700 (PDT)\nfrom mail-il1-x147.google.com (mail-il1-x147.google.com. [2607:f8b0:4864:20::147])\r\n        by mx.google.com with ESMTPS id b3si9189274iot.55.2021.05.01.20.26.20\r\n        for <admin@hermancorp.biz>\r\n        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);\r\n        Sat, 01 May 2021 20:26:21 -0700 (PDT)\nby mail-il1-x147.google.com with SMTP id d3-20020a9287430000b0290181f7671fa1so1924912ilm.9\r\n        for <admin@hermancorp.biz>; Sat, 01 May 2021 20:26:20 -0700 (PDT)"
+                        "by 2002:a05:7110:5426:b029:b6:addf:f84f with SMTP id i6csp1772142geg;\r\n        Sat, 1 May 2021 20:26:21 -0700 (PDT)\nfrom mail-il1-x147.google.com (mail-il1-x147.google.com. [2607:f8b0:4864:20::147])\r\n        by mx.google.com with ESMTPS id b3si9189274iot.55.2021.05.01.20.26.20\r\n        for <admin@testcorp.biz>\r\n        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);\r\n        Sat, 01 May 2021 20:26:21 -0700 (PDT)\nby mail-il1-x147.google.com with SMTP id d3-20020a9287430000b0290181f7671fa1so1924912ilm.9\r\n        for <admin@testcorp.biz>; Sat, 01 May 2021 20:26:20 -0700 (PDT)"
                     ]
                 },
                 {
@@ -1150,7 +1130,7 @@
                     "data_path": "action_result.data.*.email_headers.*.to",
                     "data_type": "string",
                     "example_values": [
-                        "admin@hermancorp.biz"
+                        "admin@testcorp.biz"
                     ],
                     "contains": [
                         "email"
@@ -1189,6 +1169,13 @@
                     "data_type": "string",
                     "example_values": [
                         "GAMMA:<e3d885faf2cc04f261d3874bafe2dc8afc44a230-10004962-100081937@google.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.email_headers.*.x_notifications_bounce_info",
+                    "data_type": "string",
+                    "example_values": [
+                        "AXvZQxfkTaodaY87TxIiHBg1x3Tx1_dOt6hnshnCtGR9SITP7OmGWvNCCGRT9Tyj_2w4772syOqKk6YvkLiVDIng-Xq1VSkKuRhYdIs_aDGwcaNoVypJD4jay6E4wMyaK98V5kVnJjyqjdDHzqLvNjLlPyD_4FB_zfEH2Rn9I9vktuDD8oFQ9PKrZ23DD3xi9OZTp3lJf8nQe0bBukIV3MRyNw-xI7_iB30Auq1WVoyoQ0qTthrFGZuKDHGjkdblAV5LSJwNjAwNjA0MDQxNTM1NTk2OTMzMg"
                     ]
                 },
                 {
@@ -1276,7 +1263,7 @@
                     "data_path": "action_result.data.*.to",
                     "data_type": "string",
                     "example_values": [
-                        "admin@hermancorp.biz"
+                        "admin@testcorp.biz"
                     ],
                     "contains": [
                         "email"
@@ -1320,5 +1307,81 @@
                 "view": "gsgmail_view.get_email"
             }
         }
-    ]
+    ],
+    "pip39_dependencies": {
+        "wheel": [
+            {
+                "module": "cachetools",
+                "input_file": "wheels/py3/cachetools-5.2.1-py3-none-any.whl"
+            },
+            {
+                "module": "certifi",
+                "input_file": "wheels/py3/certifi-2022.12.7-py3-none-any.whl"
+            },
+            {
+                "module": "charset_normalizer",
+                "input_file": "wheels/py3/charset_normalizer-2.1.1-py3-none-any.whl"
+            },
+            {
+                "module": "google_api_python_client",
+                "input_file": "wheels/py3/google_api_python_client-1.7.12-py3-none-any.whl"
+            },
+            {
+                "module": "google_auth",
+                "input_file": "wheels/shared/google_auth-2.15.0-py2.py3-none-any.whl"
+            },
+            {
+                "module": "google_auth_httplib2",
+                "input_file": "wheels/shared/google_auth_httplib2-0.1.0-py2.py3-none-any.whl"
+            },
+            {
+                "module": "httplib2",
+                "input_file": "wheels/py3/httplib2-0.21.0-py3-none-any.whl"
+            },
+            {
+                "module": "idna",
+                "input_file": "wheels/py3/idna-3.4-py3-none-any.whl"
+            },
+            {
+                "module": "oauth2client",
+                "input_file": "wheels/shared/oauth2client-4.1.3-py2.py3-none-any.whl"
+            },
+            {
+                "module": "pyasn1",
+                "input_file": "wheels/shared/pyasn1-0.4.8-py2.py3-none-any.whl"
+            },
+            {
+                "module": "pyasn1_modules",
+                "input_file": "wheels/shared/pyasn1_modules-0.2.8-py2.py3-none-any.whl"
+            },
+            {
+                "module": "pyparsing",
+                "input_file": "wheels/py3/pyparsing-3.0.9-py3-none-any.whl"
+            },
+            {
+                "module": "python_magic",
+                "input_file": "wheels/shared/python_magic-0.4.27-py2.py3-none-any.whl"
+            },
+            {
+                "module": "requests",
+                "input_file": "wheels/py3/requests-2.28.1-py3-none-any.whl"
+            },
+            {
+                "module": "rsa",
+                "input_file": "wheels/py3/rsa-4.9-py3-none-any.whl"
+            },
+            {
+                "module": "six",
+                "input_file": "wheels/shared/six-1.16.0-py2.py3-none-any.whl"
+            },
+            {
+                "module": "uritemplate",
+                "input_file": "wheels/shared/uritemplate-3.0.1-py2.py3-none-any.whl"
+            },
+            {
+                "module": "urllib3",
+                "input_file": "wheels/shared/urllib3-1.26.13-py2.py3-none-any.whl"
+            }
+        ]
+    }
 }
