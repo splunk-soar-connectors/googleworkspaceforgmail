@@ -86,6 +86,7 @@ class ProcessMail:
         self._container = dict()
         self._artifacts = list()
         self._attachments = list()
+        self._tmp_dirs = list()
 
     def _get_file_contains(self, file_path):
 
@@ -813,6 +814,7 @@ class ProcessMail:
     def _int_process_email(self, rfc822_email, email_id, start_time_epoch):
         mail = email.message_from_string(rfc822_email)
         tmp_dir = tempfile.mkdtemp(prefix='ph_email')
+        self._tmp_dirs.append(tmp_dir)
         try:
             ret_val = self._handle_mail_object(mail, email_id, rfc822_email, tmp_dir, start_time_epoch)
         except Exception as e:
@@ -871,9 +873,17 @@ class ProcessMail:
         ret_val, message, results = self._int_process_email(rfc822_email, email_id, epoch)
 
         if not ret_val:
+            self._del_tmp_dirs()
             return phantom.APP_ERROR, message
 
-        self._parse_results(results)
+        try:
+            self._parse_results(results)
+        except Exception as e:
+            self._del_tmp_dirs()
+            error_message = self._base_connector._get_error_message_from_exception(e)
+            message = "Parsing results failed. {0}".format(error_message)
+            self._debug_print(message)
+            return phantom.APP_ERROR, message
 
         return phantom.APP_SUCCESS, PROC_EMAIL_PROCESSED
 
@@ -1109,3 +1119,8 @@ class ProcessMail:
         else:
             dict_hash = hashlib.sha256(dict_hash)
         return dict_hash.hexdigest()
+
+    def _del_tmp_dirs(self):
+        """Remove any tmp_dirs that were created."""
+        for tmp_dir in self._tmp_dirs:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
