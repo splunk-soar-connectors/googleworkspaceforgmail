@@ -21,8 +21,8 @@ This app requires a pre-configured service account to operate. Please follow the
 at [this link](https://support.google.com/a/answer/7378726?hl=en) to create a service account.  
 The following APIs will need to be enabled:
 
--   AdminSDK
--   GMail API
+- AdminSDK
+- GMail API
 
 At the end of the creation process, the admin console should ask you to save the config as a JSON
 file. Copy the contents of the JSON file in the clipboard and paste it as the value of the
@@ -35,54 +35,53 @@ these APIs to allow the App to access them. Every action requires different scop
 are listed in the action documentation.  
 To enable scopes please complete the following steps:
 
--   Go to your G Suite domain's [Admin console.](http://admin.google.com/)
--   Select **Security** from the list of controls. If you don't see **Security** listed, select
-    **More controls** from the gray bar at the bottom of the page, then select **Security** from the
-    list of controls. If you can't see the controls, make sure you're signed in as an administrator
-    for the domain.
--   Select **Show more** and then **Advanced settings** from the list of options.
--   Select **Manage API client access** in the **Authentication** section.
--   In the **Client Name** field enter the service account's **Client ID** . You can find your
-    service account's client ID on the [Service accounts
-    page](https://console.developers.google.com/permissions/serviceaccounts) or in the service
-    account JSON file (key named **client_id** ).
--   In the **One or More API Scopes** field enter the list of scopes that you wish to grant access
-    to the App. For example, to enable all the scopes required by this app enter:
-    https://mail.google.com/, https://www.googleapis.com/auth/admin.directory.user.readonly,
-    https://www.googleapis.com/auth/gmail.readonly
--   Click **Authorize** .
+- Go to your G Suite domain's [Admin console.](http://admin.google.com/)
+- Select **Security** from the list of controls. If you don't see **Security** listed, select **More
+  controls** from the gray bar at the bottom of the page, then select **Security** from the list of
+  controls. If you can't see the controls, make sure you're signed in as an administrator for the
+  domain.
+- Select **Show more** and then **Advanced settings** from the list of options.
+- Select **Manage API client access** in the **Authentication** section.
+- In the **Client Name** field enter the service account's **Client ID** . You can find your service
+  account's client ID on the [Service accounts
+  page](https://console.developers.google.com/permissions/serviceaccounts) or in the service account
+  JSON file (key named **client_id** ).
+- In the **One or More API Scopes** field enter the list of scopes that you wish to grant access to
+  the App. For example, to enable all the scopes required by this app enter:
+  https://mail.google.com/, https://www.googleapis.com/auth/admin.directory.user.readonly,
+  https://www.googleapis.com/auth/gmail.readonly
+- Click **Authorize** .
 
 ### On-Poll
 
--   API provides created time of the email and gmail searches based on the received time of the
-    email.
+- API provides created time of the email and gmail searches based on the received time of the email.
 
--   Use the large container numbers in asset to avoid any kind of data loss for emails which
-    received at the same time.
+- Use the large container numbers in asset to avoid any kind of data loss for emails which received
+  at the same time.
 
-      
-      
-      
-    **Configuration:**  
+    
+    
+    
+  **Configuration:**  
 
 <!-- -->
 
--   label - To fetch the emails from the given folder name (default - all folders).  
-    **Note:-** Reply email in the email thread would not be ingested if you provide a specific label
-    in the configuration (eg. Inbox). It will ingest the reply email only if you leave the label
-    configuration parameter empty.  
--   ingest_manner - To select the oldest first or newest first preference for ingestion (default -
-    oldest first).
--   first_run_max_emails - Maximum containers to poll for the first scheduled polling (default -
-    1000).
--   max_containers - Maximum containers to poll after the first scheduled poll completes (default -
-    100).
--   extract_attachments - Extract all the attachments included in emails.
--   download_eml_attachments - Downloads the EML file attached with the mail.
--   extract_urls - Extracts the URLs present in the emails.
--   extract_ips - Extracts the IP addresses present in the emails.
--   extract_domains - Extract the domain names present in the emails.
--   extract_hashes - Extract the hashes present in the emails (MD5).
+- label - To fetch the emails from the given folder name (default - all folders).  
+  **Note:-** Reply email in the email thread would not be ingested if you provide a specific label
+  in the configuration (eg. Inbox). It will ingest the reply email only if you leave the label
+  configuration parameter empty.  
+- ingest_manner - To select the oldest first or newest first preference for ingestion (default -
+  oldest first).
+- first_run_max_emails - Maximum containers to poll for the first scheduled polling (default -
+  1000).
+- max_containers - Maximum containers to poll after the first scheduled poll completes (default -
+  100).
+- extract_attachments - Extract all the attachments included in emails.
+- download_eml_attachments - Downloads the EML file attached with the mail.
+- extract_urls - Extracts the URLs present in the emails.
+- extract_ips - Extracts the IP addresses present in the emails.
+- extract_domains - Extract the domain names present in the emails.
+- extract_hashes - Extract the hashes present in the emails (MD5).
 
 
 ### Configuration Variables
@@ -303,86 +302,33 @@ action_result.status | string |  |   success  failed
 action_result.parameter.email | string |  `email`  |   admin@testcorp.biz 
 action_result.parameter.extract_attachments | boolean |  |   False 
 action_result.parameter.internet_message_id | string |  `internet message id`  |   <e3d885faf2cc04f261d3874bafe2dc8afc44a230-10004962-100081937@test.com> 
-action_result.data.\*.email_headers.\*.arc_authentication_results | string |  |   i=1; mx.test.com;
-       dkim=pass header.i=@test.com header.s=20161025 header.b=S15AEvGA;
-       spf=pass (test.com: domain of 33buoybakbvceznb3cih-cdg3ean5dd5a3.1dbz2b7c63gbzc1dge.07o@scoutcamp.bounces.test.com designates 2607:f8b0:4864:20::147 as permitted sender) smtp.mailfrom=33BuOYBAKBVcEzNB3CIH-CDG3EAN5DD5A3.1DBz2B7C63GBzC1DGE.07O@scoutcamp.bounces.test.com;
-       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=test.com 
-action_result.data.\*.email_headers.\*.arc_message_signature | string |  |   i=1; a=rsa-sha256; c=relaxed/relaxed; d=test.com; s=arc-20160816;
-        h=to:from:subject:message-id:feedback-id:reply-to:date:mime-version
-         :dkim-signature;
-        bh=z/kirlEQ2aVcgVc3qMye/grykWqFcVQv0Yr0y2Mbewo=;
-        b=K0Q7B+6Dq2695j4C/fRV8QlFGfFo42i3i6TNVIVR3/xvcVZcChH7+XcQ4e43rT4bYz
-         /wZZzTVm1BbohPZOLvAsQE07vFMb0T7eggAAesqpoV0aPqahN7ECabqx6JXSPiYIhK/j
-         n6BdpvfBdYXhh34tKpNQKgblkkgrpZaiHRYcys+s+e06Xh41W+92j1KahxqKvujgQ50w
-         MtD0G492zoocCBJdUl1IGYYCNjbxSZTbO48u7UTqWS4xP1KNLmV9vRpPDp/QwjQDv5Ux
-         69G3NeFGJcH0z3REg1AhqHHKtF1/GX2yngvKSUyO4yUajI/tdQdXF0Uxz93w4aOYH5J7
-         FV8A== 
-action_result.data.\*.email_headers.\*.arc_seal | string |  |   i=1; a=rsa-sha256; t=1619925981; cv=none;
-        d=test.com; s=arc-20160816;
-        b=b1K9fT7s6nA56FOt2CMy22w5fhwxHjx63FzKVzpWlWmeHn4neo4mrtpauZFiiy7tQA
-         /VITLzcFg8GMtPaN7pDWQkHUVQ8qyuUi3Kl8xpYre8DoI1KzLfTUz8LqxaBKuYl3Ln00
-         rQ/fBj+v16+HuuVOKwd8roet3A5SCmDZBvSOk+pcRfjAtL7GDqF2LVEtDYVDJ0V7eUxx
-         V6eZjsFOg9tZTkyHTPq8S+pN7e5KCV7rIgelF25MJcYdt+4OJjs6jfmsn2p1NC14QvRP
-         ONhqWc1lMseCp6/GdtoM2tIDHORdLy/upg3mC63jhi5JDIRWiObg1HC2PI8AFxqhkJCW
-         rFCQ== 
-action_result.data.\*.email_headers.\*.authentication_results | string |  |   mx.test.com;
-       dkim=pass header.i=@test.com header.s=20161025 header.b=S15AEvGA;
-       spf=pass (test.com: domain of 33buoybakbvceznb3cih-cdg3ean5dd5a3.1dbz2b7c63gbzc1dge.07o@scoutcamp.bounces.test.com designates 2607:f8b0:4864:20::147 as permitted sender) smtp.mailfrom=33BuOYBAKBVcEzNB3CIH-CDG3EAN5DD5A3.1DBz2B7C63GBzC1DGE.07O@scoutcamp.bounces.test.com;
-       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=test.com 
+action_result.data.\*.email_headers.\*.arc_authentication_results | string |  |   i=1; mx.test.com;       dkim=pass header.i=@test.com header.s=20161025 header.b=S15AEvGA;       spf=pass (test.com: domain of 33buoybakbvceznb3cih-cdg3ean5dd5a3.1dbz2b7c63gbzc1dge.07o@scoutcamp.bounces.test.com designates 2607:f8b0:4864:20::147 as permitted sender) smtp.mailfrom=33BuOYBAKBVcEzNB3CIH-CDG3EAN5DD5A3.1DBz2B7C63GBzC1DGE.07O@scoutcamp.bounces.test.com;       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=test.com 
+action_result.data.\*.email_headers.\*.arc_message_signature | string |  |   i=1; a=rsa-sha256; c=relaxed/relaxed; d=test.com; s=arc-20160816;\\r\\n        h=to:from:subject:message-id:feedback-id:reply-to:date:mime-version\\r\\n         :dkim-signature;\\r\\n        bh=z/kirlEQ2aVcgVc3qMye/grykWqFcVQv0Yr0y2Mbewo=;\\r\\n        b=K0Q7B+6Dq2695j4C/fRV8QlFGfFo42i3i6TNVIVR3/xvcVZcChH7+XcQ4e43rT4bYz\\r\\n         /wZZzTVm1BbohPZOLvAsQE07vFMb0T7eggAAesqpoV0aPqahN7ECabqx6JXSPiYIhK/j\\r\\n         n6BdpvfBdYXhh34tKpNQKgblkkgrpZaiHRYcys+s+e06Xh41W+92j1KahxqKvujgQ50w\\r\\n         MtD0G492zoocCBJdUl1IGYYCNjbxSZTbO48u7UTqWS4xP1KNLmV9vRpPDp/QwjQDv5Ux\\r\\n         69G3NeFGJcH0z3REg1AhqHHKtF1/GX2yngvKSUyO4yUajI/tdQdXF0Uxz93w4aOYH5J7\\r\\n         FV8A== 
+action_result.data.\*.email_headers.\*.arc_seal | string |  |   i=1; a=rsa-sha256; t=1619925981; cv=none;\\r\\n        d=test.com; s=arc-20160816;\\r\\n        b=b1K9fT7s6nA56FOt2CMy22w5fhwxHjx63FzKVzpWlWmeHn4neo4mrtpauZFiiy7tQA\\r\\n         /VITLzcFg8GMtPaN7pDWQkHUVQ8qyuUi3Kl8xpYre8DoI1KzLfTUz8LqxaBKuYl3Ln00\\r\\n         rQ/fBj+v16+HuuVOKwd8roet3A5SCmDZBvSOk+pcRfjAtL7GDqF2LVEtDYVDJ0V7eUxx\\r\\n         V6eZjsFOg9tZTkyHTPq8S+pN7e5KCV7rIgelF25MJcYdt+4OJjs6jfmsn2p1NC14QvRP\\r\\n         ONhqWc1lMseCp6/GdtoM2tIDHORdLy/upg3mC63jhi5JDIRWiObg1HC2PI8AFxqhkJCW\\r\\n         rFCQ== 
+action_result.data.\*.email_headers.\*.authentication_results | string |  |   mx.test.com;\\r\\n       dkim=pass header.i=@test.com header.s=20161025 header.b=S15AEvGA;\\r\\n       spf=pass (test.com: domain of 33buoybakbvceznb3cih-cdg3ean5dd5a3.1dbz2b7c63gbzc1dge.07o@scoutcamp.bounces.test.com designates 2607:f8b0:4864:20::147 as permitted sender) smtp.mailfrom=33BuOYBAKBVcEzNB3CIH-CDG3EAN5DD5A3.1DBz2B7C63GBzC1DGE.07O@scoutcamp.bounces.test.com;\\r\\n       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=test.com 
 action_result.data.\*.email_headers.\*.content_disposition | string |  |   attachment; filename="3902920193.pdf" 
 action_result.data.\*.email_headers.\*.content_transfer_encoding | string |  |   quoted-printable 
 action_result.data.\*.email_headers.\*.content_type | string |  |   multipart/mixed; boundary="000000000000a2607f05c15068be" 
 action_result.data.\*.email_headers.\*.date | string |  |   Sat, 01 May 2021 20:26:20 -0700 
 action_result.data.\*.email_headers.\*.delivered_to | string |  `email`  |   admin@testcorp.biz 
-action_result.data.\*.email_headers.\*.dkim_signature | string |  |   v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=test.com; s=20161025;
-        h=mime-version:date:reply-to:feedback-id:message-id:subject:from:to;
-        bh=z/kirlEQ2aVcgVc3qMye/grykWqFcVQv0Yr0y2Mbewo=;
-        b=S15AEvGAEDpFXZ0KGsbNCqY8YVSzr6At0pUpF7crMh4ik5FmM0vGwomsUR59ONHoNF
-         SJ4U+IcxvsItH2mgCsQ7RjJK0dLLC7BkbhkDGHPY/IQ1KSZKcGEU0qfTXAsff5HENC3X
-         6LDYi7UqTdnjvSwv2dQdW1/yS96d27anFiPj9Wua4vd8GilRW5QOBJX1rl6yFas6uHD7
-         JWQRykXcpcNTKJpj2dvX2JIsT2IKiXy2BCpU69hITTZtvZCrsnl9IQFKM1Ky8H/BjoHv
-         jUL+fEuQTQUynp0S6yu/Kj9uvFRIXjhdxgHaGGTRMVtg/SE0tc62b8AxCckxHwrhS94G
-         ac9w== 
+action_result.data.\*.email_headers.\*.dkim_signature | string |  |   v=1; a=rsa-sha256; c=relaxed/relaxed;\\r\\n        d=test.com; s=20161025;\\r\\n        h=mime-version:date:reply-to:feedback-id:message-id:subject:from:to;\\r\\n        bh=z/kirlEQ2aVcgVc3qMye/grykWqFcVQv0Yr0y2Mbewo=;\\r\\n        b=S15AEvGAEDpFXZ0KGsbNCqY8YVSzr6At0pUpF7crMh4ik5FmM0vGwomsUR59ONHoNF\\r\\n         SJ4U+IcxvsItH2mgCsQ7RjJK0dLLC7BkbhkDGHPY/IQ1KSZKcGEU0qfTXAsff5HENC3X\\r\\n         6LDYi7UqTdnjvSwv2dQdW1/yS96d27anFiPj9Wua4vd8GilRW5QOBJX1rl6yFas6uHD7\\r\\n         JWQRykXcpcNTKJpj2dvX2JIsT2IKiXy2BCpU69hITTZtvZCrsnl9IQFKM1Ky8H/BjoHv\\r\\n         jUL+fEuQTQUynp0S6yu/Kj9uvFRIXjhdxgHaGGTRMVtg/SE0tc62b8AxCckxHwrhS94G\\r\\n         ac9w== 
 action_result.data.\*.email_headers.\*.feedback_id | string |  |   P-58-0:C10004962:M110105571-en-US:gamma 
 action_result.data.\*.email_headers.\*.from | string |  `email`  |   Test Payments <payments-noreply@test.com> 
 action_result.data.\*.email_headers.\*.message_id | string |  |   <e3d885faf2cc04f261d3874bafe2dc8afc44a230-10004962-100081937@test.com> 
 action_result.data.\*.email_headers.\*.mime_version | string |  |   1.0 
-action_result.data.\*.email_headers.\*.received | string |  |   by 2002:a05:7110:5426:b029:b6:addf:f84f with SMTP id i6csp1772142geg;
-        Sat, 1 May 2021 20:26:21 -0700 (PDT)
-from mail-il1-x147.test.com (mail-il1-x147.test.com. [2607:f8b0:4864:20::147])
-        by mx.test.com with ESMTPS id b3si9189274iot.55.2021.05.01.20.26.20
-        for <admin@testcorp.biz>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 01 May 2021 20:26:21 -0700 (PDT)
-by mail-il1-x147.test.com with SMTP id d3-20020a9287430000b0290181f7671fa1so1924912ilm.9
-        for <admin@testcorp.biz>; Sat, 01 May 2021 20:26:20 -0700 (PDT) 
+action_result.data.\*.email_headers.\*.received | string |  |   by 2002:a05:7110:5426:b029:b6:addf:f84f with SMTP id i6csp1772142geg;\\r\\n        Sat, 1 May 2021 20:26:21 -0700 (PDT)\\nfrom mail-il1-x147.test.com (mail-il1-x147.test.com. [2607:f8b0:4864:20::147])\\r\\n        by mx.test.com with ESMTPS id b3si9189274iot.55.2021.05.01.20.26.20\\r\\n        for <admin@testcorp.biz>\\r\\n        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);\\r\\n        Sat, 01 May 2021 20:26:21 -0700 (PDT)\\nby mail-il1-x147.test.com with SMTP id d3-20020a9287430000b0290181f7671fa1so1924912ilm.9\\r\\n        for <admin@testcorp.biz>; Sat, 01 May 2021 20:26:20 -0700 (PDT) 
 action_result.data.\*.email_headers.\*.received_spf | string |  |   pass (test.com: domain of 33buoybakbvceznb3cih-cdg3ean5dd5a3.1dbz2b7c63gbzc1dge.07o@scoutcamp.bounces.test.com designates 2607:f8b0:4864:20::147 as permitted sender) client-ip=2607:f8b0:4864:20::147; 
 action_result.data.\*.email_headers.\*.reply_to | string |  |   Test Payments <payments-noreply@test.com> 
 action_result.data.\*.email_headers.\*.return_path | string |  |   <33BuOYBAKBVcEzNB3CIH-CDG3EAN5DD5A3.1DBz2B7C63GBzC1DGE.07O@scoutcamp.bounces.test.com> 
 action_result.data.\*.email_headers.\*.subject | string |  |   Test Workspace: Your invoice is available for hermancorp.biz 
 action_result.data.\*.email_headers.\*.to | string |  `email`  |   admin@testcorp.biz 
-action_result.data.\*.email_headers.\*.x_gm_message_state | string |  |   AOAM532Nl7MnWYp7qLuC9ClJDlpx6s+kHPwvU7xiPvCBqzdGM36I9tqf
-	LKCzGlzGEDydpiA= 
-action_result.data.\*.email_headers.\*.x_google_dkim_signature | string |  |   v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:reply-to:feedback-id
-         :message-id:subject:from:to;
-        bh=z/kirlEQ2aVcgVc3qMye/grykWqFcVQv0Yr0y2Mbewo=;
-        b=tJdaiPfRyc4eMG2Yen3mdbA6h41cGBrVQ4yzJakfk1H+apl/RJq7xh1IYQ7+PXM3oH
-         IOzDgY6u9CQ2hyEZy6Yu1xuWtHwLYuTZl0iauzV9ve7tvDgXlxPWI7DryZrhge7J8GA/
-         dHFVfWU6LS9yBSjhAoiekws3Vhje30lg4kShkKoNXlH7QxkrEOYn5i31s5Gelx9E6m1f
-         Q3bs3xF4BbtyF52berodAZsS9tachQGHG2p124Y9mmLzPRsqi1fMCoXbHCXd0BxIFskJ
-         twUm+JQnxbX5N/q+MLWifUWYJ6fGkybAZ061JX6JgBp/2RMu0r5E48Q+0lHiUlenj4s6
-         TNkg== 
+action_result.data.\*.email_headers.\*.x_gm_message_state | string |  |   AOAM532Nl7MnWYp7qLuC9ClJDlpx6s+kHPwvU7xiPvCBqzdGM36I9tqf\\r\\n	LKCzGlzGEDydpiA= 
+action_result.data.\*.email_headers.\*.x_google_dkim_signature | string |  |   v=1; a=rsa-sha256; c=relaxed/relaxed;\\r\\n        d=1e100.net; s=20161025;\\r\\n        h=x-gm-message-state:mime-version:date:reply-to:feedback-id\\r\\n         :message-id:subject:from:to;\\r\\n        bh=z/kirlEQ2aVcgVc3qMye/grykWqFcVQv0Yr0y2Mbewo=;\\r\\n        b=tJdaiPfRyc4eMG2Yen3mdbA6h41cGBrVQ4yzJakfk1H+apl/RJq7xh1IYQ7+PXM3oH\\r\\n         IOzDgY6u9CQ2hyEZy6Yu1xuWtHwLYuTZl0iauzV9ve7tvDgXlxPWI7DryZrhge7J8GA/\\r\\n         dHFVfWU6LS9yBSjhAoiekws3Vhje30lg4kShkKoNXlH7QxkrEOYn5i31s5Gelx9E6m1f\\r\\n         Q3bs3xF4BbtyF52berodAZsS9tachQGHG2p124Y9mmLzPRsqi1fMCoXbHCXd0BxIFskJ\\r\\n         twUm+JQnxbX5N/q+MLWifUWYJ6fGkybAZ061JX6JgBp/2RMu0r5E48Q+0lHiUlenj4s6\\r\\n         TNkg== 
 action_result.data.\*.email_headers.\*.x_google_id | string |  |   13608031 
 action_result.data.\*.email_headers.\*.x_google_smtp_source | string |  |   ABdhPJyqpOGx6rwHwgtf1rUzc0U3BHjsBbH/I0nyqUnNdTHl957rDEZYB4OI7ovt9lbR1X2xjbTp 
 action_result.data.\*.email_headers.\*.x_notifications | string |  |   GAMMA:<e3d885faf2cc04f261d3874bafe2dc8afc44a230-10004962-100081937@test.com> 
 action_result.data.\*.email_headers.\*.x_notifications_bounce_info | string |  |   AXvZQxfkTaodaY87TxIiHBg1x3Tx1_dOt6hnshnCtGR9SITP7OmGWvNCCGRT9Tyj_2w4772syOqKk6YvkLiVDIng-Xq1VSkKuRhYdIs_aDGwcaNoVypJD4jay6E4wMyaK98V5kVnJjyqjdDHzqLvNjLlPyD_4FB_zfEH2Rn9I9vktuDD8oFQ9PKrZ23DD3xi9OZTp3lJf8nQe0bBukIV3MRyNw-xI7_iB30Auq1WVoyoQ0qTthrFGZuKDHGjkdblAV5LSJwNjAwNjA0MDQxNTM1NTk2OTMzMg 
-action_result.data.\*.email_headers.\*.x_received | string |  |   by 2002:a05:6e02:102:: with SMTP id t2mr5411682ilm.182.1619925981145;
-        Sat, 01 May 2021 20:26:21 -0700 (PDT)
-by 2002:a05:6e02:d53:: with SMTP id h19mr10186694ilj.232.1619925980569;
- Sat, 01 May 2021 20:26:20 -0700 (PDT) 
+action_result.data.\*.email_headers.\*.x_received | string |  |   by 2002:a05:6e02:102:: with SMTP id t2mr5411682ilm.182.1619925981145;\\r\\n        Sat, 01 May 2021 20:26:21 -0700 (PDT)\\nby 2002:a05:6e02:d53:: with SMTP id h19mr10186694ilj.232.1619925980569;\\r\\n Sat, 01 May 2021 20:26:20 -0700 (PDT) 
 action_result.data.\*.from | string |  `email`  |   Test Payments <payments-noreply@test.com> 
 action_result.data.\*.historyId | string |  |   62313 
 action_result.data.\*.id | string |  |   1792b1cd66228bf2 

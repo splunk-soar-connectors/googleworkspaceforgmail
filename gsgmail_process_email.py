@@ -830,6 +830,7 @@ class ProcessMail:
         if self._config[PROC_EMAIL_JSON_EXTRACT_EMAIL_ATTACHMENTS]:
             msg = None
             tmp_dir = tempfile.mkdtemp(prefix='ph_email')
+            self._tmp_dirs.append(tmp_dir)
             filename = ''
             file_extension = ''
             try:
@@ -878,6 +879,7 @@ class ProcessMail:
 
         try:
             self._parse_results(results)
+            self._del_tmp_dirs()
         except Exception as e:
             self._del_tmp_dirs()
             error_message = self._base_connector._get_error_message_from_exception(e)
@@ -960,9 +962,6 @@ class ProcessMail:
 
             if "Duplicate container found" in message and not self._base_connector.is_poll_now():
                 self._base_connector._dup_emails += 1
-
-        # delete any temp directories that were created by the email parsing function
-        [shutil.rmtree(x['temp_directory'], ignore_errors=True) for x in results if x.get('temp_directory')]
 
         return self._base_connector.set_status(phantom.APP_SUCCESS)
 
