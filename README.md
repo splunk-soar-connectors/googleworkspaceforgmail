@@ -6,7 +6,7 @@ Connector Version: 2.5.0
 Product Vendor: Google  
 Product Name: GMail  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 5.5.0  
+Minimum Product Version: 6.0.0  
 
 Integrates with G Suite for various investigative and containment actions
 
@@ -37,15 +37,15 @@ To enable scopes please complete the following steps:
 
 -   Go to your G Suite domain's [Admin console.](http://admin.google.com/)
 -   Select **Security** from the list of controls. If you don't see **Security** listed, select
-    **More controls** from the gray bar at the bottom of the page, then select **Security** from the
-    list of controls. If you can't see the controls, make sure you're signed in as an administrator
-    for the domain.
--   Select **Show more** and then **Advanced settings** from the list of options.
--   Select **Manage API client access** in the **Authentication** section.
--   In the **Client Name** field enter the service account's **Client ID** . You can find your
-    service account's client ID on the [Service accounts
-    page](https://console.developers.google.com/permissions/serviceaccounts) or in the service
-    account JSON file (key named **client_id** ).
+    **Show More** , then select **Security** from the list of controls. If you can't see the
+    controls, make sure you're signed in as an administrator for the domain.
+-   Select **API controls** in the **Access and data control** section.
+-   Select **MANAGE DOMAIN WIDE DELEGATIONS** in the **Domain wide delegation** section.
+-   Select **Add new** in the API clients section
+-   In the **Client ID** field enter the service account's **Client ID** . You can find your service
+    account's client ID in the [Service accounts credentials
+    page](https://console.developers.google.com/apis/credentials) or the service account JSON file
+    (key named **client_id** ).
 -   In the **One or More API Scopes** field enter the list of scopes that you wish to grant access
     to the App. For example, to enable all the scopes required by this app enter:
     https://mail.google.com/, https://www.googleapis.com/auth/admin.directory.user.readonly,
