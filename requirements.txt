@@ -8,3 +8,4 @@ pyasn1-modules==0.2.8
 python-magic==0.4.27
 requests==2.31.0
 rsa==4.9
+urllib3<2
