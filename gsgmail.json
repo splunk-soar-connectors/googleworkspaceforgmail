@@ -1320,14 +1320,6 @@
                 "input_file": "wheels/py3/cachetools-5.2.1-py3-none-any.whl"
             },
             {
-                "module": "certifi",
-                "input_file": "wheels/py3/certifi-2023.5.7-py3-none-any.whl"
-            },
-            {
-                "module": "charset_normalizer",
-                "input_file": "wheels/py39/charset_normalizer-3.1.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
-            },
-            {
                 "module": "google_api_python_client",
                 "input_file": "wheels/py3/google_api_python_client-1.7.12-py3-none-any.whl"
             },
@@ -1342,10 +1334,6 @@
             {
                 "module": "httplib2",
                 "input_file": "wheels/py3/httplib2-0.21.0-py3-none-any.whl"
-            },
-            {
-                "module": "idna",
-                "input_file": "wheels/py3/idna-3.4-py3-none-any.whl"
             },
             {
                 "module": "oauth2client",
@@ -1368,10 +1356,6 @@
                 "input_file": "wheels/shared/python_magic-0.4.27-py2.py3-none-any.whl"
             },
             {
-                "module": "requests",
-                "input_file": "wheels/py3/requests-2.31.0-py3-none-any.whl"
-            },
-            {
                 "module": "rsa",
                 "input_file": "wheels/py3/rsa-4.9-py3-none-any.whl"
             },
@@ -1382,10 +1366,6 @@
             {
                 "module": "uritemplate",
                 "input_file": "wheels/shared/uritemplate-3.0.1-py2.py3-none-any.whl"
-            },
-            {
-                "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.16-py2.py3-none-any.whl"
             }
         ]
     }
