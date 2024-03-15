@@ -297,7 +297,6 @@ class GSuiteConnector(BaseConnector):
                     attach_resp = Vault.create_attachment(content, container_id=container_id, file_name=file_name)
                 except Exception as e:
                     message = self._get_error_message_from_exception(e)
-                    self.error_print(f'Unable to add attachment: {file_name} Error: {message}')
                     return action_result.set_status(phantom.APP_ERROR, f"Unable to add attachment: {file_name} Error: {message}")
                 if attach_resp.get('succeeded'):
                     # Create vault artifact
