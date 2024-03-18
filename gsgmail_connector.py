@@ -1,6 +1,6 @@
 # File: gsgmail_connector.py
 #
-# Copyright (c) 2017-2023 Splunk Inc.
+# Copyright (c) 2017-2024 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -259,7 +259,7 @@ class GSuiteConnector(BaseConnector):
 
         email_details['email_headers'] = []
         for part in msg.walk():
-            type = part.get_content_type()
+            part_type = part.get_content_type()
             headers = self._get_email_headers_from_part(part)
             # split out important headers (for output table rendering)
             if headers.get('to'):
@@ -274,13 +274,13 @@ class GSuiteConnector(BaseConnector):
             disp = str(part.get('Content-Disposition'))
             file_name = part.get_filename()
             # look for plain text parts, but skip attachments
-            if type == 'text/plain' and 'attachment' not in disp:
+            if part_type == 'text/plain' and 'attachment' not in disp:
                 charset = part.get_content_charset() or 'utf8'
                 # decode the base64 unicode bytestring into plain text
                 plain_body = part.get_payload(decode=True).decode(encoding=charset, errors="ignore")
                 # Add to list of plan text bodies
                 plain_bodies.append(plain_body)
-            if type == 'text/html' and 'attachment' not in disp:
+            if part_type == 'text/html' and 'attachment' not in disp:
                 charset = part.get_content_charset() or 'utf8'
                 # decode the base64 unicode bytestring into plain text
                 html_body = part.get_payload(decode=True).decode(encoding=charset, errors="ignore")
@@ -289,11 +289,15 @@ class GSuiteConnector(BaseConnector):
             elif file_name and extract_attachments:
                 attach_resp = None
                 try:
+                    if part_type.startswith("message/"):
+                        content = part.get_payload(0).as_string()
+                    else:
+                        content = part.get_payload(decode=True)
                     # Create vault item with attachment payload
-                    attach_resp = Vault.create_attachment(part.get_payload(decode=True), container_id=container_id, file_name=file_name)
+                    attach_resp = Vault.create_attachment(content, container_id=container_id, file_name=file_name)
                 except Exception as e:
                     message = self._get_error_message_from_exception(e)
-                    self.error_print('Unable to add attachment: {} Error: {}').format(str(file_name), message)
+                    return action_result.set_status(phantom.APP_ERROR, f"Unable to add attachment: {file_name} Error: {message}")
                 if attach_resp.get('succeeded'):
                     # Create vault artifact
                     artifact = {
@@ -460,7 +464,7 @@ class GSuiteConnector(BaseConnector):
                     email_details_resp['parsed_plain_body'] = msg.get_payload(decode=True).decode(encoding=charset, errors="ignore")
                 except Exception as e:
                     message = self._get_error_message_from_exception(e)
-                    self.error_print("Unable to add email body: {}").format(message)
+                    self.error_print(f"Unable to add email body: {message}")
 
             action_result.add_data(email_details_resp)
 
