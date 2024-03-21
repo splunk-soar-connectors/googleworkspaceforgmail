@@ -32,11 +32,6 @@ Version: 0.0.3
 License: Apache 2.0
 Unknown copyright
 
-Library: httplib2
-Version: 0.19.1
-License: MIT
-Copyright 2006 by Joe Gregorio
-
 Library: oauth2client
 Version: 4.1.2
 License: Apache 2.0
@@ -51,16 +46,6 @@ Library: python-magic
 Version: 0.4.18
 License: MIT
 Copyright 2001-2014 Adam Hupp
-
-Library: requests
-Version: 2.25.0
-License: Apache 2.0
-Kenneth Reitz
-
-Library: rsa
-Version: 4.7.2
-License: Apache 2.0
-Copyright 2011 Sybren A
 
 Library: uritemplate
 Version: 3.0.1
