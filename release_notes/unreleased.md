@@ -1,2 +1,1 @@
 **Unreleased**
-* Updated certifi, requests, urllib3 dependencies in order to use platform packages [PAPP-31096, PAPP-30822, PAPP-33451]
