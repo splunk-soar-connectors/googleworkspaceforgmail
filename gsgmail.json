@@ -954,6 +954,12 @@
                     "data_type": "boolean",
                     "default": false,
                     "order": 2
+                },
+                "extract_nested": {
+                    "description": "Works when `extract_attachments` is set to `true`. Extracts attachments from nested email attachments.",
+                    "data_type": "boolean",
+                    "default": false,
+                    "order": 3
                 }
             },
             "output": [
