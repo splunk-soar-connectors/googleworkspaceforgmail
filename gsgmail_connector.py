@@ -978,7 +978,7 @@ if __name__ == '__main__':
             in_json['user_session_token'] = session_id
             connector._set_csrf_info(csrftoken, headers['Referer'])
 
-        ph_status = connector._handle_action(json.dumps(in_json), None)
-        print(json.dumps(json.loads(ph_status), indent=4))
+        ret_val = connector._handle_action(json.dumps(in_json), None)
+        print(json.dumps(json.loads(ret_val), indent=4))
 
     sys.exit(0)
