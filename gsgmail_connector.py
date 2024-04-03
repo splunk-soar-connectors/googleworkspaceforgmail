@@ -339,13 +339,11 @@ class GSuiteConnector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _body_from_part(self, part):
-        charset = part.get_content_charset() or "utf8"
+        charset = part.get_content_charset() or "utf-8"
         # decode the base64 unicode bytestring into plain text
-        plain_body = part.get_payload(decode=True).decode(
+        return part.get_payload(decode=True).decode(
             encoding=charset, errors="ignore"
         )
-        # Add to list of plan text bodies
-        return plain_body
 
     def _create_artifact(self, file_name, attach_resp):
         return {
@@ -365,13 +363,13 @@ class GSuiteConnector(BaseConnector):
         headers = self._get_email_headers_from_part(part)
         # split out important headers (for output table rendering)
         if headers.get("to"):
-            email_details["to"] = headers.get("to")
+            email_details["to"] = headers["to"]
 
         if headers.get("from"):
-            email_details["from"] = headers.get("from")
+            email_details["from"] = headers["from"]
 
         if headers.get("subject"):
-            email_details["subject"] = headers.get("subject")
+            email_details["subject"] = headers["subject"]
 
         part_type = part.get_content_type()
         if part_type == "text/plain":
@@ -384,8 +382,7 @@ class GSuiteConnector(BaseConnector):
     def _get_payload_content(self, part):
         if part.get_content_type().startswith("message/"):
             return part.get_payload(0).as_string()
-        else:
-            return part.get_payload(decode=True)
+        return part.get_payload(decode=True)
 
     def _extract_attachment(self, part, action_result):
         attach_resp = None
@@ -431,6 +428,43 @@ class GSuiteConnector(BaseConnector):
             email_details.pop("html_bodies")
         )
 
+    def __recursive_part_traverse(
+        self,
+        part,
+        email_details,
+        action_result,
+        extract_attachments=False,
+        extract_nested=False,
+        in_attachment=False,
+    ):
+        is_attachment = self._is_attachment(part)
+        # We are only gathering email data from top email, any attachment email should be omitted
+        if not is_attachment and not in_attachment:
+            self._parse_email_details(part, email_details)
+
+        ret_val = phantom.APP_SUCCESS
+
+        if is_attachment and extract_attachments:
+            ret_val = self._extract_attachment(part, action_result)
+            if phantom.is_fail(ret_val):
+                return ret_val
+
+        if not extract_nested and is_attachment:
+            return ret_val
+
+        if part.is_multipart():
+            for subpart in part.get_payload():
+                # We assume that everything that is under attachment is also an attachment
+                ret_val = ret_val and self.__recursive_part_traverse(
+                    subpart,
+                    email_details,
+                    action_result,
+                    extract_attachments,
+                    extract_nested,
+                    is_attachment or in_attachment,
+                )
+        return ret_val
+
     def _parse_multipart_message(
         self,
         action_result,
@@ -440,32 +474,9 @@ class GSuiteConnector(BaseConnector):
         extract_nested=False,
     ):
         self._init_detail_fields(email_details)
-
-        def traverse(part, in_attachment=False):
-            is_attachment = self._is_attachment(part)
-            # We are only gathering email data from top email, any attachment email should be omitted
-            if not is_attachment and not in_attachment:
-                self._parse_email_details(part, email_details)
-
-            ret_val = phantom.APP_SUCCESS
-
-            if is_attachment and extract_attachments:
-                ret_val = self._extract_attachment(part, action_result)
-                if phantom.is_fail(ret_val):
-                    return ret_val
-
-            if not extract_nested and is_attachment:
-                return ret_val
-
-            if part.is_multipart():
-                for subpart in part.get_payload():
-                    # We assume that everything that is under attachment is also an attachment
-                    ret_val = ret_val and traverse(
-                        subpart, is_attachment or in_attachment
-                    )
-            return ret_val
-
-        ret_val = traverse(msg)
+        ret_val = self.__recursive_part_traverse(
+            msg, email_details, action_result, extract_attachments, extract_nested
+        )
         self._parse_email_bodies(email_details)
         return ret_val
 
