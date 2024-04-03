@@ -441,8 +441,10 @@ class GSuiteConnector(BaseConnector):
     ):
         self._init_detail_fields(email_details)
 
-        def traverse(part, is_attachment=False):
-            if not is_attachment:
+        def traverse(part, in_attachment=False):
+            is_attachment = self._is_attachment(part)
+            # We are only gathering email data from top email, any attachment email should be omitted
+            if not is_attachment and not in_attachment:
                 self._parse_email_details(part, email_details)
 
             ret_val = phantom.APP_SUCCESS
@@ -454,11 +456,12 @@ class GSuiteConnector(BaseConnector):
 
             if not extract_nested and is_attachment:
                 return ret_val
+
             if part.is_multipart():
                 for subpart in part.get_payload():
                     # We assume that everything that is under attachment is also an attachment
                     ret_val = ret_val and traverse(
-                        subpart, self._is_attachment(subpart) or is_attachment
+                        subpart, is_attachment or in_attachment
                     )
             return ret_val
 
@@ -975,7 +978,7 @@ if __name__ == '__main__':
             in_json['user_session_token'] = session_id
             connector._set_csrf_info(csrftoken, headers['Referer'])
 
-        ret_val = connector._handle_action(json.dumps(in_json), None)
-        print(json.dumps(json.loads(ret_val), indent=4))
+        ph_status = connector._handle_action(json.dumps(in_json), None)
+        print(json.dumps(json.loads(ph_status), indent=4))
 
     sys.exit(0)
