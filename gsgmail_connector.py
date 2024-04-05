@@ -252,75 +252,6 @@ class GSuiteConnector(BaseConnector):
 
         return dict(headers)
 
-    def _parse_multipart_msg(self, action_result, msg, email_details, extract_attachments=False):
-        plain_bodies = []
-        html_bodies = []
-        container_id = self.get_container_id()
-
-        email_details['email_headers'] = []
-        for part in msg.walk():
-            part_type = part.get_content_type()
-            headers = self._get_email_headers_from_part(part)
-            # split out important headers (for output table rendering)
-            if headers.get('to'):
-                email_details['to'] = headers.get('to')
-
-            if headers.get('from'):
-                email_details['from'] = headers.get('from')
-
-            if headers.get('subject'):
-                email_details['subject'] = headers.get('subject')
-
-            disp = str(part.get('Content-Disposition'))
-            file_name = part.get_filename()
-            # look for plain text parts, but skip attachments
-            if part_type == 'text/plain' and 'attachment' not in disp:
-                charset = part.get_content_charset() or 'utf8'
-                # decode the base64 unicode bytestring into plain text
-                plain_body = part.get_payload(decode=True).decode(encoding=charset, errors="ignore")
-                # Add to list of plan text bodies
-                plain_bodies.append(plain_body)
-            if part_type == 'text/html' and 'attachment' not in disp:
-                charset = part.get_content_charset() or 'utf8'
-                # decode the base64 unicode bytestring into plain text
-                html_body = part.get_payload(decode=True).decode(encoding=charset, errors="ignore")
-                # Add to list of html bodies
-                html_bodies.append(html_body)
-            elif file_name and extract_attachments:
-                attach_resp = None
-                try:
-                    if part_type.startswith("message/"):
-                        content = part.get_payload(0).as_string()
-                    else:
-                        content = part.get_payload(decode=True)
-                    # Create vault item with attachment payload
-                    attach_resp = Vault.create_attachment(content, container_id=container_id, file_name=file_name)
-                except Exception as e:
-                    message = self._get_error_message_from_exception(e)
-                    return action_result.set_status(phantom.APP_ERROR, f"Unable to add attachment: {file_name} Error: {message}")
-                if attach_resp.get('succeeded'):
-                    # Create vault artifact
-                    artifact = {
-                        'name': 'Email Attachment Artifact',
-                        'container_id': container_id,
-                        'cef': {
-                            'vaultId': attach_resp[phantom.APP_JSON_HASH],
-                            'fileHash': attach_resp[phantom.APP_JSON_HASH],
-                            'file_hash': attach_resp[phantom.APP_JSON_HASH],
-                            'fileName': file_name
-                        },
-                        'run_automation': False,
-                        'source_data_identifier': None
-                    }
-                    ret_val, msg, _ = self.save_artifact(artifact)
-                    if phantom.is_fail(ret_val):
-                        return action_result.set_status(phantom.APP_ERROR, "Could not save artifact to container: {}".format(msg))
-            email_details['email_headers'].append(headers)
-        email_details['parsed_plain_body'] = '\n\n'.join(plain_bodies)
-        email_details['parsed_html_body'] = '\n\n'.join(html_bodies)
-
-        return phantom.APP_SUCCESS
-
     def _handle_run_query(self, param):
 
         # Implement the handler here, some basic code is already in
@@ -407,6 +338,148 @@ class GSuiteConnector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _body_from_part(self, part):
+        charset = part.get_content_charset() or "utf-8"
+        # decode the base64 unicode bytestring into plain text
+        return part.get_payload(decode=True).decode(
+            encoding=charset, errors="ignore"
+        )
+
+    def _create_artifact(self, file_name, attach_resp):
+        return {
+            "name": "Email Attachment Artifact",
+            "container_id": self.get_container_id(),
+            "cef": {
+                "vaultId": attach_resp[phantom.APP_JSON_HASH],
+                "fileHash": attach_resp[phantom.APP_JSON_HASH],
+                "file_hash": attach_resp[phantom.APP_JSON_HASH],
+                "fileName": file_name,
+            },
+            "run_automation": False,
+            "source_data_identifier": None,
+        }
+
+    def _parse_email_details(self, part, email_details):
+        headers = self._get_email_headers_from_part(part)
+        # split out important headers (for output table rendering)
+        if headers.get("to"):
+            email_details["to"] = headers["to"]
+
+        if headers.get("from"):
+            email_details["from"] = headers["from"]
+
+        if headers.get("subject"):
+            email_details["subject"] = headers["subject"]
+
+        part_type = part.get_content_type()
+        if part_type == "text/plain":
+            email_details["plain_bodies"].append(self._body_from_part(part))
+        elif part_type == "text/html":
+            email_details["html_bodies"].append(self._body_from_part(part))
+
+        email_details["email_headers"].append(headers)
+
+    def _get_payload_content(self, part):
+        if part.get_content_type().startswith("message/"):
+            return part.get_payload(0).as_string()
+        return part.get_payload(decode=True)
+
+    def _extract_attachment(self, part, action_result):
+        attach_resp = None
+        file_name = part.get_filename()
+        try:
+            # Create vault item with attachment payload
+            attach_resp = Vault.create_attachment(
+                self._get_payload_content(part),
+                container_id=self.get_container_id(),
+                file_name=file_name,
+            )
+        except Exception as e:
+            return action_result.set_status(
+                phantom.APP_ERROR,
+                f"Unable to add attachment: {file_name} Error: {self._get_error_message_from_exception(e)}",
+            )
+        if attach_resp.get("succeeded"):
+            # Create vault artifact
+            ret_val, msg, _ = self.save_artifact(
+                self._create_artifact(file_name, attach_resp)
+            )
+            if phantom.is_fail(ret_val):
+                return action_result.set_status(
+                    phantom.APP_ERROR,
+                    f"Could not save artifact to container: {msg}",
+                )
+        return phantom.APP_SUCCESS
+
+    @staticmethod
+    def _is_attachment(part):
+        return "attachment" in str(part.get("Content-Disposition"))
+
+    def _init_detail_fields(self, email_details):
+        email_details["plain_bodies"] = []
+        email_details["html_bodies"] = []
+        email_details["email_headers"] = []
+
+    def _parse_email_bodies(self, email_details):
+        email_details["parsed_plain_body"] = "\n\n".join(
+            email_details.pop("plain_bodies")
+        )
+        email_details["parsed_html_body"] = "\n\n".join(
+            email_details.pop("html_bodies")
+        )
+
+    def __recursive_part_traverse(
+        self,
+        part,
+        email_details,
+        action_result,
+        extract_attachments=False,
+        extract_nested=False,
+        in_attachment=False,
+    ):
+        is_attachment = self._is_attachment(part)
+        # We are only gathering email data from top email, any attachment email should be omitted
+        if not is_attachment and not in_attachment:
+            self._parse_email_details(part, email_details)
+
+        ret_val = phantom.APP_SUCCESS
+
+        if is_attachment and extract_attachments:
+            ret_val = self._extract_attachment(part, action_result)
+            if phantom.is_fail(ret_val):
+                return ret_val
+
+        if not extract_nested and is_attachment:
+            return ret_val
+
+        if part.is_multipart():
+            for subpart in part.get_payload():
+                # We assume that everything that is under attachment is also an attachment
+                ret_val = ret_val and self.__recursive_part_traverse(
+                    subpart,
+                    email_details,
+                    action_result,
+                    extract_attachments,
+                    extract_nested,
+                    is_attachment or in_attachment,
+                )
+        return ret_val
+
+    def _parse_multipart_message(
+        self,
+        action_result,
+        msg,
+        email_details,
+        extract_attachments=False,
+        extract_nested=False,
+    ):
+        self._init_detail_fields(email_details)
+        ret_val = self.__recursive_part_traverse(
+            msg, email_details, action_result, extract_attachments, extract_nested
+        )
+        self._parse_email_bodies(email_details)
+        return ret_val
+
     def _handle_get_email(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
@@ -449,7 +522,13 @@ class GSuiteConnector(BaseConnector):
             msg = email.message_from_bytes(raw_encoded)
 
             if msg.is_multipart():
-                ret_val = self._parse_multipart_msg(action_result, msg, email_details_resp, param.get('extract_attachments', False))
+                ret_val = self._parse_multipart_message(
+                    action_result,
+                    msg,
+                    email_details_resp,
+                    param.get("extract_attachments", False),
+                    param.get("extract_nested", False),
+                )
 
                 if phantom.is_fail(ret_val):
                     return action_result.get_status()
