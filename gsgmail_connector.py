@@ -420,7 +420,7 @@ class GSuiteConnector(BaseConnector):
         email_details["html_bodies"] = []
         email_details["email_headers"] = []
 
-    def _parse_email_bodies(self, email_details):
+    def _join_email_bodies(self, email_details):
         email_details["parsed_plain_body"] = "\n\n".join(
             email_details.pop("plain_bodies")
         )
@@ -477,7 +477,7 @@ class GSuiteConnector(BaseConnector):
         ret_val = self.__recursive_part_traverse(
             msg, email_details, action_result, extract_attachments, extract_nested
         )
-        self._parse_email_bodies(email_details)
+        self._join_email_bodies(email_details)
         return ret_val
 
     def _handle_get_email(self, param):
