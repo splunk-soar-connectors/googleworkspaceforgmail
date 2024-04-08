@@ -16,10 +16,10 @@
     "latest_tested_versions": [
         "Cloud, May 26, 2023"
     ],
-    "app_version": "2.5.2",
+    "app_version": "2.5.3",
     "product_version_regex": ".*",
     "license": "Copyright (c) 2017-2024 Splunk Inc.",
-    "utctime_updated": "2024-03-18T08:57:36.000000Z",
+    "utctime_updated": "2024-04-05T12:12:46.000000Z",
     "configuration": {
         "login_email": {
             "required": true,
@@ -866,6 +866,12 @@
                     "data_type": "boolean",
                     "default": false,
                     "order": 2
+                },
+                "extract_nested": {
+                    "description": "Works when `extract_attachments` is set to `true`. Extracts attachments from nested email attachments.",
+                    "data_type": "boolean",
+                    "default": false,
+                    "order": 3
                 }
             },
             "output": [

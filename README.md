@@ -2,7 +2,7 @@
 # G Suite for GMail
 
 Publisher: Splunk  
-Connector Version: 2.5.2  
+Connector Version: 2.5.3  
 Product Vendor: Google  
 Product Name: GMail  
 Product Version Supported (regex): ".\*"  
@@ -295,6 +295,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **email** |  required  | User's Email (Mailbox to search) | string |  `email` 
 **internet_message_id** |  required  | Internet Message ID | string |  `internet message id` 
 **extract_attachments** |  optional  | Add attachments to vault and create vault artifacts | boolean | 
+**extract_nested** |  optional  | Works when `extract_attachments` is set to `true`. Extracts attachments from nested email attachments. | boolean | 
 
 #### Action Output
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
