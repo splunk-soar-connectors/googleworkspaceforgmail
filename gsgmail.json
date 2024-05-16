@@ -10,13 +10,13 @@
     "package_name": "phantom_gsgmail",
     "product_vendor": "Google",
     "product_name": "GMail",
-    "min_phantom_version": "6.1.1",
+    "min_phantom_version": "6.2.0",
     "fips_compliant": true,
     "python_version": "3",
     "latest_tested_versions": [
         "Cloud, May 26, 2023"
     ],
-    "app_version": "2.5.3",
+    "app_version": "2.6.0",
     "product_version_regex": ".*",
     "license": "Copyright (c) 2017-2024 Splunk Inc.",
     "utctime_updated": "2024-04-05T12:12:46.000000Z",

@@ -105,7 +105,7 @@ class GSuiteConnector(BaseConnector):
         self._state = self.load_state()
         if self._state:
             self._last_email_epoch = self._state.get('last_email_epoch')
-
+            
         config = self.get_config()
 
         key_json = config["key_json"]
@@ -747,10 +747,8 @@ class GSuiteConnector(BaseConnector):
         using_latest = ingest_manner == GSMAIL_LATEST_INGEST_MANNER
 
         if use_ingest_limit and not self.is_poll_now():
-            if self._last_email_epoch and using_oldest:
+            if self._last_email_epoch:
                 query.append('after:{}'.format(self._last_email_epoch))
-            elif 'last_ingested_epoch' in self._state and using_latest:
-                query.append('after:{}'.format(self._state['last_ingested_epoch']))
 
         kwargs['q'] = ' '.join(query)
 
@@ -843,8 +841,6 @@ class GSuiteConnector(BaseConnector):
                     return action_result.get_status()
                 if not email_ids:
                     return action_result.set_status(phantom.APP_SUCCESS)
-                if not self.is_poll_now():
-                    self._update_state()
 
             self._process_email_ids(action_result, config, service, email_ids)
             total_ingested += max_emails - self._dup_emails
@@ -872,11 +868,6 @@ class GSuiteConnector(BaseConnector):
             raw_decode = base64.urlsafe_b64decode(message['raw'].encode("utf-8")).decode("utf-8")
             process_email = ProcessMail(self, config)
             process_email.process_email(raw_decode, emid, timestamp)
-
-    def _update_state(self):
-        utc_now = datetime.utcnow()
-        epoch = datetime.utcfromtimestamp(0)
-        self._state['last_ingested_epoch'] = str(int((utc_now - epoch).total_seconds()))
 
     def _get_email_ids(self, action_result, config, service, max_emails, ingest_manner):
 
