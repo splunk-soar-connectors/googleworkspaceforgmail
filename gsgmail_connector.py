@@ -22,8 +22,6 @@ import json
 import os
 import sys
 from copy import deepcopy
-from datetime import datetime
-
 import phantom.app as phantom
 import phantom.utils as ph_utils
 import requests
@@ -105,9 +103,8 @@ class GSuiteConnector(BaseConnector):
         self._state = self.load_state()
         if self._state:
             self._last_email_epoch = self._state.get('last_email_epoch')
-            
-        config = self.get_config()
 
+        config = self.get_config()
         key_json = config["key_json"]
 
         try:
