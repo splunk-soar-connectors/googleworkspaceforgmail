@@ -22,6 +22,7 @@ import json
 import os
 import sys
 from copy import deepcopy
+
 import phantom.app as phantom
 import phantom.utils as ph_utils
 import requests
