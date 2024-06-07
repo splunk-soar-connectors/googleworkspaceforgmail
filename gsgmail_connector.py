@@ -793,7 +793,6 @@ class GSuiteConnector(BaseConnector):
 
         # if user_email param is not present use login_email
         config = self.get_config()
-        self.debug_print("\n PRINTING PARAM : {0} ".format(param))
 
         login_email = config['login_email']
         self.save_progress("login_email is {0}".format(login_email))
