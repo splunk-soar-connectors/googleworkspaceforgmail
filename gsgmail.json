@@ -16,10 +16,10 @@
     "latest_tested_versions": [
         "Cloud, May 26, 2023"
     ],
-    "app_version": "2.5.4",
+    "app_version": "2.5.5",
     "product_version_regex": ".*",
     "license": "Copyright (c) 2017-2024 Splunk Inc.",
-    "utctime_updated": "2024-06-10T23:10:45.000000Z",
+    "utctime_updated": "2024-06-12T01:34:16.000000Z",
     "configuration": {
         "login_email": {
             "required": true,
