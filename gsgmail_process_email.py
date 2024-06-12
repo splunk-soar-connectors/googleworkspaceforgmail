@@ -262,7 +262,6 @@ class ProcessMail:
             artifact['source_data_identifier'] = start_index + added_artifacts
             artifact['cef'] = {cef_key: entry}
             artifact['name'] = artifact_name
-            self._base_connector.debug_print('Artifact:', artifact)
             artifacts.append(artifact)
             added_artifacts += 1
 
@@ -336,7 +335,7 @@ class ProcessMail:
             decoded_strings = [{'value': x[0], 'encoding': x[1]} for x in decoded_strings]
         except Exception as e:
             error_code, error_msg = self._get_error_message_from_exception(e)
-            self._base_connector.debug_print("Decoding: {0}. Error code: {1}. Error message: {2}".format(encoded_strings, error_code, error_msg))
+            self._base_connector.debug_print("Error code: {0}. Error message: {1}".format(error_code, error_msg))
             return def_name
 
         # convert to dict for safe access, if it's an empty list, the dict will be empty
@@ -654,7 +653,6 @@ class ProcessMail:
 
                 self._parse_email_headers(parsed_mail, part, add_email_id=add_email_id)
 
-                self._base_connector.debug_print("part: {0}".format(part.__dict__))
                 self._base_connector.debug_print("part type", type(part))
                 if part.is_multipart():
                     self.check_and_update_eml(part)
