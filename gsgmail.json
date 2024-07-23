@@ -1229,6 +1229,100 @@
                 "title": "Get Email",
                 "view": "gsgmail_view.get_email"
             }
+        }, 
+        {
+            "action": "get user",
+            "description": "Retrieve user details via email address",
+            "verbose": "Action uses the GMail API to search in a user's mailbox (specified in the <b>email</b> parameter). <br>Requires the users authorization and the following scope: <b>https://www.googleapis.com/auth/gmail.readonly</b>.",
+            "type": "investigate",
+            "identifier": "get_user",
+            "read_only": false,
+            "parameters": {
+                "email": {
+                    "description": "User's Email (User to search)",
+                    "data_type": "string",
+                    "order": 0,
+                    "contains": [
+                        "email"
+                    ],
+                    "primary": true,
+                    "required": true
+                }
+                
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.email",
+                    "data_type": "string",
+                    "example_values": [
+                        "admin@testcorp.biz"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.emailAddress",
+                    "data_type": "string",
+                    "example_values": [
+                        "admin@testcorp.biz"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.messagesTotal",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1234                    
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.threadsTotal",
+                    "data_type": "numeric",
+                    "example_values": [
+                        567
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.historyId",
+                    "data_type": "string",
+                    "example_values": [
+                        "987654321"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "versions": "EQ(*)",
+            "render": {
+                "width": 2,
+                "height": 5,
+                "type": "custom",
+                "title": "Get Email",
+                "view": "gsgmail_view.get_email"
+            }
         }
     ],
     "pip39_dependencies": {
