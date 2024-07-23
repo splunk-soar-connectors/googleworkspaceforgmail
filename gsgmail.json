@@ -1320,8 +1320,8 @@
                 "width": 2,
                 "height": 5,
                 "type": "custom",
-                "title": "Get Email",
-                "view": "gsgmail_view.get_email"
+                "title": "Get User",
+                "view": "gsgmail_view.get_user"
             }
         }
     ],
