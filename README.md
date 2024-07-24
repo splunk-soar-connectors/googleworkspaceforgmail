@@ -110,6 +110,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [delete email](#action-delete-email) - Delete emails  
 [on poll](#action-on-poll) - Callback action for the on-poll ingest functionality  
 [get email](#action-get-email) - Retrieve email details via internet message id  
+[prompt user](#action-prompt-user) - Prompt a user with a question  
 
 ## action: 'test connectivity'
 Validate the asset configuration for connectivity
@@ -346,4 +347,30 @@ action_result.data.\*.to | string |  `email`  |   admin@testcorp.biz
 action_result.summary.total_messages_returned | numeric |  |   1 
 action_result.message | string |  |   Total messages returned: 1 
 summary.total_objects | numeric |  |   1 
-summary.total_objects_successful | numeric |  |   1 
+summary.total_objects_successful | numeric |  |   1   
+
+## action: 'prompt user'
+Prompt a user with a question
+
+Type: **investigate**  
+Read only: **True**
+
+Requires authorization with the following scope: <b>https://www.googleapis.com/auth/gmail.send</b>.
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**email** |  required  | User's Email to prompt | string |  `email` 
+**timeout** |  optional  | Question timeout (in minutes) | numeric | 
+**question** |  required  | Question to ask the user | string | 
+**responses** |  required  | Comma separated string values for responses. (Maximum responses allowed are 5) | string | 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string |  |   success  failed 
+action_result.parameter.email | string |  `email`  |   admin@testcorp.biz 
+action_result.parameter.response_time | numeric |  |   10 
+action_result.parameter.question | string |  |   Was this you? 
+action_result.parameter.responses | string |  |  
+action_result.data.\*.answer | string |  |   Yes 
