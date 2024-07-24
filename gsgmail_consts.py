@@ -27,6 +27,8 @@ GSGMAIL_INVALID_INTEGER_ERROR_MESSAGE = 'Please provide a valid {msg} integer va
 GSGMAIL_AUTH_GMAIL_READ = 'https://www.googleapis.com/auth/gmail.readonly'
 GSGMAIL_AUTH_GMAIL_ADMIN_DIR = 'https://www.googleapis.com/auth/admin.directory.user.readonly'
 GSGMAIL_DELETE_EMAIL = 'https://mail.google.com/'
+GSGMAIL_AUTH_FORMS = 'https://www.googleapis.com/auth/forms.body'
+GSGMAIL_AUTH_DRIVE = 'https://www.googleapis.com/auth/drive'
 
 GSMAIL_DEFAULT_FIRST_RUN_MAX_EMAIL = 1000
 GSMAIL_DEFAULT_MAX_CONTAINER = 100

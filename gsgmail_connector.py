@@ -854,6 +854,52 @@ class GSuiteConnector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
+    def _handle_prompt_user(self, param):
+        email_to_ask = param["email"]
+        timeout = param["timeout"]
+        question = param["question"]
+        possible_responses = param["responses"]
+        
+        scopes = [GSGMAIL_AUTH_FORMS, GSGMAIL_AUTH_DRIVE]
+        
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        # Create a service here
+        self.save_progress("Creating AdminSDK service object")
+
+        ret_val, forms_service = self._create_service(action_result, scopes, "forms", "v1", self._login_email)
+        
+        options = []
+        for response in possible_responses:
+            options.append({"value": response})
+        
+        form_body = {
+            "info": {
+                "title": "SOAR Prompt",
+                "documentTitle": "SOAR_PROMPT_USER",
+                "description": "Question asked by the SOAR prompt_user action"
+            },
+            "items": [
+                {
+                    "title": "Gmail app question",
+                    "questionItem": {
+                        "question": {
+                            "required": True,
+                            "choiceQuestion": {
+                                "question": question,
+                                "type": "CHECKBOX",
+                                "options": options
+                            }
+                        }
+                    }
+                }
+            ]
+        }    
+           
+        form_response = forms_service.forms().create(body=form_body).execute()
+        form_id = form_response["formId"]
+        self.save_progress("Form created with id {0}".format(form_id))
+    
     def _process_email_ids(self, action_result, config, service, email_ids):
         for i, emid in enumerate(email_ids):
             self.send_progress("Parsing email id: {0}".format(emid))
@@ -920,6 +966,8 @@ class GSuiteConnector(BaseConnector):
             ret_val = self._handle_on_poll(param)
         elif action_id == 'test_connectivity':
             ret_val = self._handle_test_connectivity(param)
+        elif action_id == 'prompt_user':
+            ret_val = self._handle_prompt_user(param)
 
         return ret_val
 
