@@ -61,41 +61,59 @@
             "default": 100,
             "order": 5
         },
+        "data_type": {
+            "description": "Ingestion data type when polling",
+            "data_type": "string",
+            "value_list": [
+                "utf-8",
+                "ascii"
+            ],
+            "default": "utc-8",
+            "order": 6
+        },
+        "forwarding_address": {
+            "description": "Address to forward all emails to",
+            "data_type": "string",
+            "contains": [
+                "email"
+            ],
+            "order": 7
+        },
         "extract_attachments": {
             "description": "Extract Attachments",
             "data_type": "boolean",
             "default": false,
-            "order": 6
+            "order": 8
         },
         "extract_urls": {
             "description": "Extract URLs",
             "data_type": "boolean",
             "default": false,
-            "order": 7
+            "order": 9
         },
         "extract_ips": {
             "description": "Extract IPs",
             "data_type": "boolean",
             "default": false,
-            "order": 8
+            "order": 10
         },
         "extract_domains": {
             "description": "Extract Domain Names",
             "data_type": "boolean",
             "default": false,
-            "order": 9
+            "order": 11
         },
         "extract_hashes": {
             "description": "Extract Hashes",
             "data_type": "boolean",
             "default": false,
-            "order": 10
+            "order": 12
         },
         "download_eml_attachments": {
             "description": "Download EML attachments",
             "data_type": "boolean",
             "default": false,
-            "order": 11
+            "order": 13
         }
     },
     "actions": [
@@ -828,6 +846,16 @@
                     "required": true,
                     "value": 1000,
                     "order": 4
+                },
+                "data_type": {
+                    "description": "Encode ingested emails as ASCII or UTF-8",
+                    "data_type": "string",
+                    "value_list": [
+                        "utf-8",
+                        "ascii"
+                    ],
+                    "default": "utf-8",
+                    "order": 5
                 }
             },
             "output": [],

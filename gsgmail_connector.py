@@ -130,9 +130,7 @@ class GSuiteConnector(BaseConnector):
             _, _, self._domain = self._login_email.partition('@')
         except Exception:
             return self.set_status(phantom.APP_ERROR, "Unable to extract domain from login_email")
-
-        return phantom.APP_SUCCESS
-
+    
     def _validate_integer(self, action_result, parameter, key, allow_zero=False):
         """
         Validate an integer.
@@ -833,6 +831,8 @@ class GSuiteConnector(BaseConnector):
             else:
                 max_emails = max_containers
 
+        ingestion_data_type = config.get("data_type", "utf-8")
+
         run_limit = deepcopy(max_emails)
         action_result = self.add_action_result(ActionResult(dict(param)))
         email_id = param.get(phantom.APP_JSON_CONTAINER_ID, False)
@@ -850,7 +850,10 @@ class GSuiteConnector(BaseConnector):
                 if not self.is_poll_now():
                     self._update_state()
 
-            self._process_email_ids(action_result, config, service, email_ids)
+            self.debug_print("On poll data type {0}".format(ingestion_data_type))
+            if not ingestion_data_type:
+                ingestion_data_type = "utf-8"
+            self._process_email_ids(action_result, config, service, email_ids, ingestion_data_type)
             total_ingested += max_emails - self._dup_emails
 
             if ingest_manner == GSMAIL_LATEST_INGEST_MANNER or total_ingested >= run_limit or self.is_poll_now():
@@ -1025,7 +1028,8 @@ class GSuiteConnector(BaseConnector):
             return action_result.get_status()
         return action_result.set_status(phantom.APP_SUCCESS, "Email sent with id {0}".format(sent_message["id"]))
 
-    def _process_email_ids(self, action_result, config, service, email_ids):
+    def _process_email_ids(self, action_result, config, service, email_ids, data_type="utf-8"):
+        self.debug_print("The format type is {0}".format(data_type))
         for i, emid in enumerate(email_ids):
             self.send_progress("Parsing email id: {0}".format(emid))
             try:
@@ -1040,7 +1044,7 @@ class GSuiteConnector(BaseConnector):
             # but base64 can be represented in ascii with no possible issues
             raw_decode = base64.urlsafe_b64decode(message['raw'].encode("utf-8")).decode("utf-8")
             process_email = ProcessMail(self, config)
-            process_email.process_email(raw_decode, emid, timestamp)
+            process_email.process_email(raw_decode, emid, timestamp, data_type)
 
     def _update_state(self):
         utc_now = datetime.utcnow()
