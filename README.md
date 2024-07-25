@@ -103,6 +103,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **extract_domains** |  optional  | boolean | Extract Domain Names
 **extract_hashes** |  optional  | boolean | Extract Hashes
 **download_eml_attachments** |  optional  | boolean | Download EML attachments
+**extract_eml** |  optional  | boolean | Extract root (primary) email as Vault
 
 ### Supported Actions  
 [test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity  
