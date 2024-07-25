@@ -72,7 +72,6 @@
             "data_type": "string",
             "value_list": [
                 "metadata",
-                "full",
                 "minimal",
                 "raw"
             ],
@@ -896,7 +895,6 @@
                     "data_type": "string",
                     "value_list": [
                         "metadata",
-                        "full",
                         "minimal",
                         "raw"
                     ],
