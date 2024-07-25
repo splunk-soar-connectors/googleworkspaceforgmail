@@ -23,7 +23,6 @@ import os
 import sys
 from copy import deepcopy
 from datetime import datetime
-import tempfile
 
 import phantom.app as phantom
 import phantom.utils as ph_utils
@@ -502,9 +501,9 @@ class GSuiteConnector(BaseConnector):
 
         kwargs = {'q': query_string, 'userId': user_email}
         config = self.get_config()
-        format = param['format']
+        format = param.get('format', None)
         if not format:
-            format = config["default_format"]    
+            format = config["default_format"]
 
         try:
             messages_resp = service.users().messages().list(**kwargs).execute()
@@ -518,7 +517,7 @@ class GSuiteConnector(BaseConnector):
 
             curr_email_ar = ActionResult()
 
-            ret_val, email_details_resp = self._get_email_details(curr_email_ar, user_email, curr_message['id'], service, 'raw')
+            ret_val, email_details_resp = self._get_email_details(curr_email_ar, user_email, curr_message['id'], service, format)
 
             if phantom.is_fail(ret_val):
                 continue
@@ -550,28 +549,6 @@ class GSuiteConnector(BaseConnector):
                     message = self._get_error_message_from_exception(e)
                     self.error_print(f"Unable to add email body: {message}")
 
-            tmp_dir = tempfile.mkdtemp(prefix='ph_email_gmail')
-            file_name = email_details_resp["subject"]
-            file_name = "{0}{1}".format(self._decode_uni_string(file_name, file_name), ".eml")
-            file_path = "{0}/{1}".format(tmp_dir, file_name)
-            try:
-                with open(file_path, 'wb') as f:
-                    f.write(raw_encoded)
-            except Exception as e:
-                error_message = self._get_error_message_from_exception(e)
-                try:
-                    new_file_name = "ph_temp_email_file.eml"
-                    file_path = "{0}/{1}".format(tmp_dir, new_file_name)
-                    self.debug_print("Original filename: {}".format(file_name))
-                    self.debug_print("Modified filename: {}".format(new_file_name))
-                    with open(file_path, 'wb') as uncompressed_file:
-                        uncompressed_file.write(raw_encoded)
-                except Exception as e:
-                    error_message = self._get_error_message_from_exception(e)
-                    self.debug_print("Error occurred while adding file to Vault. Error Details: {}".format(error_message))
-                    return
-
-            
             action_result.add_data(email_details_resp)
 
         return action_result.set_status(phantom.APP_SUCCESS)

@@ -108,6 +108,12 @@
             "data_type": "boolean",
             "default": false,
             "order": 12
+        },
+        "extract_eml": {
+            "data_type": "boolean",
+            "description": "Extract root (primary) email as Vault",
+            "order": 13,
+            "default": true
         }
     },
     "actions": [

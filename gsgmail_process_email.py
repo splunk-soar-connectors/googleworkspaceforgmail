@@ -627,6 +627,7 @@ class ProcessMail:
             os.makedirs(tmp_dir)
 
         extract_attach = self._config[PROC_EMAIL_JSON_EXTRACT_ATTACHMENTS]
+        extract_eml = self._config.get(PROC_EMAIL_JSON_EXTRACT_EML, True)
 
         charset = mail.get_content_charset()
 
@@ -643,6 +644,29 @@ class ProcessMail:
         parsed_mail[PROC_EMAIL_JSON_BODIES] = bodies = []
         parsed_mail[PROC_EMAIL_JSON_START_TIME] = start_time_epoch
         parsed_mail[PROC_EMAIL_JSON_EMAIL_HEADERS] = []
+
+        if extract_eml:
+            extension = '.eml'
+            file_name = parsed_mail[PROC_EMAIL_JSON_SUBJECT]
+            file_name = "{0}{1}".format(self._decode_uni_string(file_name, file_name), extension)
+            file_path = "{0}/{1}".format(tmp_dir, file_name)
+            try:
+                with open(file_path, 'wb') as f:
+                    f.write(rfc822_email.encode())
+            except Exception as e:
+                error_message = self._base_connector._get_error_message_from_exception(e)
+                try:
+                    new_file_name = "ph_temp_email_file.eml"
+                    file_path = "{0}/{1}".format(tmp_dir, new_file_name)
+                    self._base_connector.debug_print("Original filename: {}".format(file_name))
+                    self._base_connector.debug_print("Modified filename: {}".format(new_file_name))
+                    with open(file_path, 'wb') as uncompressed_file:
+                        uncompressed_file.write(rfc822_email.encode())
+                except Exception as e:
+                    error_message = self._base_connector._get_error_message_from_exception(e)
+                    self._base_connector.debug_print("Error occurred while adding file to Vault. Error Details: {}".format(error_message))
+                    return
+            files.append({'file_name': file_name, 'file_path': file_path})
 
         # parse the parts of the email
         if mail.is_multipart():
