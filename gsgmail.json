@@ -1229,6 +1229,252 @@
                 "title": "Get Email",
                 "view": "gsgmail_view.get_email"
             }
+        },
+        {
+            "action": "send email",
+            "description": "Send emails",
+            "type": "contain",
+            "verbose": "Action uses the GMail API. Requires authorization with the following scope: <b>https://www.googleapis.com</b> and <b>https://www.googleapis.com/auth/gmail.settings.sharing</b>.",
+            "read_only": false,
+            "identifier": "send_email",
+            "parameters": {
+                "from": {
+                    "description": "From field",
+                    "data_type": "string",
+                    "order": 0,
+                    "primary": true,
+                    "contains": [
+                        "email"
+                    ]
+                },
+                "to": {
+                    "description": "List of recipients email addresses",
+                    "data_type": "string",
+                    "order": 1,
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "email"
+                    ],
+                    "allow_list": true
+                },
+                "subject": {
+                    "description": "Message Subject",
+                    "data_type": "string",
+                    "order": 2,
+                    "required": true
+                },
+                "cc": {
+                    "description": "List of recipients email addresses to include on cc line",
+                    "data_type": "string",
+                    "order": 3,
+                    "primary": true,
+                    "contains": [
+                        "email"
+                    ],
+                    "allow_list": true
+                },
+                "bcc": {
+                    "description": "List of recipients email addresses to include on bcc line",
+                    "data_type": "string",
+                    "order": 4,
+                    "contains": [
+                        "email"
+                    ],
+                    "allow_list": true,
+                    "primary": true
+                },
+                "reply_to": {
+                    "description": "Address that should recieve replies to the sent email",
+                    "data_type": "string",
+                    "order": 5,
+                    "contains": [
+                        "email"
+                    ],
+                    "allow_list": true,
+                    "primary": true
+                },
+                "headers": {
+                    "description": "Serialized json dictionary. Additional email headers to be added to the message",
+                    "data_type": "string",
+                    "order": 6
+                },
+                "body": {
+                    "description": "Html rendering of message",
+                    "data_type": "string",
+                    "order": 7,
+                    "required": true
+                },
+                "attachments": {
+                    "description": "List of vault ids of files to attach to the email. Vault id is used as content id",
+                    "data_type": "string",
+                    "order": 8,
+                    "allow_list": true,
+                    "contains": [
+                        "sha1",
+                        "vault id"
+                    ],
+                    "primary": true
+                }, 
+                "alias_email": {
+                    "description": "Custom from send-as alias email",
+                    "data_type": "string",
+                    "order": 9,
+                    "contains": [
+                        "email"
+                    ]
+                },
+                "alias_name": {
+                    "description": "Custom from send-as alias name",
+                    "data_type": "string",
+                    "order": 10
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.alias_email",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                       "test@testdomain.abc.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.alias_name",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.attachments",
+                    "data_type": "string",
+                    "contains": [
+                        "sha1",
+                        "vault id"
+                    ],
+                    "example_values": [
+                        "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.bcc",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.abc.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.body",
+                    "data_type": "string",
+                    "example_values": [
+                        "<html><body><p>Have a good time with these.</p></body></html>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.cc",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.abc.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.from",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.abc.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.headers",
+                    "data_type": "string",
+                    "example_values": [
+                        "{\"x-custom-header\":\"Custom value\"}"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "Example subject"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.to",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.abc.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.draft_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "rfc822t1500000000t3a1d2e0fghijklm"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.threadId",
+                    "data_type": "string",
+                    "example_values": [
+                        "16d1234567890abcdef"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.labelIds",
+                    "data_type": "string",
+                    "example_values": [
+                        "INBOX"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "All the provided emails were already deleted"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "width": 12,
+                "title": "Delete Email",
+                "type": "table",
+                "height": 5
+            },
+            "versions": "EQ(*)"
         }
     ],
     "pip39_dependencies": {
