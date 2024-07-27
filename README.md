@@ -110,6 +110,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [delete email](#action-delete-email) - Delete emails  
 [on poll](#action-on-poll) - Callback action for the on-poll ingest functionality  
 [get email](#action-get-email) - Retrieve email details via internet message id  
+[send email](#action-send-email) - Send emails  
 
 ## action: 'test connectivity'
 Validate the asset configuration for connectivity
@@ -345,5 +346,49 @@ action_result.data.\*.threadId | string |  |   1792b1cd66228bf2
 action_result.data.\*.to | string |  `email`  |   admin@testcorp.biz 
 action_result.summary.total_messages_returned | numeric |  |   1 
 action_result.message | string |  |   Total messages returned: 1 
+summary.total_objects | numeric |  |   1 
+summary.total_objects_successful | numeric |  |   1   
+
+## action: 'send email'
+Send emails
+
+Type: **contain**  
+Read only: **False**
+
+Action uses the GMail API. Requires authorization with the following scope: <b>https://www.googleapis.com</b> and <b>https://www.googleapis.com/auth/gmail.settings.sharing</b>.
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**from** |  optional  | From field | string |  `email` 
+**to** |  required  | List of recipients email addresses | string |  `email` 
+**subject** |  required  | Message Subject | string | 
+**cc** |  optional  | List of recipients email addresses to include on cc line | string |  `email` 
+**bcc** |  optional  | List of recipients email addresses to include on bcc line | string |  `email` 
+**reply_to** |  optional  | Address that should recieve replies to the sent email | string |  `email` 
+**headers** |  optional  | Serialized json dictionary. Additional email headers to be added to the message | string | 
+**body** |  required  | Html rendering of message | string | 
+**attachments** |  optional  | List of vault ids of files to attach to the email. Vault id is used as content id | string |  `sha1`  `vault id` 
+**alias_email** |  optional  | Custom from send-as alias email | string |  `email` 
+**alias_name** |  optional  | Custom from send-as alias name | string | 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string |  |   success  failed 
+action_result.parameter.alias_email | string |  `email`  |   test@testdomain.abc.com 
+action_result.parameter.alias_name | string |  |  
+action_result.parameter.attachments | string |  `sha1`  `vault id`  |   da39a3ee5e6b4b0d3255bfef95601890afd80709 
+action_result.parameter.bcc | string |  `email`  |   test@testdomain.abc.com 
+action_result.parameter.body | string |  |   <html><body><p>Have a good time with these.</p></body></html> 
+action_result.parameter.cc | string |  `email`  |   test@testdomain.abc.com 
+action_result.parameter.from | string |  `email`  |   test@testdomain.abc.com 
+action_result.parameter.headers | string |  |   {"x-custom-header":"Custom value"} 
+action_result.parameter.subject | string |  |   Example subject 
+action_result.parameter.to | string |  `email`  |   test@testdomain.abc.com 
+action_result.data.\*.draft_id | string |  |   rfc822t1500000000t3a1d2e0fghijklm 
+action_result.data.\*.threadId | string |  |   16d1234567890abcdef 
+action_result.data.\*.labelIds | string |  |   INBOX 
+action_result.message | string |  |   All the provided emails were already deleted 
 summary.total_objects | numeric |  |   1 
 summary.total_objects_successful | numeric |  |   1 
