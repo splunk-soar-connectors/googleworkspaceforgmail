@@ -1260,6 +1260,13 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved user details"
+                    ]
+                },
+                {
                     "data_path": "action_result.parameter.email",
                     "data_type": "string",
                     "example_values": [
