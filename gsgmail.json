@@ -1229,6 +1229,93 @@
                 "title": "Get Email",
                 "view": "gsgmail_view.get_email"
             }
+        }, 
+        {
+            "action": "prompt user",
+            "description": "Prompt a user with a question",
+            "verbose": "Requires authorization with the following scope: <b>https://www.googleapis.com/auth/gmail.send</b>.",
+            "type": "investigate",
+            "identifier": "prompt_user",
+            "read_only": true,
+            "parameters": {
+                "email": {
+                    "description": "User's Email to prompt",
+                    "data_type": "string",
+                    "order": 0,
+                    "contains": [
+                        "email"
+                    ],
+                    "primary": true,
+                    "required": true
+                },
+                "timeout": {
+                    "data_type": "numeric",
+                    "description": "Question timeout (in minutes)",
+                    "default": 30, 
+                    "order": 1
+                }, 
+                "question": {
+                    "data_type": "string",
+                    "description": "Question to ask the user",
+                    "order": 2,
+                    "required": true,
+                    "example_values": [
+                        "Was this you?"
+                    ]
+                }, 
+                "responses": {
+                    "data_type": "string", 
+                    "description": "Comma separated string values for responses. (Maximum responses allowed are 5)",
+                    "order": 3,
+                    "required": true
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.email",
+                    "data_type": "string",
+                    "example_values": [
+                        "admin@testcorp.biz"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.response_time",
+                    "data_type": "numeric",
+                    "example_values": [
+                        10
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.question",
+                    "data_type": "string",
+                    "example_values": [
+                        "Was this you?"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.responses",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.answer",
+                    "data_type": "string",
+                    "example_values": [
+                        "Yes"
+                    ]
+                }
+            ],
+            "versions": "EQ(*)"
         },
         {
             "action": "send email",
