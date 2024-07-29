@@ -110,7 +110,9 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [delete email](#action-delete-email) - Delete emails  
 [on poll](#action-on-poll) - Callback action for the on-poll ingest functionality  
 [get email](#action-get-email) - Retrieve email details via internet message id  
+[prompt user](#action-prompt-user) - Prompt a user with a question  
 [send email](#action-send-email) - Send emails  
+[prompt user](#action-prompt-user) - Prompt User  
 
 ## action: 'test connectivity'
 Validate the asset configuration for connectivity
@@ -349,6 +351,32 @@ action_result.message | string |  |   Total messages returned: 1
 summary.total_objects | numeric |  |   1 
 summary.total_objects_successful | numeric |  |   1   
 
+## action: 'prompt user'
+Prompt a user with a question
+
+Type: **investigate**  
+Read only: **True**
+
+Requires authorization with the following scope: <b>https://www.googleapis.com/auth/gmail.send</b>.
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**email** |  required  | User's Email to prompt | string |  `email` 
+**timeout** |  optional  | Question timeout (in minutes) | numeric | 
+**question** |  required  | Question to ask the user | string | 
+**responses** |  required  | Comma separated string values for responses. (Maximum responses allowed are 5) | string | 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string |  |   success  failed 
+action_result.parameter.email | string |  `email`  |   admin@testcorp.biz 
+action_result.parameter.response_time | numeric |  |   10 
+action_result.parameter.question | string |  |   Was this you? 
+action_result.parameter.responses | string |  |  
+action_result.data.\*.answer | string |  |   Yes   
+
 ## action: 'send email'
 Send emails
 
@@ -380,6 +408,7 @@ action_result.parameter.alias_email | string |  `email`  |   test@testdomain.abc
 action_result.parameter.alias_name | string |  |  
 action_result.parameter.attachments | string |  `sha1`  `vault id`  |   da39a3ee5e6b4b0d3255bfef95601890afd80709 
 action_result.parameter.bcc | string |  `email`  |   test@testdomain.abc.com 
+action_result.parameter.reply_to | string |  `email`  |  
 action_result.parameter.body | string |  |   <html><body><p>Have a good time with these.</p></body></html> 
 action_result.parameter.cc | string |  `email`  |   test@testdomain.abc.com 
 action_result.parameter.from | string |  `email`  |   test@testdomain.abc.com 
@@ -390,5 +419,36 @@ action_result.data.\*.draft_id | string |  |   rfc822t1500000000t3a1d2e0fghijklm
 action_result.data.\*.threadId | string |  |   16d1234567890abcdef 
 action_result.data.\*.labelIds | string |  |   INBOX 
 action_result.message | string |  |   All the provided emails were already deleted 
+summary.total_objects | numeric |  |   1 
+summary.total_objects_successful | numeric |  |   1   
+
+## action: 'prompt user'
+Prompt User
+
+Type: **contain**  
+Read only: **False**
+
+Action uses the GMail API. Requires authorization with the following scope: <b>https://mail.google.com</b>.
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**to** |  required  | List of recipients email addresses | string |  `email` 
+**question** |  required  | Question to prompt the user with | string | 
+**responses** |  required  | Comma separated string values for responses. (Maximum responses allowed are 5) | string | 
+**timeout** |  optional  | Question timeout (in minutes) | numeric | 
+**subject** |  optional  | Subject to be sent in user prompt | string | 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string |  |   success  failed 
+action_result.parameter.to | string |  `email`  |   admin@testcorp.biz 
+action_result.parameter.question | string |  |  
+action_result.parameter.responses | string |  |  
+action_result.parameter.timeout | numeric |  |  
+action_result.parameter.subject | string |  |  
+action_result.data.\*.response | string |  |  
+action_result.message | string |  |   User was prompted and their responses was recieved 
 summary.total_objects | numeric |  |   1 
 summary.total_objects_successful | numeric |  |   1 
