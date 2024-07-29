@@ -366,6 +366,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
 action_result.status | string |  |   success  failed 
+action_result.message | string |  |   Successfully retrieved user details 
 action_result.parameter.email | string |  `email`  |   admin@testcorp.biz 
 action_result.data.\*.emailAddress | string |  `email`  |   admin@testcorp.biz 
 action_result.data.\*.messagesTotal | numeric |  |   1234 
