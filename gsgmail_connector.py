@@ -861,7 +861,7 @@ class GSuiteConnector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
-    def _create_message(self, sender, to, cc, bcc, subject, message_text, reply_to=None, additional_headers={}, vault_ids=[]):
+    def _create_message(self, sender, to, subject, message_text, cc=None, bcc=None, reply_to=None, additional_headers={}, vault_ids=[]):
         message = multipart.MIMEMultipart('alternative')
         message['to'] = to
         message['from'] = sender
@@ -1011,10 +1011,10 @@ class GSuiteConnector(BaseConnector):
         message = self._create_message(
             from_email,
             param.get("to", ""),
-            param.get("cc", ""),
-            param.get("bcc", ""),
             param.get("subject", ""),
             param.get("body", ""),
+            param.get("cc"),
+            param.get("bcc"),
             param.get("reply_to"),
             headers,
             vault_ids
@@ -1025,6 +1025,80 @@ class GSuiteConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
         return action_result.set_status(phantom.APP_SUCCESS, "Email sent with id {0}".format(sent_message["id"]))
+
+    def _create_amp_text(self, question, options):
+        options_html = ''.join([f'<li><input type="radio" name="option" value="{option}"> {option}</li>' for option in options])
+
+        amp_html = f'''
+            <!doctype html>
+            <html>
+            <head>
+            <meta charset="utf-8">
+            <title>AMP Email Example</title>
+            <style amp4email-boilerplate>body{{visibility:hidden}}</style>
+            <script async src="https://cdn.ampproject.org/v0.js"></script>
+            <style amp-custom>
+                body {{
+                font-family: Arial, sans-serif;
+                padding: 20px;
+                }}
+                .question {{
+                font-size: 18px;
+                margin-bottom: 20px;
+                }}
+                .options {{
+                list-style-type: none;
+                padding: 0;
+                }}
+                .options li {{
+                margin-bottom: 10px;
+                }}
+                .submit-button {{
+                display: inline-block;
+                padding: 10px 20px;
+                background-color: #007bff;
+                color: white;
+                text-decoration: none;
+                border-radius: 5px;
+                }}
+            </style>
+            </head>
+            <body>
+            <div class="question">{question}</div>
+            <form method="post" action-xhr="https://your-webhook-url.com/submit" target="_top">
+                <ul class="options">
+                {options_html}
+                </ul>
+                <button type="submit" class="submit-button">Submit</button>
+            </form>
+            </body>
+            </html>
+        '''
+        return amp_html
+
+    def _handle_prompt_user(self, param):
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+
+        # Add an action result object to self (BaseConnector) to represent the action for this param
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        scopes = [GSGMAIL_DELETE_EMAIL]
+
+        # Create a service here
+        self.save_progress("Creating GMail service object")
+
+        ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", self._login_email)
+
+        options = [x.strip().lower() for x in param.get('responses', 'yes,no').split(',')]
+        amp_form = self._create_amp_text(param.get("question", ""), options)
+
+        message = self._create_message(self._login_email, param.get("to", ""), param.get("subject", "Question from SOAR"), amp_form)
+
+        media = MediaIoBaseUpload(BytesIO(message.as_bytes()), mimetype='message/rfc822', resumable=True)
+        ret_val, sent_message = self._send_email(service, "me", media, action_result)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+        return action_result.set_status(phantom.APP_SUCCESS, "User prompted with id {0}".format(sent_message["id"]))
 
     def _process_email_ids(self, action_result, config, service, email_ids):
         for i, emid in enumerate(email_ids):
@@ -1094,6 +1168,8 @@ class GSuiteConnector(BaseConnector):
             ret_val = self._handle_test_connectivity(param)
         elif action_id == 'send_email':
             ret_val = self._handle_send_email(param)
+        elif action_id == 'prompt_user':
+            ret_val = self._handle_prompt_user(param)
 
         return ret_val
 
