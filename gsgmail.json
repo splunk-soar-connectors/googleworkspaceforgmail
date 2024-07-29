@@ -1375,6 +1375,13 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.parameter.reply_to",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
                     "data_path": "action_result.parameter.body",
                     "data_type": "string",
                     "example_values": [

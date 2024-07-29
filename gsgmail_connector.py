@@ -24,10 +24,9 @@ import sys
 from copy import deepcopy
 from datetime import datetime
 
-from email.mime.text import MIMEText
-from email.mime import application, multipart, text, base, image, audio
 from email import encoders
-from googleapiclient.http import MediaIoBaseUpload
+from email.mime import application, multipart, text, base, image, audio
+from email.mime.text import MIMEText
 from io import BytesIO
 
 import phantom.app as phantom
@@ -36,6 +35,7 @@ import phantom.vault as phantom_vault
 import requests
 from google.oauth2 import service_account
 from googleapiclient import errors
+from googleapiclient.http import MediaIoBaseUpload
 from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
 from phantom.vault import Vault
@@ -1009,11 +1009,12 @@ class GSuiteConnector(BaseConnector):
                 self.debug_print("Could not create alias {0} because of {1}".format(alias_email, res))
 
         message = self._create_message(
-            from_email, param["to"],
+            from_email,
+            param.get("to", ""),
             param.get("cc", ""),
             param.get("bcc", ""),
             param.get("subject", ""),
-            param["body"],
+            param.get("body", ""),
             param.get("reply_to"),
             headers,
             vault_ids
