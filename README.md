@@ -97,7 +97,8 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **first_run_max_emails** |  optional  | numeric | Maximum Containers for scheduled polling first time
 **max_containers** |  optional  | numeric | Maximum Containers for scheduled polling
 **data_type** |  optional  | string | Ingestion data type when polling
-**forwarding_address** |  optional  | string | Address to forward all emails to
+**forwarding_address** |  optional  | string | Address to forward polled emails to
+**auto_reply** |  optional  | string | Auto reply to emails with a set body
 **extract_attachments** |  optional  | boolean | Extract Attachments
 **extract_urls** |  optional  | boolean | Extract URLs
 **extract_ips** |  optional  | boolean | Extract IPs
