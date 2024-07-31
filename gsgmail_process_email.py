@@ -87,6 +87,7 @@ class ProcessMail:
         self._artifacts = list()
         self._attachments = list()
         self._tmp_dirs = list()
+        self._vault_ids = list()
 
     def _get_file_contains(self, file_path):
 
@@ -909,6 +910,8 @@ class ProcessMail:
             self._del_tmp_dirs()
             return phantom.APP_ERROR, message
 
+        self._base_connector.debug_print("results files after processing {0}".format(results[0].get("files")))
+        self._base_connector.debug_print("results artifacts after processing {0}".format(results[0].get("artifacts")))
         try:
             self._parse_results(results)
             self._del_tmp_dirs()
@@ -917,9 +920,9 @@ class ProcessMail:
             error_message = self._base_connector._get_error_message_from_exception(e)
             message = "Parsing results failed. {0}".format(error_message)
             self._debug_print(message)
-            return phantom.APP_ERROR, message
+            return phantom.APP_ERROR, message, self._vault_ids
 
-        return phantom.APP_SUCCESS, PROC_EMAIL_PROCESSED
+        return phantom.APP_SUCCESS, PROC_EMAIL_PROCESSED, self._vault_ids
 
     def _parse_results(self, results):
 
@@ -1062,6 +1065,7 @@ class ProcessMail:
             self._base_connector.debug_print(PROC_EMAIL_FAILED_VAULT_ADD_FILE.format(message))
             return phantom.APP_ERROR, phantom.APP_ERROR
 
+        self._vault_ids.append(vault_id)
         # add the vault id artifact to the container
         cef_artifact = {}
         if file_name:
