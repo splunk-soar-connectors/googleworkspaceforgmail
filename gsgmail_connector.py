@@ -23,9 +23,8 @@ import os
 import sys
 from copy import deepcopy
 from datetime import datetime
-
 from email import encoders
-from email.mime import application, multipart, text, base, image, audio
+from email.mime import application, audio, base, image, multipart, text
 from email.mime.text import MIMEText
 from io import BytesIO
 
@@ -979,12 +978,12 @@ class GSuiteConnector(BaseConnector):
         # Create a service here
         self.save_progress("Creating GMail service object")
 
-        ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", self._login_email)
+        from_email = param.get("from") if param.get("from", "") else self._login_email
+
+        ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", from_email)
 
         if phantom.is_fail(ret_val):
             return action_result.get_status()
-
-        from_email = param["from"] if param.get("from", "") else self._login_email
 
         try:
             headers = json.loads(param.get("headers", "{}"))
