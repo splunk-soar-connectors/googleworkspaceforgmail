@@ -1056,10 +1056,11 @@ class GSuiteConnector(BaseConnector):
 
             if config.get("forwarding_address"):
                 ret_val, sent_message = self._forward_email(message, vault_ids, config, action_result)
+                to = config["forwarding_address"]
                 if phantom.is_fail(ret_val):
-                    self.send_progress("Forwarded email with id {0} to {1} failed".format(emid, config["forwarding_address"]))
+                    self.send_progress("Forwarded email with id {0} to {1} failed".format(emid, to))
                 else:
-                    self.send_progress("Forwarded email with id {0} to {1}. Id of forwarded message: {2}".format(emid, config["forwarding_address"], sent_message["id"]))
+                    self.send_progress("Forwarded email with id {0} to {1}. Forwarded message id: {2}".format(emid, to, sent_message["id"]))
 
     def _auto_reply(self, message, config, action_result):
         raw_encoded = base64.urlsafe_b64decode(message["raw"].encode('UTF8'))
@@ -1101,7 +1102,15 @@ class GSuiteConnector(BaseConnector):
 
         subject = "Fwd: " + email_details["email_headers"][0]["subject"]
         body = email_details['parsed_plain_body'] or email_details.get("parsed_html_body", None)
-        forwrded_message = self._create_message(config["login_email"], config["forwarding_address"], None, None, subject, body, vault_ids=attachment_vault_ids)
+        forwrded_message = self._create_message(
+            config["login_email"],
+            config["forwarding_address"],
+            None,
+            None,
+            subject,
+            body,
+            vault_ids=attachment_vault_ids
+        )
 
         media = MediaIoBaseUpload(BytesIO(forwrded_message.as_bytes()), mimetype='message/rfc822', resumable=True)
 
