@@ -484,7 +484,6 @@ class GSuiteConnector(BaseConnector):
             msg, email_details, action_result, extract_attachments, extract_nested
         )
         self._join_email_bodies(email_details)
-        self.debug_print("parse multirpart {0}".format(email_details))
         return ret_val
 
     def _handle_get_email(self, param):
