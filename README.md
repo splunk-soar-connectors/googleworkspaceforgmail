@@ -380,6 +380,7 @@ action_result.parameter.alias_email | string |  `email`  |   test@testdomain.abc
 action_result.parameter.alias_name | string |  |  
 action_result.parameter.attachments | string |  `sha1`  `vault id`  |   da39a3ee5e6b4b0d3255bfef95601890afd80709 
 action_result.parameter.bcc | string |  `email`  |   test@testdomain.abc.com 
+action_result.parameter.reply_to | string |  `email`  |  
 action_result.parameter.body | string |  |   <html><body><p>Have a good time with these.</p></body></html> 
 action_result.parameter.cc | string |  `email`  |   test@testdomain.abc.com 
 action_result.parameter.from | string |  `email`  |   test@testdomain.abc.com 
