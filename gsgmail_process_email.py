@@ -24,7 +24,7 @@ import socket
 import string
 import tempfile
 from collections import OrderedDict
-from email.header import decode_header, make_header
+from email.header import decode_header, make_header, Header
 
 import magic
 import phantom.app as phantom
@@ -202,7 +202,7 @@ class ProcessMail:
             if ips_in_mail:
                 ips |= set(ips_in_mail)
 
-    def _handle_body(self, body, parsed_mail, email_id, data_type="utf-8"):
+    def _handle_body(self, body, parsed_mail, email_id):
 
         local_file_path = body['file_path']
         ips = parsed_mail[PROC_EMAIL_JSON_IPS]
@@ -354,7 +354,6 @@ class ProcessMail:
 
             value = decoded_string.get('value')
             encoding = decoded_string.get('encoding')
-            self._base_connector.debug_string("Decode uni string pair, value: {0}".format(value))
 
             if not encoding or not value:
                 # nothing to replace with
@@ -509,9 +508,7 @@ class ProcessMail:
             return 0
 
         # Parse email keys first
-
         headers = self._get_email_headers_from_part(part, charset, data_type)
-        self._base_connector.debug_print("parse emails headers {0}", headers)
 
         cef_artifact = {}
         cef_types = {}
@@ -595,9 +592,13 @@ class ProcessMail:
                 headers['decodedSubject'] = str(make_header(decode_header(subject)))
             except Exception:
                 headers['decodedSubject'] = self._decode_uni_string(subject, subject)
+
             if data_type == "ascii":
-                headers['decodedSubject'] = self._remove_non_ascii_characters(headers['decodedSubject'])
-        self._base_connector.debug_print("part headers {0}".format(headers))
+                ascii_subject = self._remove_non_ascii_characters(headers['decodedSubject'])
+                headers['decodedSubject'] = ascii_subject
+                mime_format_header = Header(ascii_subject, "utf-8").encode()
+                headers[subject] = mime_format_header
+
         return dict(headers)
 
     def _get_error_message_from_exception(self, e):
@@ -641,10 +642,15 @@ class ProcessMail:
 
         # Extract fields and place it in a dictionary
         parsed_mail[PROC_EMAIL_JSON_SUBJECT] = mail.get('Subject', '')
-        self._base_connector.debug_print("handle mail object subject {0}".format(parsed_mail[PROC_EMAIL_JSON_SUBJECT]))
         if data_type == "ascii":
-            parsed_mail[PROC_EMAIL_JSON_SUBJECT] = self._remove_non_ascii_characters(parsed_mail[PROC_EMAIL_JSON_SUBJECT])
-        self._base_connector.debug_print("handle mail object subject {0}".format(parsed_mail[PROC_EMAIL_JSON_SUBJECT]))
+            decoded_subject = None
+            try:
+                decoded_subject = str(make_header(decode_header(parsed_mail[PROC_EMAIL_JSON_SUBJECT])))
+            except Exception:
+                decoded_subject = self._decode_uni_string(parsed_mail[PROC_EMAIL_JSON_SUBJECT], None)
+            ascii_subject = self._remove_non_ascii_characters(decoded_subject)
+            mime_format_header = Header(ascii_subject, "utf-8").encode()
+            parsed_mail[PROC_EMAIL_JSON_SUBJECT] = mime_format_header
         parsed_mail[PROC_EMAIL_JSON_FROM] = mail.get('From', '')
         parsed_mail[PROC_EMAIL_JSON_TO] = mail.get('To', '')
         parsed_mail[PROC_EMAIL_JSON_DATE] = mail.get('Date', '')
@@ -677,14 +683,13 @@ class ProcessMail:
                     continue
 
         else:
-            self._parse_email_headers(parsed_mail, mail, add_email_id=email_id, data_type=data_type)
+            self._parse_email_headers(parsed_mail, mail, add_email_id=email_id)
             # parsed_mail[PROC_EMAIL_JSON_EMAIL_HEADERS].append(mail.items())
             file_path = "{0}/part_1.text".format(tmp_dir)
             with open(file_path, 'wb') as f:  # noqa
                 f.write(mail.get_payload(decode=True))
             bodies.append({'file_path': file_path, 'charset': charset})
             self._add_body_in_email_headers(parsed_mail, file_path, mail.get_content_charset(), 'text/plain', data_type)
-
         # get the container name
         container_name = self._get_container_name(parsed_mail, email_id)
 
@@ -715,12 +720,10 @@ class ProcessMail:
             if not body:
                 continue
 
-            self._base_connector.debug_print("in handle mail object body is {0}".format(body))
-            self._base_connector.debug_print("in handle mail object parsed mail is {0}".format(parsed_mail))
             try:
-                self._handle_body(body, parsed_mail, email_id, data_type)
+                self._handle_body(body, parsed_mail, email_id)
             except Exception as e:
-                self._base_connector.debug_print_debug_print("ErrorExp in _handle_body # {0}: {1}".format(i, str(e)))
+                self._base_connector.debug_print("ErrorExp in _handle_body # {0}: {1}".format(i, str(e)))
                 continue
 
         # Files
@@ -759,7 +762,6 @@ class ProcessMail:
             self._base_connector.debug_print("Reading file data using binary mode")
         # Add body to the last added Email artifact
         body_content = UnicodeDammit(body_content).unicode_markup.encode('utf-8').decode('utf-8')
-        self._base_connector.debug_print("add body in email headers body content {0}".format(body_content))
 
         if 'text/plain' in content_type:
             try:
@@ -908,10 +910,8 @@ class ProcessMail:
 
         if not ret_val:
             self._del_tmp_dirs()
-            return phantom.APP_ERROR, message
+            return phantom.APP_ERROR, message, self._vault_ids
 
-        self._base_connector.debug_print("results files after processing {0}".format(results[0].get("files")))
-        self._base_connector.debug_print("results artifacts after processing {0}".format(results[0].get("artifacts")))
         try:
             self._parse_results(results)
             self._del_tmp_dirs()

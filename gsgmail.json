@@ -68,7 +68,7 @@
                 "utf-8",
                 "ascii"
             ],
-            "default": "utc-8",
+            "default": "utf-8",
             "order": 6
         },
         "forwarding_address": {

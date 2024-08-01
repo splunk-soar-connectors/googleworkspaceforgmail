@@ -853,7 +853,6 @@ class GSuiteConnector(BaseConnector):
                 if not self.is_poll_now():
                     self._update_state()
 
-            self.debug_print("On poll data type {0}".format(ingestion_data_type))
             if not ingestion_data_type:
                 ingestion_data_type = "utf-8"
             self._process_email_ids(action_result, config, service, email_ids, ingestion_data_type)
