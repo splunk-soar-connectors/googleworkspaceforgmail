@@ -1023,6 +1023,7 @@ class GSuiteConnector(BaseConnector):
         ret_val, sent_message = self._send_email(service, "me", media, action_result)
         if phantom.is_fail(ret_val):
             return action_result.get_status()
+        action_result.add_data(sent_message)
         return action_result.set_status(phantom.APP_SUCCESS, "Email sent with id {0}".format(sent_message["id"]))
 
     def _process_email_ids(self, action_result, config, service, email_ids):
