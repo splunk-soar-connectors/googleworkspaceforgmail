@@ -96,6 +96,9 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **ingest_manner** |  optional  | string | How to ingest
 **first_run_max_emails** |  optional  | numeric | Maximum Containers for scheduled polling first time
 **max_containers** |  optional  | numeric | Maximum Containers for scheduled polling
+**data_type** |  optional  | string | Ingestion data type when polling
+**forwarding_address** |  optional  | string | Address to forward polled emails to
+**auto_reply** |  optional  | string | Auto reply to emails with a set body
 **extract_attachments** |  optional  | boolean | Extract Attachments
 **default_format** |  optional  | string | Format used for the get email action
 **extract_urls** |  optional  | boolean | Extract URLs
@@ -112,6 +115,8 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [delete email](#action-delete-email) - Delete emails  
 [on poll](#action-on-poll) - Callback action for the on-poll ingest functionality  
 [get email](#action-get-email) - Retrieve email details via internet message id  
+[get user](#action-get-user) - Retrieve user details via email address  
+[send email](#action-send-email) - Send emails  
 
 ## action: 'test connectivity'
 Validate the asset configuration for connectivity
@@ -279,6 +284,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **container_id** |  optional  | Parameter Ignored in this app | string | 
 **container_count** |  required  | Maximum number of emails to ingest | numeric | 
 **artifact_count** |  required  | Maximum number of artifact to ingest | numeric | 
+**data_type** |  optional  | Encode ingested emails as ASCII or UTF-8 | string | 
 
 #### Action Output
 No Output  
@@ -348,5 +354,76 @@ action_result.data.\*.threadId | string |  |   1792b1cd66228bf2
 action_result.data.\*.to | string |  `email`  |   admin@testcorp.biz 
 action_result.summary.total_messages_returned | numeric |  |   1 
 action_result.message | string |  |   Total messages returned: 1 
+summary.total_objects | numeric |  |   1 
+summary.total_objects_successful | numeric |  |   1   
+
+## action: 'get user'
+Retrieve user details via email address
+
+Type: **investigate**  
+Read only: **False**
+
+Action uses the GMail API to search in a user's mailbox (specified in the <b>email</b> parameter). <br>Requires the users authorization and the following scope: <b>https://www.googleapis.com/auth/gmail.readonly</b>.
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**email** |  required  | User's Email (User to search) | string |  `email` 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string |  |   success  failed 
+action_result.message | string |  |   Successfully retrieved user details 
+action_result.parameter.email | string |  `email`  |   admin@testcorp.biz 
+action_result.data.\*.emailAddress | string |  `email`  |   admin@testcorp.biz 
+action_result.data.\*.messagesTotal | numeric |  |   1234 
+action_result.data.\*.threadsTotal | numeric |  |   567 
+action_result.data.\*.historyId | string |  |   987654321 
+summary.total_objects | numeric |  |   1 
+summary.total_objects_successful | numeric |  |   1   
+
+## action: 'send email'
+Send emails
+
+Type: **contain**  
+Read only: **False**
+
+Action uses the GMail API. Requires authorization with the following scope: <b>https://www.googleapis.com</b> and <b>https://www.googleapis.com/auth/gmail.settings.sharing</b>.
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**from** |  optional  | From field | string |  `email` 
+**to** |  required  | List of recipients email addresses | string |  `email` 
+**subject** |  required  | Message Subject | string | 
+**cc** |  optional  | List of recipients email addresses to include on cc line | string |  `email` 
+**bcc** |  optional  | List of recipients email addresses to include on bcc line | string |  `email` 
+**reply_to** |  optional  | Address that should recieve replies to the sent email | string |  `email` 
+**headers** |  optional  | Serialized json dictionary. Additional email headers to be added to the message | string | 
+**body** |  required  | Html rendering of message | string | 
+**attachments** |  optional  | List of vault ids of files to attach to the email. Vault id is used as content id | string |  `sha1`  `vault id` 
+**alias_email** |  optional  | Custom from send-as alias email | string |  `email` 
+**alias_name** |  optional  | Custom from send-as alias name | string | 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string |  |   success  failed 
+action_result.parameter.alias_email | string |  `email`  |   test@testdomain.abc.com 
+action_result.parameter.alias_name | string |  |  
+action_result.parameter.attachments | string |  `sha1`  `vault id`  |   da39a3ee5e6b4b0d3255bfef95601890afd80709 
+action_result.parameter.bcc | string |  `email`  |   test@testdomain.abc.com 
+action_result.parameter.reply_to | string |  `email`  |  
+action_result.parameter.body | string |  |   <html><body><p>Have a good time with these.</p></body></html> 
+action_result.parameter.cc | string |  `email`  |   test@testdomain.abc.com 
+action_result.parameter.from | string |  `email`  |   test@testdomain.abc.com 
+action_result.parameter.headers | string |  |   {"x-custom-header":"Custom value"} 
+action_result.parameter.subject | string |  |   Example subject 
+action_result.parameter.to | string |  `email`  |   test@testdomain.abc.com 
+action_result.data.\*.id | string |  |   rfc822t1500000000t3a1d2e0fghijklm 
+action_result.data.\*.threadId | string |  |   16d1234567890abcdef 
+action_result.data.\*.labelIds | string |  |   INBOX 
+action_result.message | string |  |   All the provided emails were already deleted 
 summary.total_objects | numeric |  |   1 
 summary.total_objects_successful | numeric |  |   1 

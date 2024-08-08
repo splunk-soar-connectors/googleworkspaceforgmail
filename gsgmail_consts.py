@@ -22,11 +22,14 @@ GSGMAIL_SERVICE_KEY_FAILED = 'Unable to load the credentials from the key JSON' 
 GSGMAIL_CREDENTIALS_FAILED = 'Failed to create delegated credentials'
 GSGMAIL_EMAIL_FETCH_FAILED = 'Failed to get email details'
 GSGMAIL_USERS_FETCH_FAILED = 'Failed to get users'
+GSGMAIL_USER_FATCH_FAILED = 'Failed to get user details'
 GSGMAIL_INVALID_INTEGER_ERROR_MESSAGE = 'Please provide a valid {msg} integer value in the "{param}"'
 
 GSGMAIL_AUTH_GMAIL_READ = 'https://www.googleapis.com/auth/gmail.readonly'
 GSGMAIL_AUTH_GMAIL_ADMIN_DIR = 'https://www.googleapis.com/auth/admin.directory.user.readonly'
 GSGMAIL_DELETE_EMAIL = 'https://mail.google.com/'
+GSMAIL_SETTINGS_CHANGE = 'https://www.googleapis.com/auth/gmail.settings.sharing'
+GSGMAIL_ATTACHMENTS_CUTOFF_SIZE = 26214400  # 25mb
 
 GSMAIL_DEFAULT_FIRST_RUN_MAX_EMAIL = 1000
 GSMAIL_DEFAULT_MAX_CONTAINER = 100

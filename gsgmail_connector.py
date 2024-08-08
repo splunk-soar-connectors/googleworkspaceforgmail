@@ -23,12 +23,18 @@ import os
 import sys
 from copy import deepcopy
 from datetime import datetime
+from email import encoders
+from email.mime import application, audio, base, image, multipart, text
+from email.mime.text import MIMEText
+from io import BytesIO
 
 import phantom.app as phantom
 import phantom.utils as ph_utils
+import phantom.vault as phantom_vault
 import requests
 from google.oauth2 import service_account
 from googleapiclient import errors
+from googleapiclient.http import MediaIoBaseUpload
 from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
 from phantom.vault import Vault
@@ -72,6 +78,8 @@ class GSuiteConnector(BaseConnector):
         super(GSuiteConnector, self).__init__()
 
     def _create_service(self, action_result, scopes, api_name, api_version, delegated_user=None):
+        self.debug_print("key json:")
+        self.debug_print(self._key_dict)
 
         # first the credentials
         try:
@@ -698,6 +706,33 @@ class GSuiteConnector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _handle_get_user(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+
+        # Add an action result object to self (BaseConnector) to represent the action for this param
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        # Create the credentials with the required scope
+        scopes = [GSGMAIL_AUTH_GMAIL_READ]
+
+        self.save_progress("Creating AdminSDK service object")
+
+        ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", param["email"])
+
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        try:
+            user_info = service.users().getProfile(userId="me").execute()
+        except Exception as e:
+            error_message = self._get_error_message_from_exception(e)
+            return action_result.set_status(phantom.APP_ERROR, GSGMAIL_USER_FATCH_FAILED, error_message)
+
+        action_result.add_data(user_info)
+
+        return action_result.set_status(phantom.APP_SUCCESS)
+
     def _handle_test_connectivity(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
@@ -851,6 +886,8 @@ class GSuiteConnector(BaseConnector):
             else:
                 max_emails = max_containers
 
+        ingestion_data_type = config.get("data_type", "utf-8")
+
         run_limit = deepcopy(max_emails)
         action_result = self.add_action_result(ActionResult(dict(param)))
         email_id = param.get(phantom.APP_JSON_CONTAINER_ID, False)
@@ -868,7 +905,9 @@ class GSuiteConnector(BaseConnector):
                 if not self.is_poll_now():
                     self._update_state()
 
-            self._process_email_ids(action_result, config, service, email_ids)
+            if not ingestion_data_type:
+                ingestion_data_type = "utf-8"
+            self._process_email_ids(action_result, config, service, email_ids, ingestion_data_type)
             total_ingested += max_emails - self._dup_emails
 
             if ingest_manner == GSMAIL_LATEST_INGEST_MANNER or total_ingested >= run_limit or self.is_poll_now():
@@ -878,7 +917,173 @@ class GSuiteConnector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
-    def _process_email_ids(self, action_result, config, service, email_ids):
+    def _create_message(self, sender, to, cc, bcc, subject, message_text, reply_to=None, additional_headers={}, vault_ids=[]):
+        message = multipart.MIMEMultipart('alternative')
+        message['to'] = to
+        message['from'] = sender
+        message['subject'] = subject
+        if cc:
+            message['cc'] = cc
+        if bcc:
+            message['bcc'] = bcc
+        if reply_to:
+            message['Reply-To'] = reply_to
+
+        for key, value in additional_headers.items():
+            message[key] = value
+
+        part1 = MIMEText(message_text, 'plain')
+        message.attach(part1)
+
+        # Attach HTML part with plain text content
+        part2 = MIMEText(message_text, 'html')
+        message.attach(part2)
+
+        current_size = 0
+        mime_consumer = {'text': text.MIMEText,
+                     'image': image.MIMEImage,
+                     'audio': audio.MIMEAudio }
+
+        for vault_id in vault_ids:
+            vault_info = self._get_vault_info(vault_id)
+            if not vault_info:
+                self.debug_print("Failed to find vault entry {}".format(vault_id))
+                continue
+
+            current_size += vault_info["size"]
+            if current_size > GSGMAIL_ATTACHMENTS_CUTOFF_SIZE:
+                self.debug_print("Total attachment size reached max capacity. No longer adding attachments after vault id {0}".format(vault_id))
+                break
+
+            content_type = vault_info['mime_type']
+            main_type, sub_type = content_type.split('/', 1)
+
+            consumer = None
+            if main_type in mime_consumer:
+                consumer = main_type[mime_consumer]
+            elif main_type == "application" and sub_type == "pdf":
+                consumer = application.MIMEApplication
+
+            self.debug_print("Content type is {0}".format(content_type))
+            attachment_part = None
+            if not consumer:
+                attachment_part = base.MIMEBase(main_type, sub_type)
+                with open(vault_info['path'], mode='rb') as file:
+                    file_content = file.read()
+                    attachment_part.set_payload(file_content)
+            else:
+                with open(vault_info['path'], mode='rb') as file:
+                    attachment_part = consumer(file.read(), _subtype=sub_type)
+
+            encoders.encode_base64(attachment_part)
+
+            attachment_part.add_header(
+                'Content-Disposition',
+                'attachment; filename={0}'.format(vault_info['name'])
+            )
+            attachment_part.add_header(
+                'Content-Length',
+                str(vault_info['size'])  # File size in bytes
+            )
+            attachment_part.add_header(
+                'Content-ID',
+                vault_info['vault_id']
+            )
+            message.attach(attachment_part)
+
+        return message
+
+    def _send_email(self, service, user_id, media, action_result):
+        try:
+            sent_message = service.users().messages().send(userId=user_id, body={}, media_body=media).execute()
+            return phantom.APP_SUCCESS, sent_message
+        except Exception as error:
+            self.debug_print("Error occured when sending draft: {0}".format(error))
+            return action_result.set_status(phantom.APP_ERROR, "Message not sent because of {0}".format(error)), None
+
+    def _get_vault_info(self, vault_id):
+        _, _, vault_infos = phantom_vault.vault_info(container_id=self.get_container_id(), vault_id=vault_id)
+        if not vault_infos:
+            _, _, vault_infos = phantom_vault.vault_info(vault_id=vault_id)
+        return vault_infos[0] if vault_infos else None
+
+    def _create_send_as_alias(self, service, user_id, alias_email, display_name=None):
+        send_as = {
+            "sendAsEmail": alias_email,
+            "treatAsAlias": True,
+            "isPrimary": False
+        }
+
+        if display_name:
+            send_as["displayName"] = display_name
+
+        try:
+            result = service.users().settings().sendAs().create(userId=user_id, body=send_as).execute()
+            return phantom.APP_SUCCESS, result
+        except errors.HttpError as error:
+            return phantom.APP_ERROR, error
+
+    def _handle_send_email(self, param):
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+
+        # Add an action result object to self (BaseConnector) to represent the action for this param
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        # Create the credentials with the required scope
+        scopes = [GSGMAIL_DELETE_EMAIL]
+
+        # Create a service here
+        self.save_progress("Creating GMail service object")
+
+        from_email = param.get("from") if param.get("from", "") else self._login_email
+
+        ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", from_email)
+
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        try:
+            headers = json.loads(param.get("headers", "{}"))
+        except json.JSONDecodeError as e:
+            return action_result.set_status(phantom.APP_ERROR, e), None
+
+        vault_ids = [vault_id for x in param.get('attachments', '').split(',') if (vault_id := x.strip())]
+
+        if param.get("alias_email"):
+            alias_email = param.get("alias_email")
+            alias_name = param.get("alias_name", "")
+            SETTINGS_SCOPE = [GSMAIL_SETTINGS_CHANGE]
+            ret_val, settings_service = self._create_service(action_result, SETTINGS_SCOPE, "gmail", "v1", self._login_email)
+            ret_val, res = self._create_send_as_alias(settings_service, "me", alias_email, alias_name)
+            if ret_val == phantom.APP_SUCCESS:
+                self.debug_print("Successfully created alias {0}".format(alias_email))
+                from_email = alias_email
+            elif res.resp.status == 409 and 'alreadyExists' in res._get_reason():
+                self.debug_print("Alias {0} already exists. Using to send emails".format(alias_email))
+                from_email = alias_email
+            else:
+                self.debug_print("Could not create alias {0} because of {1}".format(alias_email, res))
+
+        message = self._create_message(
+            from_email,
+            param.get("to", ""),
+            param.get("cc", ""),
+            param.get("bcc", ""),
+            param.get("subject", ""),
+            param.get("body", ""),
+            param.get("reply_to"),
+            headers,
+            vault_ids
+        )
+
+        media = MediaIoBaseUpload(BytesIO(message.as_bytes()), mimetype='message/rfc822', resumable=True)
+        ret_val, sent_message = self._send_email(service, "me", media, action_result)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+        action_result.add_data(sent_message)
+        return action_result.set_status(phantom.APP_SUCCESS, "Email sent with id {0}".format(sent_message["id"]))
+
+    def _process_email_ids(self, action_result, config, service, email_ids, data_type="utf-8"):
         for i, emid in enumerate(email_ids):
             self.send_progress("Parsing email id: {0}".format(emid))
             try:
@@ -892,8 +1097,83 @@ class GSuiteConnector(BaseConnector):
             # the api libraries return the base64 encoded message as a unicode string,
             # but base64 can be represented in ascii with no possible issues
             raw_decode = base64.urlsafe_b64decode(message['raw'].encode("utf-8")).decode("utf-8")
+
+            if config.get("auto_reply"):
+                ret_val, sent_message = self._auto_reply(message, config, action_result)
+                if phantom.is_fail(ret_val):
+                    self.send_progress("Auto reply to email with id {0} failed".format(emid))
+                else:
+                    self.send_progress("Auto reply to email with id {0} succeeded. Id of reply: {1}".format(emid, sent_message["id"]))
             process_email = ProcessMail(self, config)
-            process_email.process_email(raw_decode, emid, timestamp)
+            ret_val, msg, vault_ids = process_email.process_email(raw_decode, emid, timestamp, data_type)
+
+            if config.get("forwarding_address"):
+                ret_val, sent_message = self._forward_email(message, vault_ids, config, action_result)
+                to = config["forwarding_address"]
+                if phantom.is_fail(ret_val):
+                    self.send_progress("Forwarded email with id {0} to {1} failed".format(emid, to))
+                else:
+                    self.send_progress("Forwarded email with id {0} to {1}. Forwarded message id: {2}".format(emid, to, sent_message["id"]))
+
+    def _auto_reply(self, message, config, action_result):
+        raw_encoded = base64.urlsafe_b64decode(message["raw"].encode('UTF8'))
+        msg = email.message_from_bytes(raw_encoded)
+        headers = self._get_email_headers_from_part(msg)
+        to_address = headers.get("from", "")
+        subject = headers.get("subject", "")
+        reply_message = self._create_message(config["login_email"], to_address, None, None, 'Re: ' + subject, config["auto_reply"])
+        media = MediaIoBaseUpload(BytesIO(reply_message.as_bytes()), mimetype='message/rfc822', resumable=True)
+
+        scopes = [GSGMAIL_DELETE_EMAIL]
+        ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", self._login_email)
+
+        ret_val, sent_message = self._send_email(service, "me", media, action_result)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status(), sent_message
+        return phantom.APP_SUCCESS, sent_message
+
+    def _forward_email(self, email_details, attachment_vault_ids, config, action_result):
+        raw_encoded = base64.urlsafe_b64decode(email_details.pop('raw').encode('UTF8'))
+        msg = email.message_from_bytes(raw_encoded)
+
+        if msg.is_multipart():
+            ret_val = self._parse_multipart_message(action_result, msg, email_details, False, False)
+
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+        else:
+            # not multipart
+            email_details['email_headers'] = []
+            charset = msg.get_content_charset()
+            headers = self._get_email_headers_from_part(msg)
+            email_details['email_headers'].append(headers)
+            try:
+                email_details['parsed_plain_body'] = msg.get_payload(decode=True).decode(encoding=charset, errors="ignore")
+            except Exception as e:
+                message = self._get_error_message_from_exception(e)
+                self.error_print(f"Unable to add email body: {message}")
+
+        subject = "Fwd: " + email_details["email_headers"][0]["subject"]
+        body = email_details['parsed_plain_body'] or email_details.get("parsed_html_body", None)
+        forwrded_message = self._create_message(
+            config["login_email"],
+            config["forwarding_address"],
+            None,
+            None,
+            subject,
+            body,
+            vault_ids=attachment_vault_ids
+        )
+
+        media = MediaIoBaseUpload(BytesIO(forwrded_message.as_bytes()), mimetype='message/rfc822', resumable=True)
+
+        scopes = [GSGMAIL_DELETE_EMAIL]
+        ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", self._login_email)
+
+        ret_val, sent_message = self._send_email(service, "me", media, action_result)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status(), sent_message
+        return phantom.APP_SUCCESS, sent_message
 
     def _update_state(self):
         utc_now = datetime.utcnow()
@@ -940,10 +1220,14 @@ class GSuiteConnector(BaseConnector):
             ret_val = self._handle_get_users(param)
         elif action_id == 'get_email':
             ret_val = self._handle_get_email(param)
+        elif action_id == 'get_user':
+            ret_val = self._handle_get_user(param)
         elif action_id == 'on_poll':
             ret_val = self._handle_on_poll(param)
         elif action_id == 'test_connectivity':
             ret_val = self._handle_test_connectivity(param)
+        elif action_id == 'send_email':
+            ret_val = self._handle_send_email(param)
 
         return ret_val
 
