@@ -24,7 +24,7 @@ import socket
 import string
 import tempfile
 from collections import OrderedDict
-from email.header import decode_header, make_header, Header
+from email.header import Header, decode_header, make_header
 
 import magic
 import phantom.app as phantom
