@@ -116,7 +116,6 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [get user](#action-get-user) - Retrieve user details via email address  
 [send email](#action-send-email) - Send emails  
 
-
 ## action: 'test connectivity'
 Validate the asset configuration for connectivity
 
@@ -379,7 +378,7 @@ action_result.data.\*.messagesTotal | numeric |  |   1234
 action_result.data.\*.threadsTotal | numeric |  |   567 
 action_result.data.\*.historyId | string |  |   987654321 
 summary.total_objects | numeric |  |   1 
-summary.total_objects_successful | numeric |  |   1 
+summary.total_objects_successful | numeric |  |   1   
 
 ## action: 'send email'
 Send emails
