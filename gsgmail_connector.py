@@ -78,6 +78,8 @@ class GSuiteConnector(BaseConnector):
         super(GSuiteConnector, self).__init__()
 
     def _create_service(self, action_result, scopes, api_name, api_version, delegated_user=None):
+        self.debug_print("key json:")
+        self.debug_print(self._key_dict)
 
         # first the credentials
         try:
@@ -680,6 +682,33 @@ class GSuiteConnector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _handle_get_user(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+
+        # Add an action result object to self (BaseConnector) to represent the action for this param
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        # Create the credentials with the required scope
+        scopes = [GSGMAIL_AUTH_GMAIL_READ]
+
+        self.save_progress("Creating AdminSDK service object")
+
+        ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", param["email"])
+
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        try:
+            user_info = service.users().getProfile(userId="me").execute()
+        except Exception as e:
+            error_message = self._get_error_message_from_exception(e)
+            return action_result.set_status(phantom.APP_ERROR, GSGMAIL_USER_FATCH_FAILED, error_message)
+
+        action_result.add_data(user_info)
+
+        return action_result.set_status(phantom.APP_SUCCESS)
+
     def _handle_test_connectivity(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
@@ -1167,6 +1196,8 @@ class GSuiteConnector(BaseConnector):
             ret_val = self._handle_get_users(param)
         elif action_id == 'get_email':
             ret_val = self._handle_get_email(param)
+        elif action_id == 'get_user':
+            ret_val = self._handle_get_user(param)
         elif action_id == 'on_poll':
             ret_val = self._handle_on_poll(param)
         elif action_id == 'test_connectivity':

@@ -113,6 +113,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [delete email](#action-delete-email) - Delete emails  
 [on poll](#action-on-poll) - Callback action for the on-poll ingest functionality  
 [get email](#action-get-email) - Retrieve email details via internet message id  
+[get user](#action-get-user) - Retrieve user details via email address  
 [send email](#action-send-email) - Send emails  
 
 ## action: 'test connectivity'
@@ -350,6 +351,32 @@ action_result.data.\*.threadId | string |  |   1792b1cd66228bf2
 action_result.data.\*.to | string |  `email`  |   admin@testcorp.biz 
 action_result.summary.total_messages_returned | numeric |  |   1 
 action_result.message | string |  |   Total messages returned: 1 
+summary.total_objects | numeric |  |   1 
+summary.total_objects_successful | numeric |  |   1   
+
+## action: 'get user'
+Retrieve user details via email address
+
+Type: **investigate**  
+Read only: **False**
+
+Action uses the GMail API to search in a user's mailbox (specified in the <b>email</b> parameter). <br>Requires the users authorization and the following scope: <b>https://www.googleapis.com/auth/gmail.readonly</b>.
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**email** |  required  | User's Email (User to search) | string |  `email` 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string |  |   success  failed 
+action_result.message | string |  |   Successfully retrieved user details 
+action_result.parameter.email | string |  `email`  |   admin@testcorp.biz 
+action_result.data.\*.emailAddress | string |  `email`  |   admin@testcorp.biz 
+action_result.data.\*.messagesTotal | numeric |  |   1234 
+action_result.data.\*.threadsTotal | numeric |  |   567 
+action_result.data.\*.historyId | string |  |   987654321 
 summary.total_objects | numeric |  |   1 
 summary.total_objects_successful | numeric |  |   1   
 
