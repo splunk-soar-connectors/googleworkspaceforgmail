@@ -96,6 +96,9 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **ingest_manner** |  optional  | string | How to ingest
 **first_run_max_emails** |  optional  | numeric | Maximum Containers for scheduled polling first time
 **max_containers** |  optional  | numeric | Maximum Containers for scheduled polling
+**data_type** |  optional  | string | Ingestion data type when polling
+**forwarding_address** |  optional  | string | Address to forward polled emails to
+**auto_reply** |  optional  | string | Auto reply to emails with a set body
 **extract_attachments** |  optional  | boolean | Extract Attachments
 **extract_urls** |  optional  | boolean | Extract URLs
 **extract_ips** |  optional  | boolean | Extract IPs
@@ -278,6 +281,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **container_id** |  optional  | Parameter Ignored in this app | string | 
 **container_count** |  required  | Maximum number of emails to ingest | numeric | 
 **artifact_count** |  required  | Maximum number of artifact to ingest | numeric | 
+**data_type** |  optional  | Encode ingested emails as ASCII or UTF-8 | string | 
 
 #### Action Output
 No Output  

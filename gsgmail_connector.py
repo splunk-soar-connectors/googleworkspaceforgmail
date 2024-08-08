@@ -833,6 +833,8 @@ class GSuiteConnector(BaseConnector):
             else:
                 max_emails = max_containers
 
+        ingestion_data_type = config.get("data_type", "utf-8")
+
         run_limit = deepcopy(max_emails)
         action_result = self.add_action_result(ActionResult(dict(param)))
         email_id = param.get(phantom.APP_JSON_CONTAINER_ID, False)
@@ -850,7 +852,9 @@ class GSuiteConnector(BaseConnector):
                 if not self.is_poll_now():
                     self._update_state()
 
-            self._process_email_ids(action_result, config, service, email_ids)
+            if not ingestion_data_type:
+                ingestion_data_type = "utf-8"
+            self._process_email_ids(action_result, config, service, email_ids, ingestion_data_type)
             total_ingested += max_emails - self._dup_emails
 
             if ingest_manner == GSMAIL_LATEST_INGEST_MANNER or total_ingested >= run_limit or self.is_poll_now():
@@ -1026,7 +1030,7 @@ class GSuiteConnector(BaseConnector):
         action_result.add_data(sent_message)
         return action_result.set_status(phantom.APP_SUCCESS, "Email sent with id {0}".format(sent_message["id"]))
 
-    def _process_email_ids(self, action_result, config, service, email_ids):
+    def _process_email_ids(self, action_result, config, service, email_ids, data_type="utf-8"):
         for i, emid in enumerate(email_ids):
             self.send_progress("Parsing email id: {0}".format(emid))
             try:
@@ -1040,8 +1044,83 @@ class GSuiteConnector(BaseConnector):
             # the api libraries return the base64 encoded message as a unicode string,
             # but base64 can be represented in ascii with no possible issues
             raw_decode = base64.urlsafe_b64decode(message['raw'].encode("utf-8")).decode("utf-8")
+
+            if config.get("auto_reply"):
+                ret_val, sent_message = self._auto_reply(message, config, action_result)
+                if phantom.is_fail(ret_val):
+                    self.send_progress("Auto reply to email with id {0} failed".format(emid))
+                else:
+                    self.send_progress("Auto reply to email with id {0} succeeded. Id of reply: {1}".format(emid, sent_message["id"]))
             process_email = ProcessMail(self, config)
-            process_email.process_email(raw_decode, emid, timestamp)
+            ret_val, msg, vault_ids = process_email.process_email(raw_decode, emid, timestamp, data_type)
+
+            if config.get("forwarding_address"):
+                ret_val, sent_message = self._forward_email(message, vault_ids, config, action_result)
+                to = config["forwarding_address"]
+                if phantom.is_fail(ret_val):
+                    self.send_progress("Forwarded email with id {0} to {1} failed".format(emid, to))
+                else:
+                    self.send_progress("Forwarded email with id {0} to {1}. Forwarded message id: {2}".format(emid, to, sent_message["id"]))
+
+    def _auto_reply(self, message, config, action_result):
+        raw_encoded = base64.urlsafe_b64decode(message["raw"].encode('UTF8'))
+        msg = email.message_from_bytes(raw_encoded)
+        headers = self._get_email_headers_from_part(msg)
+        to_address = headers.get("from", "")
+        subject = headers.get("subject", "")
+        reply_message = self._create_message(config["login_email"], to_address, None, None, 'Re: ' + subject, config["auto_reply"])
+        media = MediaIoBaseUpload(BytesIO(reply_message.as_bytes()), mimetype='message/rfc822', resumable=True)
+
+        scopes = [GSGMAIL_DELETE_EMAIL]
+        ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", self._login_email)
+
+        ret_val, sent_message = self._send_email(service, "me", media, action_result)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status(), sent_message
+        return phantom.APP_SUCCESS, sent_message
+
+    def _forward_email(self, email_details, attachment_vault_ids, config, action_result):
+        raw_encoded = base64.urlsafe_b64decode(email_details.pop('raw').encode('UTF8'))
+        msg = email.message_from_bytes(raw_encoded)
+
+        if msg.is_multipart():
+            ret_val = self._parse_multipart_message(action_result, msg, email_details, False, False)
+
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+        else:
+            # not multipart
+            email_details['email_headers'] = []
+            charset = msg.get_content_charset()
+            headers = self._get_email_headers_from_part(msg)
+            email_details['email_headers'].append(headers)
+            try:
+                email_details['parsed_plain_body'] = msg.get_payload(decode=True).decode(encoding=charset, errors="ignore")
+            except Exception as e:
+                message = self._get_error_message_from_exception(e)
+                self.error_print(f"Unable to add email body: {message}")
+
+        subject = "Fwd: " + email_details["email_headers"][0]["subject"]
+        body = email_details['parsed_plain_body'] or email_details.get("parsed_html_body", None)
+        forwrded_message = self._create_message(
+            config["login_email"],
+            config["forwarding_address"],
+            None,
+            None,
+            subject,
+            body,
+            vault_ids=attachment_vault_ids
+        )
+
+        media = MediaIoBaseUpload(BytesIO(forwrded_message.as_bytes()), mimetype='message/rfc822', resumable=True)
+
+        scopes = [GSGMAIL_DELETE_EMAIL]
+        ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", self._login_email)
+
+        ret_val, sent_message = self._send_email(service, "me", media, action_result)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status(), sent_message
+        return phantom.APP_SUCCESS, sent_message
 
     def _update_state(self):
         utc_now = datetime.utcnow()
