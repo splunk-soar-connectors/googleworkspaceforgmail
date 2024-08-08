@@ -508,6 +508,10 @@ class GSuiteConnector(BaseConnector):
             query_string += " rfc822msgid:{0}".format(param['internet_message_id'])
 
         kwargs = {'q': query_string, 'userId': user_email}
+        config = self.get_config()
+        format = param.get('format', None)
+        if not format:
+            format = config["default_format"]
 
         try:
             messages_resp = service.users().messages().list(**kwargs).execute()
@@ -521,41 +525,61 @@ class GSuiteConnector(BaseConnector):
 
             curr_email_ar = ActionResult()
 
-            ret_val, email_details_resp = self._get_email_details(curr_email_ar, user_email, curr_message['id'], service, 'raw')
+            ret_val, email_details_resp = self._get_email_details(curr_email_ar, user_email, curr_message['id'], service, format)
 
             if phantom.is_fail(ret_val):
                 continue
 
-            raw_encoded = base64.urlsafe_b64decode(email_details_resp.pop('raw').encode('UTF8'))
-            msg = email.message_from_bytes(raw_encoded)
+            if format == "raw":
+                raw_encoded = base64.urlsafe_b64decode(email_details_resp.pop('raw').encode('UTF8'))
+                msg = email.message_from_bytes(raw_encoded)
 
-            if msg.is_multipart():
-                ret_val = self._parse_multipart_message(
-                    action_result,
-                    msg,
-                    email_details_resp,
-                    param.get("extract_attachments", False),
-                    param.get("extract_nested", False),
-                )
+                if msg.is_multipart():
+                    ret_val = self._parse_multipart_message(
+                        action_result,
+                        msg,
+                        email_details_resp,
+                        param.get("extract_attachments", False),
+                        param.get("extract_nested", False),
+                    )
 
-                if phantom.is_fail(ret_val):
-                    return action_result.get_status()
+                    if phantom.is_fail(ret_val):
+                        return action_result.get_status()
 
-            else:
-                # not multipart
+                else:
+                    # not multipart
+                    email_details_resp['email_headers'] = []
+                    charset = msg.get_content_charset()
+                    headers = self._get_email_headers_from_part(msg)
+                    email_details_resp['email_headers'].append(headers)
+                    try:
+                        email_details_resp['parsed_plain_body'] = msg.get_payload(decode=True).decode(encoding=charset, errors="ignore")
+                    except Exception as e:
+                        message = self._get_error_message_from_exception(e)
+                        self.error_print(f"Unable to add email body: {message}")
+            elif format == "metadata":
                 email_details_resp['email_headers'] = []
-                charset = msg.get_content_charset()
-                headers = self._get_email_headers_from_part(msg)
-                email_details_resp['email_headers'].append(headers)
-                try:
-                    email_details_resp['parsed_plain_body'] = msg.get_payload(decode=True).decode(encoding=charset, errors="ignore")
-                except Exception as e:
-                    message = self._get_error_message_from_exception(e)
-                    self.error_print(f"Unable to add email body: {message}")
+                payload = email_details_resp.pop('payload')
+                email_details_resp['email_headers'].append(self._parse_msg_payload_headers(payload))
 
             action_result.add_data(email_details_resp)
 
         return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _parse_msg_payload_headers(self, msg_payload):
+        email_headers = msg_payload.get("headers", [])
+        headers = CaseInsensitiveDict()
+        for x in email_headers:
+            try:
+                key = x["name"]
+                value = x["value"]
+                headers.setdefault(key.lower().replace('-', '_').replace(' ', '_'), []).append(value)
+            except Exception as e:
+                error_message = self._get_error_message_from_exception(e)
+                err = "Error occurred while converting the header tuple into a dictionary"
+                self.error_print("{}. {}".format(err, error_message))
+        headers = {k.lower(): '\n'.join(v) for k, v in headers.items()}
+        return dict(headers)
 
     def _handle_delete_email(self, param):
 

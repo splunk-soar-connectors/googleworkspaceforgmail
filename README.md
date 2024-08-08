@@ -100,11 +100,13 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **forwarding_address** |  optional  | string | Address to forward polled emails to
 **auto_reply** |  optional  | string | Auto reply to emails with a set body
 **extract_attachments** |  optional  | boolean | Extract Attachments
+**default_format** |  optional  | string | Format used for the get email action
 **extract_urls** |  optional  | boolean | Extract URLs
 **extract_ips** |  optional  | boolean | Extract IPs
 **extract_domains** |  optional  | boolean | Extract Domain Names
 **extract_hashes** |  optional  | boolean | Extract Hashes
 **download_eml_attachments** |  optional  | boolean | Download EML attachments
+**extract_eml** |  optional  | boolean | Extract root (primary) email as Vault
 
 ### Supported Actions  
 [test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity  
@@ -302,6 +304,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **internet_message_id** |  required  | Internet Message ID | string |  `internet message id` 
 **extract_attachments** |  optional  | Add attachments to vault and create vault artifacts | boolean | 
 **extract_nested** |  optional  | Works when `extract_attachments` is set to `true`. Extracts attachments from nested email attachments. | boolean | 
+**format** |  optional  | Format used for the get email action | string | 
 
 #### Action Output
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES

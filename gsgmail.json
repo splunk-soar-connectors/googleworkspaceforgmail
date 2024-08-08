@@ -90,6 +90,17 @@
             "default": false,
             "order": 9
         },
+        "default_format": {
+            "description": "Format used for the get email action",
+            "data_type": "string",
+            "value_list": [
+                "metadata",
+                "minimal",
+                "raw"
+            ],
+            "default": "metadata",
+            "order": 7
+        },
         "extract_urls": {
             "description": "Extract URLs",
             "data_type": "boolean",
@@ -119,6 +130,12 @@
             "data_type": "boolean",
             "default": false,
             "order": 14
+        },
+        "extract_eml": {
+            "data_type": "boolean",
+            "description": "Extract root (primary) email as Vault",
+            "order": 15,
+            "default": true
         }
     },
     "actions": [
@@ -905,6 +922,17 @@
                     "data_type": "boolean",
                     "default": false,
                     "order": 3
+                },
+                "format": {
+                    "description": "Format used for the get email action",
+                    "data_type": "string",
+                    "value_list": [
+                        "metadata",
+                        "minimal",
+                        "raw"
+                    ],
+                    "default": "",
+                    "order": 4
                 }
             },
             "output": [
