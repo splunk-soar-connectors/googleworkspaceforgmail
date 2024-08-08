@@ -387,7 +387,7 @@ action_result.parameter.from | string |  `email`  |   test@testdomain.abc.com
 action_result.parameter.headers | string |  |   {"x-custom-header":"Custom value"} 
 action_result.parameter.subject | string |  |   Example subject 
 action_result.parameter.to | string |  `email`  |   test@testdomain.abc.com 
-action_result.data.\*.draft_id | string |  |   rfc822t1500000000t3a1d2e0fghijklm 
+action_result.data.\*.id | string |  |   rfc822t1500000000t3a1d2e0fghijklm 
 action_result.data.\*.threadId | string |  |   16d1234567890abcdef 
 action_result.data.\*.labelIds | string |  |   INBOX 
 action_result.message | string |  |   All the provided emails were already deleted 
