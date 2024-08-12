@@ -2,7 +2,7 @@
 # G Suite for GMail
 
 Publisher: Splunk  
-Connector Version: 2.5.5  
+Connector Version: 2.5.6  
 Product Vendor: Google  
 Product Name: GMail  
 Product Version Supported (regex): ".\*"  
@@ -11,7 +11,7 @@ Minimum Product Version: 6.2.1
 Integrates with G Suite for various investigative and containment actions
 
 [comment]: # " File: README.md"
-[comment]: # "  Copyright (c) 2017-2023 Splunk Inc."
+[comment]: # "  Copyright (c) 2017-2024 Splunk Inc."
 [comment]: # ""
 [comment]: # "  Licensed under Apache 2.0 (https://www.apache.org/licenses/LICENSE-2.0.txt)"
 [comment]: # ""
