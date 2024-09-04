@@ -1396,7 +1396,7 @@
             "action": "send email",
             "description": "Send emails",
             "type": "contain",
-            "verbose": "Action uses the GMail API. Requires authorization with the following scope: <b>https://www.googleapis.com</b> and <b>https://www.googleapis.com/auth/gmail.settings.sharing</b>.",
+            "verbose": "Action uses the GMail API. Requires authorization with the following scope: <b>https://www.googleapis.com</b>, <b>https://www.googleapis.com/auth/gmail.settings.sharing</b> and <b>https://www.googleapis.com/auth/admin.directory.user.alias</b>.",
             "read_only": false,
             "identifier": "send_email",
             "parameters": {
