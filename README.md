@@ -389,7 +389,7 @@ Send emails
 Type: **contain**  
 Read only: **False**
 
-Action uses the GMail API. Requires authorization with the following scope: <b>https://www.googleapis.com</b> and <b>https://www.googleapis.com/auth/gmail.settings.sharing</b>.
+Action uses the GMail API. Requires authorization with the following scope: <b>https://www.googleapis.com</b>, <b>https://www.googleapis.com/auth/gmail.settings.sharing</b> and <b>https://www.googleapis.com/auth/admin.directory.user.alias</b>.
 
 #### Action Parameters
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
