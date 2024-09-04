@@ -29,6 +29,7 @@ GSGMAIL_AUTH_GMAIL_READ = 'https://www.googleapis.com/auth/gmail.readonly'
 GSGMAIL_AUTH_GMAIL_ADMIN_DIR = 'https://www.googleapis.com/auth/admin.directory.user.readonly'
 GSGMAIL_DELETE_EMAIL = 'https://mail.google.com/'
 GSMAIL_SETTINGS_CHANGE = 'https://www.googleapis.com/auth/gmail.settings.sharing'
+GMAIL_DIRECTORY_API = 'https://www.googleapis.com/auth/admin.directory.user.alias'
 GSGMAIL_ATTACHMENTS_CUTOFF_SIZE = 26214400  # 25mb
 
 GSMAIL_DEFAULT_FIRST_RUN_MAX_EMAIL = 1000

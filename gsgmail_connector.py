@@ -1007,9 +1007,10 @@ class GSuiteConnector(BaseConnector):
             _, _, vault_infos = phantom_vault.vault_info(vault_id=vault_id)
         return vault_infos[0] if vault_infos else None
 
-    def _create_send_as_alias(self, service, user_id, alias_email, display_name=None):
+    def _create_send_as_alias(self, service, user_id, alias_email, action_result, display_name=None):
         send_as = {
             "sendAsEmail": alias_email,
+            "replyAsEmail": alias_email,
             "treatAsAlias": True,
             "isPrimary": False
         }
@@ -1019,6 +1020,18 @@ class GSuiteConnector(BaseConnector):
 
         try:
             result = service.users().settings().sendAs().create(userId=user_id, body=send_as).execute()
+            return phantom.APP_SUCCESS, result
+        except errors.HttpError as error:
+            return action_result.set_status(phantom.APP_ERROR, error), None
+
+    def _create_alias(self, service, user_id, alias_email):
+
+        alias_body = {
+            "alias": alias_email
+        }
+
+        try:
+            result = service.users().aliases().insert(userKey=user_id, body=alias_body).execute()
             return phantom.APP_SUCCESS, result
         except errors.HttpError as error:
             return phantom.APP_ERROR, error
@@ -1052,17 +1065,27 @@ class GSuiteConnector(BaseConnector):
         if param.get("alias_email"):
             alias_email = param.get("alias_email")
             alias_name = param.get("alias_name", "")
-            SETTINGS_SCOPE = [GSMAIL_SETTINGS_CHANGE]
-            ret_val, settings_service = self._create_service(action_result, SETTINGS_SCOPE, "gmail", "v1", self._login_email)
-            ret_val, res = self._create_send_as_alias(settings_service, "me", alias_email, alias_name)
+            DIRECTORY_SCOPE = [GMAIL_DIRECTORY_API]
+            ret_val, settings_service = self._create_service(action_result, DIRECTORY_SCOPE, "admin", "directory_v1", self._login_email)
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+            ret_val, res = self._create_alias(settings_service, self._login_email, alias_email)
             if ret_val == phantom.APP_SUCCESS:
+                SETTINGS_SCOPE = [GSMAIL_SETTINGS_CHANGE]
+                ret_val, settings_service = self._create_service(action_result, SETTINGS_SCOPE, "gmail", "v1", self._login_email)
+                if phantom.is_fail(ret_val):
+                    return action_result.get_status()
+                ret_val, res = self._create_send_as_alias(settings_service, "me", alias_email, action_result, alias_name)
+                if phantom.is_fail(ret_val):
+                    action_result.get_status()
                 self.debug_print("Successfully created alias {0}".format(alias_email))
-                from_email = alias_email
-            elif res.resp.status == 409 and 'alreadyExists' in res._get_reason():
+            elif res.resp.status == 409 and 'already exists' in res._get_reason():
                 self.debug_print("Alias {0} already exists. Using to send emails".format(alias_email))
-                from_email = alias_email
             else:
-                self.debug_print("Could not create alias {0} because of {1}".format(alias_email, res))
+                action_result.set_status(phantom.APP_ERROR, res)
+                return action_result.get_status()
+
+            from_email = alias_email
 
         message = self._create_message(
             from_email,
@@ -1078,6 +1101,7 @@ class GSuiteConnector(BaseConnector):
 
         media = MediaIoBaseUpload(BytesIO(message.as_bytes()), mimetype='message/rfc822', resumable=True)
         ret_val, sent_message = self._send_email(service, "me", media, action_result)
+        sent_message["from_email"] = from_email
         if phantom.is_fail(ret_val):
             return action_result.get_status()
         action_result.add_data(sent_message)
