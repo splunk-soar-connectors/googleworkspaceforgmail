@@ -957,7 +957,7 @@ class GSuiteConnector(BaseConnector):
 
             content_type = vault_info['mime_type']
 
-            main_type, sub_type = content_type.split('/', 1) if '/' in content_type else (content_type, "octet-stream")
+            main_type, sub_type = content_type.split('/', 1) if '/' in content_type else ("application", "octet-stream")
 
             consumer = None
             if main_type in mime_consumer:
