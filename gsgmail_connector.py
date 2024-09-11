@@ -967,9 +967,7 @@ class GSuiteConnector(BaseConnector):
 
             self.debug_print("Content type is {0}".format(content_type))
             attachment_part = None
-            mode = 'rb'
-            if main_type == "text":
-                mode = 'r'
+            mode = 'r' if main_type == "text" else 'rb'
             if not consumer:
                 attachment_part = base.MIMEBase(main_type, sub_type)
                 with open(vault_info['path'], mode=mode) as file:
