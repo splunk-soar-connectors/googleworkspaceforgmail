@@ -956,26 +956,27 @@ class GSuiteConnector(BaseConnector):
                 break
 
             content_type = vault_info['mime_type']
-            main_type, sub_type = content_type.split('/', 1)
+
+            main_type, sub_type = content_type.split('/', 1) if '/' in content_type else ("application", "octet-stream")
 
             consumer = None
             if main_type in mime_consumer:
-                consumer = main_type[mime_consumer]
+                consumer = mime_consumer[main_type]
             elif main_type == "application" and sub_type == "pdf":
                 consumer = application.MIMEApplication
 
             self.debug_print("Content type is {0}".format(content_type))
             attachment_part = None
+            mode = 'r' if main_type == "text" else 'rb'
             if not consumer:
                 attachment_part = base.MIMEBase(main_type, sub_type)
-                with open(vault_info['path'], mode='rb') as file:
+                with open(vault_info['path'], mode=mode) as file:
                     file_content = file.read()
                     attachment_part.set_payload(file_content)
+                    encoders.encode_base64(attachment_part)
             else:
-                with open(vault_info['path'], mode='rb') as file:
+                with open(vault_info['path'], mode=mode) as file:
                     attachment_part = consumer(file.read(), _subtype=sub_type)
-
-            encoders.encode_base64(attachment_part)
 
             attachment_part.add_header(
                 'Content-Disposition',
