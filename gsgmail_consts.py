@@ -22,11 +22,15 @@ GSGMAIL_SERVICE_KEY_FAILED = 'Unable to load the credentials from the key JSON' 
 GSGMAIL_CREDENTIALS_FAILED = 'Failed to create delegated credentials'
 GSGMAIL_EMAIL_FETCH_FAILED = 'Failed to get email details'
 GSGMAIL_USERS_FETCH_FAILED = 'Failed to get users'
+GSGMAIL_USER_FATCH_FAILED = 'Failed to get user details'
 GSGMAIL_INVALID_INTEGER_ERROR_MESSAGE = 'Please provide a valid {msg} integer value in the "{param}"'
 
 GSGMAIL_AUTH_GMAIL_READ = 'https://www.googleapis.com/auth/gmail.readonly'
 GSGMAIL_AUTH_GMAIL_ADMIN_DIR = 'https://www.googleapis.com/auth/admin.directory.user.readonly'
 GSGMAIL_DELETE_EMAIL = 'https://mail.google.com/'
+GSMAIL_SETTINGS_CHANGE = 'https://www.googleapis.com/auth/gmail.settings.sharing'
+GMAIL_DIRECTORY_API = 'https://www.googleapis.com/auth/admin.directory.user.alias'
+GSGMAIL_ATTACHMENTS_CUTOFF_SIZE = 26214400  # 25mb
 
 GSMAIL_DEFAULT_FIRST_RUN_MAX_EMAIL = 1000
 GSMAIL_DEFAULT_MAX_CONTAINER = 100
@@ -51,6 +55,7 @@ PROC_EMAIL_JSON_TO = "to"
 PROC_EMAIL_JSON_START_TIME = "start_time"
 PROC_EMAIL_JSON_EXTRACT_ATTACHMENTS = "extract_attachments"
 PROC_EMAIL_JSON_EXTRACT_EMAIL_ATTACHMENTS = "download_eml_attachments"
+PROC_EMAIL_JSON_EXTRACT_EML = "extract_eml"
 PROC_EMAIL_JSON_EXTRACT_URLS = "extract_urls"
 PROC_EMAIL_JSON_EXTRACT_IPS = "extract_ips"
 PROC_EMAIL_JSON_EXTRACT_DOMAINS = "extract_domains"
