@@ -1,5 +1,5 @@
 **Unreleased**
-* [PAPP-34366] GSuite for Gmail improvments. 
+* [PAPP-34366] GSuite for Gmail improvements. 
     * New  `send_email` action with support for attachments, plain text and html bodies and send-as alias.
     * New `get_user` action
     * Added a `default_format` dropdown in the apps configuartion for the `get_email` action.
