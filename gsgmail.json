@@ -16,10 +16,10 @@
     "latest_tested_versions": [
         "Cloud, May 26, 2023"
     ],
-    "app_version": "2.5.5",
+    "app_version": "2.5.6",
     "product_version_regex": ".*",
     "license": "Copyright (c) 2017-2024 Splunk Inc.",
-    "utctime_updated": "2024-06-12T01:34:16.000000Z",
+    "utctime_updated": "2024-09-24T16:12:52.000000Z",
     "configuration": {
         "login_email": {
             "required": true,
@@ -1290,7 +1290,7 @@
                 "title": "Get Email",
                 "view": "gsgmail_view.get_email"
             }
-        }, 
+        },
         {
             "action": "get user",
             "description": "Retrieve user details via email address",
@@ -1309,7 +1309,6 @@
                     "primary": true,
                     "required": true
                 }
-
             },
             "output": [
                 {
@@ -1351,7 +1350,7 @@
                     "data_path": "action_result.data.*.messagesTotal",
                     "data_type": "numeric",
                     "example_values": [
-                        1234                    
+                        1234
                     ]
                 },
                 {
@@ -1477,7 +1476,7 @@
                         "vault id"
                     ],
                     "primary": true
-                }, 
+                },
                 "alias_email": {
                     "description": "Custom from send-as alias email",
                     "data_type": "string",
@@ -1508,7 +1507,7 @@
                         "email"
                     ],
                     "example_values": [
-                       "test@testdomain.abc.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
