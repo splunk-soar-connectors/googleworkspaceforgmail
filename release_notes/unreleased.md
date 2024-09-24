@@ -1,1 +1,7 @@
 **Unreleased**
+* [PAPP-34366] GSuite for Gmail improvements. 
+    * New `send_email` action with support for attachments, plain text and html bodies and send-as alias.
+    * New `get_user` action
+    * Added a `default_format` dropdown in the apps configuration for the `get_email` action.
+    * In the app configuration users can specify whether they want to ingest emails using ASCII or UTF-8 when polling.
+    * Users can specfiy an auto-reply and forwarding address in the asset configuration page.
