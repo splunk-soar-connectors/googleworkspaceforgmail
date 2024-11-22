@@ -10,11 +10,11 @@
     "package_name": "phantom_gsgmail",
     "product_vendor": "Google",
     "product_name": "GMail",
-    "min_phantom_version": "6.2.1",
+    "min_phantom_version": "6.3.0",
     "fips_compliant": true,
     "python_version": "3",
     "latest_tested_versions": [
-        "Cloud, May 26, 2023"
+        "Cloud, Nov 22, 2024"
     ],
     "app_version": "2.6.0",
     "product_version_regex": ".*",
@@ -1681,7 +1681,7 @@
             },
             {
                 "module": "pyparsing",
-                "input_file": "wheels/py3/pyparsing-3.1.2-py3-none-any.whl"
+                "input_file": "wheels/py3/pyparsing-3.2.0-py3-none-any.whl"
             },
             {
                 "module": "python_magic",
@@ -1690,10 +1690,6 @@
             {
                 "module": "rsa",
                 "input_file": "wheels/py3/rsa-4.9-py3-none-any.whl"
-            },
-            {
-                "module": "six",
-                "input_file": "wheels/shared/six-1.16.0-py2.py3-none-any.whl"
             },
             {
                 "module": "uritemplate",

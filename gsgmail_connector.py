@@ -18,11 +18,11 @@
 import base64
 import email
 import json
+
 # Fix to add __init__.py in dependencies folder
 import os
 import sys
 from copy import deepcopy
-from datetime import datetime
 from email import encoders
 from email.mime import application, audio, base, image, multipart, text
 from email.mime.text import MIMEText
@@ -43,16 +43,14 @@ from requests.structures import CaseInsensitiveDict
 from gsgmail_consts import *
 from gsgmail_process_email import ProcessMail
 
-init_path = '{}/dependencies/google/__init__.py'.format(  # noqa
-    os.path.dirname(os.path.abspath(__file__))  # noqa
-)  # noqa
+init_path = "{}/dependencies/google/__init__.py".format(os.path.dirname(os.path.abspath(__file__)))  # noqa  # noqa  # noqa
 # and _also_ debug the connector as a script via pudb
 try:
-    open(init_path, 'a+').close()  # noqa
+    open(init_path, "a+").close()  # noqa
     argv_temp = list(sys.argv)
 except Exception:
     pass
-sys.argv = ['']
+sys.argv = [""]
 
 import apiclient  # noqa
 
@@ -86,33 +84,36 @@ class GSuiteConnector(BaseConnector):
             credentials = service_account.Credentials.from_service_account_info(self._key_dict, scopes=scopes)
         except Exception as e:
             return RetVal2(
-                action_result.set_status(
-                    phantom.APP_ERROR, GSGMAIL_SERVICE_KEY_FAILED, self._get_error_message_from_exception(e)),
-                None)
+                action_result.set_status(phantom.APP_ERROR, GSGMAIL_SERVICE_KEY_FAILED, self._get_error_message_from_exception(e)), None
+            )
 
         if delegated_user:
             try:
                 credentials = credentials.with_subject(delegated_user)
             except Exception as e:
                 return RetVal2(
-                    action_result.set_status(
-                        phantom.APP_ERROR, GSGMAIL_CREDENTIALS_FAILED, self._get_error_message_from_exception(e)),
-                    None)
+                    action_result.set_status(phantom.APP_ERROR, GSGMAIL_CREDENTIALS_FAILED, self._get_error_message_from_exception(e)), None
+                )
 
         try:
             service = apiclient.discovery.build(api_name, api_version, credentials=credentials)
         except Exception as e:
-            return RetVal2(action_result.set_status(phantom.APP_ERROR,
-                                                    FAILED_CREATE_SERVICE.format(api_name, api_version,
-                                                                                 self._get_error_message_from_exception(e),
-                                                                                 GSMAIL_USER_VALID_MESSAGE.format(delegated_user)), None))
+            return RetVal2(
+                action_result.set_status(
+                    phantom.APP_ERROR,
+                    FAILED_CREATE_SERVICE.format(
+                        api_name, api_version, self._get_error_message_from_exception(e), GSMAIL_USER_VALID_MESSAGE.format(delegated_user)
+                    ),
+                    None,
+                )
+            )
 
         return RetVal2(phantom.APP_SUCCESS, service)
 
     def initialize(self):
         self._state = self.load_state()
         if self._state:
-            self._last_email_epoch = self._state.get('last_email_epoch')
+            self._last_email_epoch = self._state.get("last_email_epoch")
 
         config = self.get_config()
         key_json = config["key_json"]
@@ -122,13 +123,13 @@ class GSuiteConnector(BaseConnector):
         except Exception as e:
             return self.set_status(phantom.APP_ERROR, "Unable to load the key json", self._get_error_message_from_exception(e))
 
-        self._login_email = config['login_email']
+        self._login_email = config["login_email"]
 
         if not ph_utils.is_email(self._login_email):
             return self.set_status(phantom.APP_ERROR, "Asset config 'login_email' failed validation")
 
         try:
-            _, _, self._domain = self._login_email.partition('@')
+            _, _, self._domain = self._login_email.partition("@")
         except Exception:
             return self.set_status(phantom.APP_ERROR, "Unable to extract domain from login_email")
 
@@ -191,14 +192,13 @@ class GSuiteConnector(BaseConnector):
 
         return error_text
 
-    def _get_email_details(self, action_result, email_addr, email_id, service, results_format='metadata'):
-        kwargs = {'userId': email_addr, 'id': email_id, 'format': results_format}
+    def _get_email_details(self, action_result, email_addr, email_id, service, results_format="metadata"):
+        kwargs = {"userId": email_addr, "id": email_id, "format": results_format}
 
         try:
             email_details = service.users().messages().get(**kwargs).execute()
         except Exception as e:
-            return RetVal2(action_result.set_status(phantom.APP_ERROR, GSGMAIL_EMAIL_FETCH_FAILED,
-                                                    self._get_error_message_from_exception(e)))
+            return RetVal2(action_result.set_status(phantom.APP_ERROR, GSGMAIL_EMAIL_FETCH_FAILED, self._get_error_message_from_exception(e)))
 
         return RetVal2(phantom.APP_SUCCESS, email_details)
 
@@ -208,10 +208,10 @@ class GSuiteConnector(BaseConnector):
         header_dict = dict()
 
         # list of values that are to be extracted
-        headers_to_parse = ['subject', 'delivered-to', 'from', 'to', 'message-id']
+        headers_to_parse = ["subject", "delivered-to", "from", "to", "message-id"]
 
         # get the payload
-        email_headers = input_email.pop('payload', {}).get('headers')
+        email_headers = input_email.pop("payload", {}).get("headers")
 
         if not email_headers:
             return input_email
@@ -220,8 +220,8 @@ class GSuiteConnector(BaseConnector):
             if not headers_to_parse:
                 break
 
-            header_name = x.get('name')
-            header_value = x.get('value', '')
+            header_name = x.get("name")
+            header_value = x.get("value", "")
 
             if not header_name:
                 continue
@@ -229,7 +229,7 @@ class GSuiteConnector(BaseConnector):
             if header_name.lower() not in headers_to_parse:
                 continue
 
-            key_name = header_name.lower().replace('-', '_')
+            key_name = header_name.lower().replace("-", "_")
             header_dict[key_name] = header_value
 
             headers_to_parse.remove(header_name.lower())
@@ -250,12 +250,12 @@ class GSuiteConnector(BaseConnector):
         # assume duplicate header names with unique values. ex: received
         for x in email_headers:
             try:
-                headers.setdefault(x[0].lower().replace('-', '_').replace(' ', '_'), []).append(x[1])
+                headers.setdefault(x[0].lower().replace("-", "_").replace(" ", "_"), []).append(x[1])
             except Exception as e:
                 error_message = self._get_error_message_from_exception(e)
                 err = "Error occurred while converting the header tuple into a dictionary"
                 self.error_print("{}. {}".format(err, error_message))
-        headers = {k.lower(): '\n'.join(v) for k, v in headers.items()}
+        headers = {k.lower(): "\n".join(v) for k, v in headers.items()}
 
         return dict(headers)
 
@@ -274,7 +274,7 @@ class GSuiteConnector(BaseConnector):
         # Create a service here
         self.save_progress("Creating GMail service object")
 
-        user_email = param['email']
+        user_email = param["email"]
 
         ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", user_email)
 
@@ -284,20 +284,20 @@ class GSuiteConnector(BaseConnector):
         # create the query string
         query_string = ""
         query_dict = {
-            'label': param.get('label'),
-            'subject': param.get('subject'),
-            'from': param.get('sender'),
-            'rfc822msgid': param.get('internet_message_id')
+            "label": param.get("label"),
+            "subject": param.get("subject"),
+            "from": param.get("sender"),
+            "rfc822msgid": param.get("internet_message_id"),
         }
 
-        query_string = ' '.join('{}:{}'.format(key, value) for key, value in query_dict.items() if value is not None)
+        query_string = " ".join("{}:{}".format(key, value) for key, value in query_dict.items() if value is not None)
 
-        if 'body' in param:
-            query_string += " {0}".format(param.get('body'))
+        if "body" in param:
+            query_string += " {0}".format(param.get("body"))
 
         # if query is present, then override everything
-        if 'query' in param:
-            query_string = param.get('query')
+        if "query" in param:
+            query_string = param.get("query")
 
         """
         # Check if there is something present in the query string
@@ -305,30 +305,30 @@ class GSuiteConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, "Please specify at-least one search criteria")
         """
 
-        ret_val, max_results = self._validate_integer(action_result, param.get('max_results', 100), "max_results")
+        ret_val, max_results = self._validate_integer(action_result, param.get("max_results", 100), "max_results")
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        kwargs = {'maxResults': max_results, 'userId': user_email, 'q': query_string}
+        kwargs = {"maxResults": max_results, "userId": user_email, "q": query_string}
 
-        page_token = param.get('page_token')
+        page_token = param.get("page_token")
         if page_token:
-            kwargs.update({'pageToken': page_token})
+            kwargs.update({"pageToken": page_token})
 
         try:
             messages_resp = service.users().messages().list(**kwargs).execute()
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, "Failed to get messages", self._get_error_message_from_exception(e))
 
-        messages = messages_resp.get('messages', [])
-        next_page = messages_resp.get('nextPageToken')
-        summary = action_result.update_summary({'total_messages_returned': len(messages)})
+        messages = messages_resp.get("messages", [])
+        next_page = messages_resp.get("nextPageToken")
+        summary = action_result.update_summary({"total_messages_returned": len(messages)})
 
         for curr_message in messages:
 
             curr_email_ar = ActionResult()
 
-            ret_val, email_details_resp = self._get_email_details(curr_email_ar, user_email, curr_message['id'], service)
+            ret_val, email_details_resp = self._get_email_details(curr_email_ar, user_email, curr_message["id"], service)
 
             if phantom.is_fail(ret_val):
                 continue
@@ -341,16 +341,14 @@ class GSuiteConnector(BaseConnector):
             action_result.add_data(email_details_resp)
 
         if next_page:
-            summary['next_page_token'] = next_page
+            summary["next_page_token"] = next_page
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _body_from_part(self, part):
         charset = part.get_content_charset() or "utf-8"
         # decode the base64 unicode bytestring into plain text
-        return part.get_payload(decode=True).decode(
-            encoding=charset, errors="ignore"
-        )
+        return part.get_payload(decode=True).decode(encoding=charset, errors="ignore")
 
     def _create_artifact(self, file_name, attach_resp):
         return {
@@ -408,9 +406,7 @@ class GSuiteConnector(BaseConnector):
             )
         if attach_resp.get("succeeded"):
             # Create vault artifact
-            ret_val, msg, _ = self.save_artifact(
-                self._create_artifact(file_name, attach_resp)
-            )
+            ret_val, msg, _ = self.save_artifact(self._create_artifact(file_name, attach_resp))
             if phantom.is_fail(ret_val):
                 return action_result.set_status(
                     phantom.APP_ERROR,
@@ -428,12 +424,8 @@ class GSuiteConnector(BaseConnector):
         email_details["email_headers"] = []
 
     def _join_email_bodies(self, email_details):
-        email_details["parsed_plain_body"] = "\n\n".join(
-            email_details.pop("plain_bodies")
-        )
-        email_details["parsed_html_body"] = "\n\n".join(
-            email_details.pop("html_bodies")
-        )
+        email_details["parsed_plain_body"] = "\n\n".join(email_details.pop("plain_bodies"))
+        email_details["parsed_html_body"] = "\n\n".join(email_details.pop("html_bodies"))
 
     def __recursive_part_traverse(
         self,
@@ -481,9 +473,7 @@ class GSuiteConnector(BaseConnector):
         extract_nested=False,
     ):
         self._init_detail_fields(email_details)
-        ret_val = self.__recursive_part_traverse(
-            msg, email_details, action_result, extract_attachments, extract_nested
-        )
+        ret_val = self.__recursive_part_traverse(msg, email_details, action_result, extract_attachments, extract_nested)
         self._join_email_bodies(email_details)
         return ret_val
 
@@ -494,7 +484,7 @@ class GSuiteConnector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         scopes = [GSGMAIL_AUTH_GMAIL_READ]
-        user_email = param['email']
+        user_email = param["email"]
 
         self.save_progress("Creating GMail service object")
         ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", user_email)
@@ -503,12 +493,12 @@ class GSuiteConnector(BaseConnector):
             return action_result.get_status()
 
         query_string = ""
-        if 'internet_message_id' in param:
-            query_string += " rfc822msgid:{0}".format(param['internet_message_id'])
+        if "internet_message_id" in param:
+            query_string += " rfc822msgid:{0}".format(param["internet_message_id"])
 
-        kwargs = {'q': query_string, 'userId': user_email}
+        kwargs = {"q": query_string, "userId": user_email}
         config = self.get_config()
-        format = param.get('format', None)
+        format = param.get("format", None)
         if not format:
             format = config["default_format"]
 
@@ -517,20 +507,20 @@ class GSuiteConnector(BaseConnector):
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, "Failed to get messages", self._get_error_message_from_exception(e))
 
-        messages = messages_resp.get('messages', [])
-        action_result.update_summary({'total_messages_returned': len(messages)})
+        messages = messages_resp.get("messages", [])
+        action_result.update_summary({"total_messages_returned": len(messages)})
 
         for curr_message in messages:
 
             curr_email_ar = ActionResult()
 
-            ret_val, email_details_resp = self._get_email_details(curr_email_ar, user_email, curr_message['id'], service, format)
+            ret_val, email_details_resp = self._get_email_details(curr_email_ar, user_email, curr_message["id"], service, format)
 
             if phantom.is_fail(ret_val):
                 continue
 
             if format == "raw":
-                raw_encoded = base64.urlsafe_b64decode(email_details_resp.pop('raw').encode('UTF8'))
+                raw_encoded = base64.urlsafe_b64decode(email_details_resp.pop("raw").encode("UTF8"))
                 msg = email.message_from_bytes(raw_encoded)
 
                 if msg.is_multipart():
@@ -547,19 +537,19 @@ class GSuiteConnector(BaseConnector):
 
                 else:
                     # not multipart
-                    email_details_resp['email_headers'] = []
+                    email_details_resp["email_headers"] = []
                     charset = msg.get_content_charset()
                     headers = self._get_email_headers_from_part(msg)
-                    email_details_resp['email_headers'].append(headers)
+                    email_details_resp["email_headers"].append(headers)
                     try:
-                        email_details_resp['parsed_plain_body'] = msg.get_payload(decode=True).decode(encoding=charset, errors="ignore")
+                        email_details_resp["parsed_plain_body"] = msg.get_payload(decode=True).decode(encoding=charset, errors="ignore")
                     except Exception as e:
                         message = self._get_error_message_from_exception(e)
                         self.error_print(f"Unable to add email body: {message}")
             elif format == "metadata":
-                email_details_resp['email_headers'] = []
-                payload = email_details_resp.pop('payload')
-                email_details_resp['email_headers'].append(self._parse_msg_payload_headers(payload))
+                email_details_resp["email_headers"] = []
+                payload = email_details_resp.pop("payload")
+                email_details_resp["email_headers"].append(self._parse_msg_payload_headers(payload))
 
             action_result.add_data(email_details_resp)
 
@@ -572,12 +562,12 @@ class GSuiteConnector(BaseConnector):
             try:
                 key = x["name"]
                 value = x["value"]
-                headers.setdefault(key.lower().replace('-', '_').replace(' ', '_'), []).append(value)
+                headers.setdefault(key.lower().replace("-", "_").replace(" ", "_"), []).append(value)
             except Exception as e:
                 error_message = self._get_error_message_from_exception(e)
                 err = "Error occurred while converting the header tuple into a dictionary"
                 self.error_print("{}. {}".format(err, error_message))
-        headers = {k.lower(): '\n'.join(v) for k, v in headers.items()}
+        headers = {k.lower(): "\n".join(v) for k, v in headers.items()}
         return dict(headers)
 
     def _handle_delete_email(self, param):
@@ -595,14 +585,14 @@ class GSuiteConnector(BaseConnector):
         # Create a service here
         self.save_progress("Creating GMail service object")
 
-        user_email = param['email']
+        user_email = param["email"]
 
         ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", user_email)
 
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        email_ids = [x.strip() for x in param['id'].split(',')]
+        email_ids = [x.strip() for x in param["id"].split(",")]
         email_ids = list(filter(None, email_ids))
         if not email_ids:
             return action_result.set_status(phantom.APP_ERROR, "Please provide valid value for 'id' action parameter")
@@ -611,10 +601,7 @@ class GSuiteConnector(BaseConnector):
         bad_ids = set()
 
         for email_id in email_ids:
-            kwargs = {
-                'id': email_id,
-                'userId': user_email
-            }
+            kwargs = {"id": email_id, "userId": user_email}
             try:
                 get_msg_resp = service.users().messages().get(**kwargs).execute()  # noqa
             except apiclient.errors.HttpError:
@@ -624,21 +611,18 @@ class GSuiteConnector(BaseConnector):
             except Exception as e:
                 self.error_print("Exception name: {}".format(e.__class__.__name__))
                 error_message = self._get_error_message_from_exception(e)
-                return action_result.set_status(
-                    phantom.APP_ERROR, 'Error checking email. ID: {} Reason: {}.'.format(email_id, error_message)
-                )
+                return action_result.set_status(phantom.APP_ERROR, "Error checking email. ID: {} Reason: {}.".format(email_id, error_message))
             good_ids.add(email_id)
 
         if not good_ids:
             summary = action_result.update_summary({})
-            summary['deleted_emails'] = list(good_ids)
-            summary['ignored_ids'] = list(bad_ids)
+            summary["deleted_emails"] = list(good_ids)
+            summary["ignored_ids"] = list(bad_ids)
             return action_result.set_status(
-                phantom.APP_SUCCESS,
-                "All the provided emails were already deleted, Ignored Ids : {}".format(summary['ignored_ids'])
+                phantom.APP_SUCCESS, "All the provided emails were already deleted, Ignored Ids : {}".format(summary["ignored_ids"])
             )
 
-        kwargs = {'body': {'ids': email_ids}, 'userId': user_email}
+        kwargs = {"body": {"ids": email_ids}, "userId": user_email}
 
         try:
             service.users().messages().batchDelete(**kwargs).execute()
@@ -646,13 +630,10 @@ class GSuiteConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, "Failed to delete messages", self._get_error_message_from_exception(e))
 
         summary = action_result.update_summary({})
-        summary['deleted_emails'] = list(good_ids)
-        summary['ignored_ids'] = list(bad_ids)
+        summary["deleted_emails"] = list(good_ids)
+        summary["ignored_ids"] = list(bad_ids)
 
-        return action_result.set_status(
-            phantom.APP_SUCCESS,
-            "Messages deleted, Ignored Ids : {}".format(summary['ignored_ids'])
-        )
+        return action_result.set_status(phantom.APP_SUCCESS, "Messages deleted, Ignored Ids : {}".format(summary["ignored_ids"]))
 
     def _handle_get_users(self, param):
 
@@ -676,15 +657,15 @@ class GSuiteConnector(BaseConnector):
 
         self.save_progress("Getting list of users for domain: {0}".format(self._domain))
 
-        ret_val, max_users = self._validate_integer(action_result, param.get('max_items', 500), "max_items")
+        ret_val, max_users = self._validate_integer(action_result, param.get("max_items", 500), "max_items")
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        kwargs = {'domain': self._domain, 'maxResults': max_users, 'orderBy': 'email', 'sortOrder': 'ASCENDING'}
+        kwargs = {"domain": self._domain, "maxResults": max_users, "orderBy": "email", "sortOrder": "ASCENDING"}
 
-        page_token = param.get('page_token')
+        page_token = param.get("page_token")
         if page_token:
-            kwargs.update({'pageToken': page_token})
+            kwargs.update({"pageToken": page_token})
 
         try:
             users_resp = service.users().list(**kwargs).execute()
@@ -692,16 +673,16 @@ class GSuiteConnector(BaseConnector):
             error_message = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR, GSGMAIL_USERS_FETCH_FAILED, error_message)
 
-        users = users_resp.get('users', [])
+        users = users_resp.get("users", [])
         num_users = len(users)
-        next_page = users_resp.get('nextPageToken')
-        summary = action_result.update_summary({'total_users_returned': num_users})
+        next_page = users_resp.get("nextPageToken")
+        summary = action_result.update_summary({"total_users_returned": num_users})
 
         for curr_user in users:
             action_result.add_data(curr_user)
 
         if next_page:
-            summary['next_page_token'] = next_page
+            summary["next_page_token"] = next_page
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -755,7 +736,7 @@ class GSuiteConnector(BaseConnector):
         self.save_progress("Getting list of users for domain: {0}".format(self._domain))
 
         try:
-            service.users().list(domain=self._domain, maxResults=1, orderBy='email', sortOrder="ASCENDING").execute()
+            service.users().list(domain=self._domain, maxResults=1, orderBy="email", sortOrder="ASCENDING").execute()
         except Exception as e:
             self.save_progress("Test Connectivity Failed")
             return action_result.set_status(phantom.APP_ERROR, "Failed to get users", self._get_error_message_from_exception(e))
@@ -764,65 +745,71 @@ class GSuiteConnector(BaseConnector):
         self.save_progress("Test Connectivity Passed")
         return action_result.set_status(phantom.APP_SUCCESS)
 
-    def _get_email_ids_to_process(self, service, action_result, max_results, ingest_manner,
-                                  user_id='me', labels=[], include_spam_trash=False, q=None, include_sent=False,
-                                  use_ingest_limit=False):
+    def _get_email_ids_to_process(
+        self,
+        service,
+        action_result,
+        max_results,
+        ingest_manner,
+        user_id="me",
+        labels=[],
+        include_spam_trash=False,
+        q=None,
+        include_sent=False,
+        use_ingest_limit=False,
+    ):
 
-        kwargs = {
-            'userId': user_id,
-            'includeSpamTrash': include_spam_trash,
-            'maxResults': GSMAIL_MAX_RESULT
-        }
+        kwargs = {"userId": user_id, "includeSpamTrash": include_spam_trash, "maxResults": GSMAIL_MAX_RESULT}
 
         label_ids = []
         if labels:
-            if 'labels' not in self._state:
-                self._state['labels'] = {}
+            if "labels" not in self._state:
+                self._state["labels"] = {}
             for label in labels:
-                if label.lower() not in self._state['labels']:
+                if label.lower() not in self._state["labels"]:
                     try:
                         response = service.users().labels().list(userId=user_id).execute()  # pylint: disable=E1101
-                        gmail_labels = response['labels']
+                        gmail_labels = response["labels"]
                         for gmail_label in gmail_labels:
-                            if gmail_label['name'].lower() == label.lower():
-                                self._state['labels'][label.lower()] = gmail_label['id']
+                            if gmail_label["name"].lower() == label.lower():
+                                self._state["labels"][label.lower()] = gmail_label["id"]
                     except errors.HttpError as error:
                         return action_result.set_status(phantom.APP_ERROR, error), None
-                if label.lower() not in self._state['labels']:
+                if label.lower() not in self._state["labels"]:
                     return action_result.set_status(phantom.APP_ERROR, 'Unable to find label "{}"'.format(label)), None
-                label_ids.append(self._state['labels'][label.lower()])
+                label_ids.append(self._state["labels"][label.lower()])
 
         if label_ids:
-            kwargs['labelIds'] = label_ids
+            kwargs["labelIds"] = label_ids
 
         query = []
         if q:
             query.append(q)
         if not include_sent:
-            query.append('-in:sent')
+            query.append("-in:sent")
 
         using_oldest = ingest_manner == GSMAIL_OLDEST_INGEST_MANNER
         using_latest = ingest_manner == GSMAIL_LATEST_INGEST_MANNER
 
         if use_ingest_limit and not self.is_poll_now():
             if self._last_email_epoch:
-                query.append('after:{}'.format(self._last_email_epoch))
+                query.append("after:{}".format(self._last_email_epoch))
 
-        kwargs['q'] = ' '.join(query)
+        kwargs["q"] = " ".join(query)
 
         try:
             response = service.users().messages().list(**kwargs).execute()  # pylint: disable=E1101
             messages = []
-            if 'messages' in response:
-                messages.extend(response['messages'])
-            while 'nextPageToken' in response:
+            if "messages" in response:
+                messages.extend(response["messages"])
+            while "nextPageToken" in response:
                 if max_results and using_latest and len(messages) > max_results:
                     break
-                kwargs['pageToken'] = response['nextPageToken']
+                kwargs["pageToken"] = response["nextPageToken"]
                 response = service.users().messages().list(**kwargs).execute()  # pylint: disable=E1101
-                messages.extend(response['messages'])
+                messages.extend(response["messages"])
 
-            message_ids = [x['id'] for x in messages]
+            message_ids = [x["id"] for x in messages]
 
             if max_results and len(message_ids) > max_results:
                 if using_oldest:
@@ -850,7 +837,7 @@ class GSuiteConnector(BaseConnector):
         # if user_email param is not present use login_email
         config = self.get_config()
 
-        login_email = config['login_email']
+        login_email = config["login_email"]
         self.save_progress("login_email is {0}".format(login_email))
 
         ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", login_email)
@@ -859,25 +846,22 @@ class GSuiteConnector(BaseConnector):
 
         if self.is_poll_now():
             ret_val, max_emails = self._validate_integer(
-                action_result, param.get(phantom.APP_JSON_CONTAINER_COUNT), 'container count', allow_zero=False)
+                action_result, param.get(phantom.APP_JSON_CONTAINER_COUNT), "container count", allow_zero=False
+            )
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
             self.save_progress(GSMAIL_POLL_NOW_PROGRESS)
         else:
             ret_val1, first_run_max_emails = self._validate_integer(
-                action_result,
-                config.get('first_run_max_emails', GSMAIL_DEFAULT_FIRST_RUN_MAX_EMAIL),
-                "first_max_emails",
-                allow_zero=False)
+                action_result, config.get("first_run_max_emails", GSMAIL_DEFAULT_FIRST_RUN_MAX_EMAIL), "first_max_emails", allow_zero=False
+            )
             ret_val2, max_containers = self._validate_integer(
-                action_result,
-                config.get('max_containers', GSMAIL_DEFAULT_MAX_CONTAINER),
-                "max_containers",
-                allow_zero=False)
+                action_result, config.get("max_containers", GSMAIL_DEFAULT_MAX_CONTAINER), "max_containers", allow_zero=False
+            )
             if phantom.is_fail(ret_val1) or phantom.is_fail(ret_val2):
                 return action_result.get_status()
-            if self._state.get('first_run', True):
-                self._state['first_run'] = False
+            if self._state.get("first_run", True):
+                self._state["first_run"] = False
                 max_emails = first_run_max_emails
                 self.save_progress(GSMAIL_FIRST_INGES_DELETED)
             else:
@@ -890,7 +874,7 @@ class GSuiteConnector(BaseConnector):
         email_id = param.get(phantom.APP_JSON_CONTAINER_ID, False)
         email_ids = [email_id]
         total_ingested = 0
-        ingest_manner = config.get('ingest_manner', GSMAIL_OLDEST_INGEST_MANNER)
+        ingest_manner = config.get("ingest_manner", GSMAIL_OLDEST_INGEST_MANNER)
         while True:
             self._dup_emails = 0
             if not email_id:
@@ -913,31 +897,29 @@ class GSuiteConnector(BaseConnector):
         return phantom.APP_SUCCESS
 
     def _create_message(self, sender, to, cc, bcc, subject, message_text, reply_to=None, additional_headers={}, vault_ids=[]):
-        message = multipart.MIMEMultipart('alternative')
-        message['to'] = to
-        message['from'] = sender
-        message['subject'] = subject
+        message = multipart.MIMEMultipart("alternative")
+        message["to"] = to
+        message["from"] = sender
+        message["subject"] = subject
         if cc:
-            message['cc'] = cc
+            message["cc"] = cc
         if bcc:
-            message['bcc'] = bcc
+            message["bcc"] = bcc
         if reply_to:
-            message['Reply-To'] = reply_to
+            message["Reply-To"] = reply_to
 
         for key, value in additional_headers.items():
             message[key] = value
 
-        part1 = MIMEText(message_text, 'plain')
+        part1 = MIMEText(message_text, "plain")
         message.attach(part1)
 
         # Attach HTML part with plain text content
-        part2 = MIMEText(message_text, 'html')
+        part2 = MIMEText(message_text, "html")
         message.attach(part2)
 
         current_size = 0
-        mime_consumer = {'text': text.MIMEText,
-                     'image': image.MIMEImage,
-                     'audio': audio.MIMEAudio }
+        mime_consumer = {"text": text.MIMEText, "image": image.MIMEImage, "audio": audio.MIMEAudio}
 
         for vault_id in vault_ids:
             vault_info = self._get_vault_info(vault_id)
@@ -950,9 +932,9 @@ class GSuiteConnector(BaseConnector):
                 self.debug_print("Total attachment size reached max capacity. No longer adding attachments after vault id {0}".format(vault_id))
                 break
 
-            content_type = vault_info['mime_type']
+            content_type = vault_info["mime_type"]
 
-            main_type, sub_type = content_type.split('/', 1) if '/' in content_type else ("application", "octet-stream")
+            main_type, sub_type = content_type.split("/", 1) if "/" in content_type else ("application", "octet-stream")
 
             consumer = None
             if main_type in mime_consumer:
@@ -962,29 +944,20 @@ class GSuiteConnector(BaseConnector):
 
             self.debug_print("Content type is {0}".format(content_type))
             attachment_part = None
-            mode = 'r' if main_type == "text" else 'rb'
+            mode = "r" if main_type == "text" else "rb"
             if not consumer:
                 attachment_part = base.MIMEBase(main_type, sub_type)
-                with open(vault_info['path'], mode=mode) as file:
+                with open(vault_info["path"], mode=mode) as file:
                     file_content = file.read()
                     attachment_part.set_payload(file_content)
                     encoders.encode_base64(attachment_part)
             else:
-                with open(vault_info['path'], mode=mode) as file:
+                with open(vault_info["path"], mode=mode) as file:
                     attachment_part = consumer(file.read(), _subtype=sub_type)
 
-            attachment_part.add_header(
-                'Content-Disposition',
-                'attachment; filename={0}'.format(vault_info['name'])
-            )
-            attachment_part.add_header(
-                'Content-Length',
-                str(vault_info['size'])  # File size in bytes
-            )
-            attachment_part.add_header(
-                'Content-ID',
-                vault_info['vault_id']
-            )
+            attachment_part.add_header("Content-Disposition", "attachment; filename={0}".format(vault_info["name"]))
+            attachment_part.add_header("Content-Length", str(vault_info["size"]))  # File size in bytes
+            attachment_part.add_header("Content-ID", vault_info["vault_id"])
             message.attach(attachment_part)
 
         return message
@@ -1004,12 +977,7 @@ class GSuiteConnector(BaseConnector):
         return vault_infos[0] if vault_infos else None
 
     def _create_send_as_alias(self, service, user_id, alias_email, action_result, display_name=None):
-        send_as = {
-            "sendAsEmail": alias_email,
-            "replyAsEmail": alias_email,
-            "treatAsAlias": True,
-            "isPrimary": False
-        }
+        send_as = {"sendAsEmail": alias_email, "replyAsEmail": alias_email, "treatAsAlias": True, "isPrimary": False}
 
         if display_name:
             send_as["displayName"] = display_name
@@ -1022,9 +990,7 @@ class GSuiteConnector(BaseConnector):
 
     def _create_alias(self, service, user_id, alias_email):
 
-        alias_body = {
-            "alias": alias_email
-        }
+        alias_body = {"alias": alias_email}
 
         try:
             result = service.users().aliases().insert(userKey=user_id, body=alias_body).execute()
@@ -1056,7 +1022,7 @@ class GSuiteConnector(BaseConnector):
         except json.JSONDecodeError as e:
             return action_result.set_status(phantom.APP_ERROR, e), None
 
-        vault_ids = [vault_id for x in param.get('attachments', '').split(',') if (vault_id := x.strip())]
+        vault_ids = [vault_id for x in param.get("attachments", "").split(",") if (vault_id := x.strip())]
 
         if param.get("alias_email"):
             alias_email = param.get("alias_email")
@@ -1075,7 +1041,7 @@ class GSuiteConnector(BaseConnector):
                 if phantom.is_fail(ret_val):
                     action_result.get_status()
                 self.debug_print("Successfully created alias {0}".format(alias_email))
-            elif res.resp.status == 409 and 'already exists' in res._get_reason():
+            elif res.resp.status == 409 and "already exists" in res._get_reason():
                 self.debug_print("Alias {0} already exists. Using to send emails".format(alias_email))
             else:
                 action_result.set_status(phantom.APP_ERROR, res)
@@ -1092,10 +1058,10 @@ class GSuiteConnector(BaseConnector):
             param.get("body", ""),
             param.get("reply_to"),
             headers,
-            vault_ids
+            vault_ids,
         )
 
-        media = MediaIoBaseUpload(BytesIO(message.as_bytes()), mimetype='message/rfc822', resumable=True)
+        media = MediaIoBaseUpload(BytesIO(message.as_bytes()), mimetype="message/rfc822", resumable=True)
         ret_val, sent_message = self._send_email(service, "me", media, action_result)
         sent_message["from_email"] = from_email
         if phantom.is_fail(ret_val):
@@ -1107,16 +1073,16 @@ class GSuiteConnector(BaseConnector):
         for i, emid in enumerate(email_ids):
             self.send_progress("Parsing email id: {0}".format(emid))
             try:
-                message = service.users().messages().get(userId='me', id=emid, format='raw').execute()  # pylint: disable=E1101
+                message = service.users().messages().get(userId="me", id=emid, format="raw").execute()  # pylint: disable=E1101
             except errors.HttpError as error:
                 return action_result.set_status(phantom.APP_ERROR, error)
 
-            timestamp = int(message['internalDate']) // 1000
+            timestamp = int(message["internalDate"]) // 1000
             if not self.is_poll_now() and i == 0:
-                self._state['last_email_epoch'] = timestamp + 1
+                self._state["last_email_epoch"] = timestamp
             # the api libraries return the base64 encoded message as a unicode string,
             # but base64 can be represented in ascii with no possible issues
-            raw_decode = base64.urlsafe_b64decode(message['raw'].encode("utf-8")).decode("utf-8")
+            raw_decode = base64.urlsafe_b64decode(message["raw"].encode("utf-8")).decode("utf-8")
 
             if config.get("auto_reply"):
                 ret_val, sent_message = self._auto_reply(message, config, action_result)
@@ -1136,13 +1102,13 @@ class GSuiteConnector(BaseConnector):
                     self.send_progress("Forwarded email with id {0} to {1}. Forwarded message id: {2}".format(emid, to, sent_message["id"]))
 
     def _auto_reply(self, message, config, action_result):
-        raw_encoded = base64.urlsafe_b64decode(message["raw"].encode('UTF8'))
+        raw_encoded = base64.urlsafe_b64decode(message["raw"].encode("UTF8"))
         msg = email.message_from_bytes(raw_encoded)
         headers = self._get_email_headers_from_part(msg)
         to_address = headers.get("from", "")
         subject = headers.get("subject", "")
-        reply_message = self._create_message(config["login_email"], to_address, None, None, 'Re: ' + subject, config["auto_reply"])
-        media = MediaIoBaseUpload(BytesIO(reply_message.as_bytes()), mimetype='message/rfc822', resumable=True)
+        reply_message = self._create_message(config["login_email"], to_address, None, None, "Re: " + subject, config["auto_reply"])
+        media = MediaIoBaseUpload(BytesIO(reply_message.as_bytes()), mimetype="message/rfc822", resumable=True)
 
         scopes = [GSGMAIL_DELETE_EMAIL]
         ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", self._login_email)
@@ -1153,7 +1119,7 @@ class GSuiteConnector(BaseConnector):
         return phantom.APP_SUCCESS, sent_message
 
     def _forward_email(self, email_details, attachment_vault_ids, config, action_result):
-        raw_encoded = base64.urlsafe_b64decode(email_details.pop('raw').encode('UTF8'))
+        raw_encoded = base64.urlsafe_b64decode(email_details.pop("raw").encode("UTF8"))
         msg = email.message_from_bytes(raw_encoded)
 
         if msg.is_multipart():
@@ -1163,29 +1129,23 @@ class GSuiteConnector(BaseConnector):
                 return action_result.get_status()
         else:
             # not multipart
-            email_details['email_headers'] = []
+            email_details["email_headers"] = []
             charset = msg.get_content_charset()
             headers = self._get_email_headers_from_part(msg)
-            email_details['email_headers'].append(headers)
+            email_details["email_headers"].append(headers)
             try:
-                email_details['parsed_plain_body'] = msg.get_payload(decode=True).decode(encoding=charset, errors="ignore")
+                email_details["parsed_plain_body"] = msg.get_payload(decode=True).decode(encoding=charset, errors="ignore")
             except Exception as e:
                 message = self._get_error_message_from_exception(e)
                 self.error_print(f"Unable to add email body: {message}")
 
         subject = "Fwd: " + email_details["email_headers"][0]["subject"]
-        body = email_details['parsed_plain_body'] or email_details.get("parsed_html_body", None)
+        body = email_details["parsed_plain_body"] or email_details.get("parsed_html_body", None)
         forwrded_message = self._create_message(
-            config["login_email"],
-            config["forwarding_address"],
-            None,
-            None,
-            subject,
-            body,
-            vault_ids=attachment_vault_ids
+            config["login_email"], config["forwarding_address"], None, None, subject, body, vault_ids=attachment_vault_ids
         )
 
-        media = MediaIoBaseUpload(BytesIO(forwrded_message.as_bytes()), mimetype='message/rfc822', resumable=True)
+        media = MediaIoBaseUpload(BytesIO(forwrded_message.as_bytes()), mimetype="message/rfc822", resumable=True)
 
         scopes = [GSGMAIL_DELETE_EMAIL]
         ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", self._login_email)
@@ -1201,12 +1161,12 @@ class GSuiteConnector(BaseConnector):
         self.debug_print("Getting {0} '{1}' email ids".format(max_emails, ingest_manner))
         labels = []
         if "label" in config:
-            labels_val = config['label']
-            labels = [x.strip() for x in labels_val.split(',')]
+            labels_val = config["label"]
+            labels = [x.strip() for x in labels_val.split(",")]
             labels = list(filter(None, labels))
         return self._get_email_ids_to_process(
-            service, action_result, max_emails,
-            ingest_manner=ingest_manner, labels=labels, use_ingest_limit=True, include_sent=True)
+            service, action_result, max_emails, ingest_manner=ingest_manner, labels=labels, use_ingest_limit=True, include_sent=True
+        )
 
     def finalize(self):
         # Save the state, this data is saved across actions and app upgrades
@@ -1214,7 +1174,6 @@ class GSuiteConnector(BaseConnector):
         return phantom.APP_SUCCESS
 
     def handle_action(self, param):
-
         """
         import web_pdb
         web_pdb.set_trace()
@@ -1227,27 +1186,27 @@ class GSuiteConnector(BaseConnector):
 
         self.debug_print("action_id", self.get_action_identifier())
 
-        if action_id == 'run_query':
+        if action_id == "run_query":
             ret_val = self._handle_run_query(param)
-        elif action_id == 'delete_email':
+        elif action_id == "delete_email":
             ret_val = self._handle_delete_email(param)
-        elif action_id == 'get_users':
+        elif action_id == "get_users":
             ret_val = self._handle_get_users(param)
-        elif action_id == 'get_email':
+        elif action_id == "get_email":
             ret_val = self._handle_get_email(param)
-        elif action_id == 'get_user':
+        elif action_id == "get_user":
             ret_val = self._handle_get_user(param)
-        elif action_id == 'on_poll':
+        elif action_id == "on_poll":
             ret_val = self._handle_on_poll(param)
-        elif action_id == 'test_connectivity':
+        elif action_id == "test_connectivity":
             ret_val = self._handle_test_connectivity(param)
-        elif action_id == 'send_email':
+        elif action_id == "send_email":
             ret_val = self._handle_send_email(param)
 
         return ret_val
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     import argparse
 
@@ -1257,10 +1216,10 @@ if __name__ == '__main__':
 
     argparser = argparse.ArgumentParser()
 
-    argparser.add_argument('input_test_json', help='Input Test JSON file')
-    argparser.add_argument('-u', '--username', help='username', required=False)
-    argparser.add_argument('-p', '--password', help='password', required=False)
-    argparser.add_argument('-v', '--verify', action='store_true', help='verify', required=False, default=False)
+    argparser.add_argument("input_test_json", help="Input Test JSON file")
+    argparser.add_argument("-u", "--username", help="username", required=False)
+    argparser.add_argument("-p", "--password", help="password", required=False)
+    argparser.add_argument("-v", "--verify", action="store_true", help="verify", required=False, default=False)
 
     args = argv_temp.parse_args()
     session_id = None
@@ -1269,31 +1228,31 @@ if __name__ == '__main__':
     password = args.password
     verify = args.verify
 
-    if (username is not None and password is None):
+    if username is not None and password is None:
         # User specified a username but not a password, so ask
         import getpass
 
         password = getpass.getpass("Password: ")
 
-    if (username and password):
+    if username and password:
         try:
             print("Accessing the Login page")
-            login_url = BaseConnector._get_phantom_base_url() + 'login'
+            login_url = BaseConnector._get_phantom_base_url() + "login"
             r = requests.get(login_url, verify=verify, timeout=DEFAULT_TIMEOUT)
-            csrftoken = r.cookies['csrftoken']
+            csrftoken = r.cookies["csrftoken"]
 
             data = dict()
-            data['username'] = username
-            data['password'] = password
-            data['csrfmiddlewaretoken'] = csrftoken
+            data["username"] = username
+            data["password"] = password
+            data["csrfmiddlewaretoken"] = csrftoken
 
             headers = dict()
-            headers['Cookie'] = 'csrftoken=' + csrftoken
-            headers['Referer'] = login_url
+            headers["Cookie"] = "csrftoken=" + csrftoken
+            headers["Referer"] = login_url
 
             print("Logging into Platform to get the session id")
             r2 = requests.post(login_url, verify=verify, data=data, headers=headers, timeout=DEFAULT_TIMEOUT)
-            session_id = r2.cookies['sessionid']
+            session_id = r2.cookies["sessionid"]
         except Exception as e:
             print("Unable to get session id from the platfrom. Error: " + str(e))
             sys.exit(1)
@@ -1306,9 +1265,9 @@ if __name__ == '__main__':
         connector = GSuiteConnector()
         connector.print_progress_message = True
 
-        if (session_id is not None):
-            in_json['user_session_token'] = session_id
-            connector._set_csrf_info(csrftoken, headers['Referer'])
+        if session_id is not None:
+            in_json["user_session_token"] = session_id
+            connector._set_csrf_info(csrftoken, headers["Referer"])
 
         ret_val = connector._handle_action(json.dumps(in_json), None)
         print(json.dumps(json.loads(ret_val), indent=4))
