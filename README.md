@@ -6,7 +6,7 @@ Connector Version: 2.6.0
 Product Vendor: Google  
 Product Name: GMail  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 6.2.1  
+Minimum Product Version: 6.3.0  
 
 Integrates with G Suite for various investigative and containment actions
 
