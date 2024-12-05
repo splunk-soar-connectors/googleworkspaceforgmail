@@ -70,6 +70,7 @@ class GSuiteConnector(BaseConnector):
         self._state = {}
         self._login_email = None
         self._dup_emails = 0
+        self._previous_emails = 0
         self._last_email_epoch = None
 
         # Call the BaseConnectors init first
@@ -817,6 +818,9 @@ class GSuiteConnector(BaseConnector):
                 else:
                     message_ids = message_ids[:max_results]
 
+            if self._previous_emails:
+                message_ids = message_ids[: -self._previous_emails]
+
             return action_result.set_status(phantom.APP_SUCCESS), message_ids
         except errors.HttpError as error:
             return action_result.set_status(phantom.APP_ERROR, error), None
@@ -887,11 +891,12 @@ class GSuiteConnector(BaseConnector):
             if not ingestion_data_type:
                 ingestion_data_type = "utf-8"
             self._process_email_ids(action_result, config, service, email_ids, ingestion_data_type)
-            total_ingested += max_emails - self._dup_emails
+            total_ingested += max_emails - self._dup_emails - self._previous_emails
 
             if ingest_manner == GSMAIL_LATEST_INGEST_MANNER or total_ingested >= run_limit or self.is_poll_now():
                 break
 
+            self._previous_emails = max_emails
             max_emails = max_emails + min(self._dup_emails, run_limit)
 
         return phantom.APP_SUCCESS
