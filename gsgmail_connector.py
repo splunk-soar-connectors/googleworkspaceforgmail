@@ -756,7 +756,6 @@ class GSuiteConnector(BaseConnector):
         labels=[],
         include_spam_trash=False,
         q=None,
-        include_sent=False,
         use_ingest_limit=False,
     ):
 
@@ -786,8 +785,6 @@ class GSuiteConnector(BaseConnector):
         query = []
         if q:
             query.append(q)
-        if not include_sent:
-            query.append("-in:sent")
 
         using_oldest = ingest_manner == GSMAIL_OLDEST_INGEST_MANNER
         using_latest = ingest_manner == GSMAIL_LATEST_INGEST_MANNER
@@ -1170,7 +1167,7 @@ class GSuiteConnector(BaseConnector):
             labels = [x.strip() for x in labels_val.split(",")]
             labels = list(filter(None, labels))
         return self._get_email_ids_to_process(
-            service, action_result, max_emails, ingest_manner=ingest_manner, labels=labels, use_ingest_limit=True, include_sent=True
+            service, action_result, max_emails, ingest_manner=ingest_manner, labels=labels, use_ingest_limit=True
         )
 
     def finalize(self):
