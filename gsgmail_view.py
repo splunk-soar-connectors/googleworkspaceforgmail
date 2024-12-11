@@ -20,23 +20,23 @@ def _get_ctx_result(result, provides):
     summary = result.get_summary()
     data = result.get_data()
 
-    ctx_result['param'] = param
+    ctx_result["param"] = param
     if summary:
-        ctx_result['summary'] = summary
+        ctx_result["summary"] = summary
 
     if not data:
-        ctx_result['data'] = {}
+        ctx_result["data"] = {}
         return ctx_result
 
-    ctx_result['data'] = data
-    ctx_result['action'] = provides
+    ctx_result["data"] = data
+    ctx_result["action"] = provides
 
     return ctx_result
 
 
 def list_users(provides, all_app_runs, context):
 
-    context['results'] = results = []
+    context["results"] = results = []
 
     for summary, action_results in all_app_runs:
         for result in action_results:
@@ -45,12 +45,12 @@ def list_users(provides, all_app_runs, context):
                 continue
             results.append(ctx_result)
 
-    return 'gsgmail_list_users.html'
+    return "gsgmail_list_users.html"
 
 
 def get_email(provides, all_app_runs, context):
 
-    context['results'] = results = []
+    context["results"] = results = []
 
     for summary, action_results in all_app_runs:
         for result in action_results:
@@ -59,11 +59,11 @@ def get_email(provides, all_app_runs, context):
                 continue
             results.append(ctx_result)
 
-    return 'gsgmail_get_email.html'
+    return "gsgmail_get_email.html"
 
 
 def get_user(provides, all_app_runs, context):
-    context['results'] = results = []
+    context["results"] = results = []
 
     for summary, action_results in all_app_runs:
         for result in action_results:
@@ -72,4 +72,4 @@ def get_user(provides, all_app_runs, context):
                 continue
             results.append(ctx_result)
 
-    return 'gsgmail_get_user.html'
+    return "gsgmail_get_user.html"

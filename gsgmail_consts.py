@@ -13,34 +13,32 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 
-GSGMAIL_ERROR_MESSAGE_UNAVAILABLE = (
-    'Error message unavailable. Please check the asset configuration and|or action parameters')
+GSGMAIL_ERROR_MESSAGE_UNAVAILABLE = "Error message unavailable. Please check the asset configuration and|or action parameters"
 GSGMAIL_UNICODE_DAMMIT_TYPE_ERROR_MESSAGE = (
-    'Error occurred while connecting to the GMAIL server. '
-    'Please check the asset configuration and|or the action parameters')
-GSGMAIL_SERVICE_KEY_FAILED = 'Unable to load the credentials from the key JSON'  # pragma: allowlist secret
-GSGMAIL_CREDENTIALS_FAILED = 'Failed to create delegated credentials'
-GSGMAIL_EMAIL_FETCH_FAILED = 'Failed to get email details'
-GSGMAIL_USERS_FETCH_FAILED = 'Failed to get users'
-GSGMAIL_USER_FATCH_FAILED = 'Failed to get user details'
+    "Error occurred while connecting to the GMAIL server. " "Please check the asset configuration and|or the action parameters"
+)
+GSGMAIL_SERVICE_KEY_FAILED = "Unable to load the credentials from the key JSON"  # pragma: allowlist secret
+GSGMAIL_CREDENTIALS_FAILED = "Failed to create delegated credentials"
+GSGMAIL_EMAIL_FETCH_FAILED = "Failed to get email details"
+GSGMAIL_USERS_FETCH_FAILED = "Failed to get users"
+GSGMAIL_USER_FATCH_FAILED = "Failed to get user details"
 GSGMAIL_INVALID_INTEGER_ERROR_MESSAGE = 'Please provide a valid {msg} integer value in the "{param}"'
 
-GSGMAIL_AUTH_GMAIL_READ = 'https://www.googleapis.com/auth/gmail.readonly'
-GSGMAIL_AUTH_GMAIL_ADMIN_DIR = 'https://www.googleapis.com/auth/admin.directory.user.readonly'
-GSGMAIL_DELETE_EMAIL = 'https://mail.google.com/'
-GSMAIL_SETTINGS_CHANGE = 'https://www.googleapis.com/auth/gmail.settings.sharing'
-GMAIL_DIRECTORY_API = 'https://www.googleapis.com/auth/admin.directory.user.alias'
+GSGMAIL_AUTH_GMAIL_READ = "https://www.googleapis.com/auth/gmail.readonly"
+GSGMAIL_AUTH_GMAIL_ADMIN_DIR = "https://www.googleapis.com/auth/admin.directory.user.readonly"
+GSGMAIL_DELETE_EMAIL = "https://mail.google.com/"
+GSMAIL_SETTINGS_CHANGE = "https://www.googleapis.com/auth/gmail.settings.sharing"
+GMAIL_DIRECTORY_API = "https://www.googleapis.com/auth/admin.directory.user.alias"
 GSGMAIL_ATTACHMENTS_CUTOFF_SIZE = 26214400  # 25mb
 
 GSMAIL_DEFAULT_FIRST_RUN_MAX_EMAIL = 1000
 GSMAIL_DEFAULT_MAX_CONTAINER = 100
 GSMAIL_MAX_RESULT = 10000
-GSMAIL_OLDEST_INGEST_MANNER = 'oldest first'
-GSMAIL_LATEST_INGEST_MANNER = 'latest first'
+GSMAIL_OLDEST_INGEST_MANNER = "oldest first"
+GSMAIL_LATEST_INGEST_MANNER = "latest first"
 
 FAILED_CREATE_SERVICE = "Failed to create service object for API: {0}-{1}. {2} {3}"
-GSMAIL_USER_VALID_MESSAGE = (
-    "Please make sure the user '{0}' is valid and the service account has the proper scopes enabled.")
+GSMAIL_USER_VALID_MESSAGE = "Please make sure the user '{0}' is valid and the service account has the proper scopes enabled."
 GSMAIL_POLL_NOW_PROGRESS = "Will be ingesting all possible artifacts (ignoring max artifacts value) for POLL NOW"
 GSMAIL_FIRST_INGES_DELETED = "First time Ingestion detected."
 
@@ -84,25 +82,25 @@ URI_REGEX = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+#]|[!*\(\),]|(?:%[0-9a-fA-F][
 EMAIL_REGEX = r"\b[A-Z0-9._%+-]+@+[A-Z0-9.-]+\.[A-Z]{2,}\b"
 EMAIL_REGEX2 = r'".*"@[A-Z0-9.-]+\.[A-Z]{2,}\b'
 HASH_REGEX = r"\b[0-9a-fA-F]{32}\b|\b[0-9a-fA-F]{40}\b|\b[0-9a-fA-F]{64}\b"
-IP_REGEX = r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'
-IPV6_REGEX = r'\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|'
-IPV6_REGEX += r'(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)'
-IPV6_REGEX += r'(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))'
-IPV6_REGEX += r'|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)'
-IPV6_REGEX += r'(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|'
-IPV6_REGEX += r'(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})'
-IPV6_REGEX += r'|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)'
-IPV6_REGEX += r'(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|'
-IPV6_REGEX += r'(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})'
-IPV6_REGEX += r'|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)'
-IPV6_REGEX += r'(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|'
-IPV6_REGEX += r'(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})'
-IPV6_REGEX += r'|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)'
-IPV6_REGEX += r'(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|'
-IPV6_REGEX += r'(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})'
-IPV6_REGEX += r'|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)'
-IPV6_REGEX += r'(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|'
-IPV6_REGEX += r'(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)'
-IPV6_REGEX += r'(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*'
+IP_REGEX = r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"
+IPV6_REGEX = r"\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|"
+IPV6_REGEX += r"(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)"
+IPV6_REGEX += r"(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))"
+IPV6_REGEX += r"|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)"
+IPV6_REGEX += r"(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|"
+IPV6_REGEX += r"(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})"
+IPV6_REGEX += r"|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)"
+IPV6_REGEX += r"(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|"
+IPV6_REGEX += r"(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})"
+IPV6_REGEX += r"|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)"
+IPV6_REGEX += r"(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|"
+IPV6_REGEX += r"(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})"
+IPV6_REGEX += r"|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)"
+IPV6_REGEX += r"(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|"
+IPV6_REGEX += r"(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})"
+IPV6_REGEX += r"|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)"
+IPV6_REGEX += r"(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|"
+IPV6_REGEX += r"(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)"
+IPV6_REGEX += r"(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*"
 
 DEFAULT_TIMEOUT = 30  # seconds
