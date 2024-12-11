@@ -1,2 +1,1 @@
 **Unreleased**
-* Fixed the issue of missing email ingestion during scheduled 'on poll' for 'latest first' type ingestion. [PAPP-33514]
