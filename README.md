@@ -2,11 +2,11 @@
 # G Suite for GMail
 
 Publisher: Splunk  
-Connector Version: 2.5.6  
+Connector Version: 2.6.0  
 Product Vendor: Google  
 Product Name: GMail  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 6.2.1  
+Minimum Product Version: 6.3.0  
 
 Integrates with G Suite for various investigative and containment actions
 
@@ -85,8 +85,8 @@ To enable scopes please complete the following steps:
 -   extract_hashes - Extract the hashes present in the emails (MD5).
 
 
-### Configuration Variables
-The below configuration variables are required for this Connector to operate.  These variables are specified when configuring a GMail asset in SOAR.
+### Configuration variables
+This table lists the configuration variables required to operate G Suite for GMail. These variables are specified when configuring a GMail asset in Splunk SOAR.
 
 VARIABLE | REQUIRED | TYPE | DESCRIPTION
 -------- | -------- | ---- | -----------
