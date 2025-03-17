@@ -1,0 +1,15 @@
+name: Call Publish Workflow
+
+on:
+  push:
+    branches:
+      - main  # Runs only on non-main branches
+      - tapishj/internal-metrics
+
+jobs:
+  call-publish:
+    uses: splunk-soar-connectors/.github/.github/workflows/publish.yml@tapishj/PAPP-35446
+    secrets:
+      release_queue_url: ${{ secrets.RELEASE_QUEUE_URL }}
+      splunkbase_user: ${{ secrets.SPLUNKBASE_USER }}
+      splunkbase_password: ${{ secrets.SPLUNKBASE_PASSWORD }}
