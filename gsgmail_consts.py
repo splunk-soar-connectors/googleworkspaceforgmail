@@ -1,6 +1,6 @@
 # File: gsgmail_consts.py
 #
-# Copyright (c) 2017-2024 Splunk Inc.
+# Copyright (c) 2017-2025 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 
 GSGMAIL_ERROR_MESSAGE_UNAVAILABLE = "Error message unavailable. Please check the asset configuration and|or action parameters"
 GSGMAIL_UNICODE_DAMMIT_TYPE_ERROR_MESSAGE = (
-    "Error occurred while connecting to the GMAIL server. " "Please check the asset configuration and|or the action parameters"
+    "Error occurred while connecting to the GMAIL server. Please check the asset configuration and|or the action parameters"
 )
 GSGMAIL_SERVICE_KEY_FAILED = "Unable to load the credentials from the key JSON"  # pragma: allowlist secret
 GSGMAIL_CREDENTIALS_FAILED = "Failed to create delegated credentials"

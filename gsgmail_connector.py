@@ -1,6 +1,6 @@
 # File: gsgmail_connector.py
 #
-# Copyright (c) 2017-2024 Splunk Inc.
+# Copyright (c) 2017-2025 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -43,16 +43,17 @@ from requests.structures import CaseInsensitiveDict
 from gsgmail_consts import *
 from gsgmail_process_email import ProcessMail
 
+
 init_path = "{}/dependencies/google/__init__.py".format(os.path.dirname(os.path.abspath(__file__)))  # noqa  # noqa  # noqa
 # and _also_ debug the connector as a script via pudb
 try:
-    open(init_path, "a+").close()  # noqa
+    open(init_path, "a+").close()
     argv_temp = list(sys.argv)
 except Exception:
     pass
 sys.argv = [""]
 
-import apiclient  # noqa
+import apiclient
 
 
 class RetVal2(tuple):
@@ -62,9 +63,7 @@ class RetVal2(tuple):
 
 #  Define the App Class
 class GSuiteConnector(BaseConnector):
-
     def __init__(self):
-
         self._key_dict = None
         self._domain = None
         self._state = {}
@@ -74,7 +73,7 @@ class GSuiteConnector(BaseConnector):
         self._last_email_epoch = None
 
         # Call the BaseConnectors init first
-        super(GSuiteConnector, self).__init__()
+        super().__init__()
 
     def _create_service(self, action_result, scopes, api_name, api_version, delegated_user=None):
         self.debug_print("key json:")
@@ -184,12 +183,12 @@ class GSuiteConnector(BaseConnector):
                 elif len(e.args) == 1:
                     error_message = e.args[0]
         except Exception as e:
-            self.error_print("Error occurred while fetching exception information. Details: {}".format(str(e)))
+            self.error_print(f"Error occurred while fetching exception information. Details: {e!s}")
 
         if not error_code:
-            error_text = "Error Message: {}".format(error_message)
+            error_text = f"Error Message: {error_message}"
         else:
-            error_text = "Error Code: {}. Error Message: {}".format(error_code, error_message)
+            error_text = f"Error Code: {error_code}. Error Message: {error_message}"
 
         return error_text
 
@@ -204,7 +203,6 @@ class GSuiteConnector(BaseConnector):
         return RetVal2(phantom.APP_SUCCESS, email_details)
 
     def _map_email_details(self, input_email):
-
         # The dictionary of header values
         header_dict = dict()
 
@@ -240,7 +238,6 @@ class GSuiteConnector(BaseConnector):
         return phantom.APP_SUCCESS, input_email
 
     def _get_email_headers_from_part(self, part):
-
         email_headers = list(part.items())
         if not email_headers:
             return {}
@@ -255,16 +252,15 @@ class GSuiteConnector(BaseConnector):
             except Exception as e:
                 error_message = self._get_error_message_from_exception(e)
                 err = "Error occurred while converting the header tuple into a dictionary"
-                self.error_print("{}. {}".format(err, error_message))
+                self.error_print(f"{err}. {error_message}")
         headers = {k.lower(): "\n".join(v) for k, v in headers.items()}
 
         return dict(headers)
 
     def _handle_run_query(self, param):
-
         # Implement the handler here, some basic code is already in
 
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
@@ -291,10 +287,10 @@ class GSuiteConnector(BaseConnector):
             "rfc822msgid": param.get("internet_message_id"),
         }
 
-        query_string = " ".join("{}:{}".format(key, value) for key, value in query_dict.items() if value is not None)
+        query_string = " ".join(f"{key}:{value}" for key, value in query_dict.items() if value is not None)
 
         if "body" in param:
-            query_string += " {0}".format(param.get("body"))
+            query_string += " {}".format(param.get("body"))
 
         # if query is present, then override everything
         if "query" in param:
@@ -326,7 +322,6 @@ class GSuiteConnector(BaseConnector):
         summary = action_result.update_summary({"total_messages_returned": len(messages)})
 
         for curr_message in messages:
-
             curr_email_ar = ActionResult()
 
             ret_val, email_details_resp = self._get_email_details(curr_email_ar, user_email, curr_message["id"], service)
@@ -479,8 +474,7 @@ class GSuiteConnector(BaseConnector):
         return ret_val
 
     def _handle_get_email(self, param):
-
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         action_result = self.add_action_result(ActionResult(dict(param)))
 
@@ -495,7 +489,7 @@ class GSuiteConnector(BaseConnector):
 
         query_string = ""
         if "internet_message_id" in param:
-            query_string += " rfc822msgid:{0}".format(param["internet_message_id"])
+            query_string += " rfc822msgid:{}".format(param["internet_message_id"])
 
         kwargs = {"q": query_string, "userId": user_email}
         config = self.get_config()
@@ -512,7 +506,6 @@ class GSuiteConnector(BaseConnector):
         action_result.update_summary({"total_messages_returned": len(messages)})
 
         for curr_message in messages:
-
             curr_email_ar = ActionResult()
 
             ret_val, email_details_resp = self._get_email_details(curr_email_ar, user_email, curr_message["id"], service, format)
@@ -567,15 +560,14 @@ class GSuiteConnector(BaseConnector):
             except Exception as e:
                 error_message = self._get_error_message_from_exception(e)
                 err = "Error occurred while converting the header tuple into a dictionary"
-                self.error_print("{}. {}".format(err, error_message))
+                self.error_print(f"{err}. {error_message}")
         headers = {k.lower(): "\n".join(v) for k, v in headers.items()}
         return dict(headers)
 
     def _handle_delete_email(self, param):
-
         # Implement the handler here, some basic code is already in
 
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
@@ -604,15 +596,15 @@ class GSuiteConnector(BaseConnector):
         for email_id in email_ids:
             kwargs = {"id": email_id, "userId": user_email}
             try:
-                get_msg_resp = service.users().messages().get(**kwargs).execute()  # noqa
+                get_msg_resp = service.users().messages().get(**kwargs).execute()
             except apiclient.errors.HttpError:
                 self.error_print("Caught HttpError")
                 bad_ids.add(email_id)
                 continue
             except Exception as e:
-                self.error_print("Exception name: {}".format(e.__class__.__name__))
+                self.error_print(f"Exception name: {e.__class__.__name__}")
                 error_message = self._get_error_message_from_exception(e)
-                return action_result.set_status(phantom.APP_ERROR, "Error checking email. ID: {} Reason: {}.".format(email_id, error_message))
+                return action_result.set_status(phantom.APP_ERROR, f"Error checking email. ID: {email_id} Reason: {error_message}.")
             good_ids.add(email_id)
 
         if not good_ids:
@@ -637,10 +629,9 @@ class GSuiteConnector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS, "Messages deleted, Ignored Ids : {}".format(summary["ignored_ids"]))
 
     def _handle_get_users(self, param):
-
         # Implement the handler here, some basic code is already in
 
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
@@ -656,7 +647,7 @@ class GSuiteConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        self.save_progress("Getting list of users for domain: {0}".format(self._domain))
+        self.save_progress(f"Getting list of users for domain: {self._domain}")
 
         ret_val, max_users = self._validate_integer(action_result, param.get("max_items", 500), "max_items")
         if phantom.is_fail(ret_val):
@@ -688,8 +679,7 @@ class GSuiteConnector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_get_user(self, param):
-
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
@@ -715,8 +705,7 @@ class GSuiteConnector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_test_connectivity(self, param):
-
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
@@ -734,7 +723,7 @@ class GSuiteConnector(BaseConnector):
             self.save_progress("Test Connectivity Failed")
             return action_result.get_status()
 
-        self.save_progress("Getting list of users for domain: {0}".format(self._domain))
+        self.save_progress(f"Getting list of users for domain: {self._domain}")
 
         try:
             service.users().list(domain=self._domain, maxResults=1, orderBy="email", sortOrder="ASCENDING").execute()
@@ -758,7 +747,6 @@ class GSuiteConnector(BaseConnector):
         q=None,
         use_ingest_limit=False,
     ):
-
         kwargs = {"userId": user_id, "includeSpamTrash": include_spam_trash, "maxResults": GSMAIL_MAX_RESULT}
 
         label_ids = []
@@ -776,7 +764,7 @@ class GSuiteConnector(BaseConnector):
                     except errors.HttpError as error:
                         return action_result.set_status(phantom.APP_ERROR, error), None
                 if label.lower() not in self._state["labels"]:
-                    return action_result.set_status(phantom.APP_ERROR, 'Unable to find label "{}"'.format(label)), None
+                    return action_result.set_status(phantom.APP_ERROR, f'Unable to find label "{label}"'), None
                 label_ids.append(self._state["labels"][label.lower()])
 
         if label_ids:
@@ -791,7 +779,7 @@ class GSuiteConnector(BaseConnector):
 
         if use_ingest_limit and not self.is_poll_now():
             if self._last_email_epoch:
-                query.append("after:{}".format(self._last_email_epoch))
+                query.append(f"after:{self._last_email_epoch}")
 
         kwargs["q"] = " ".join(query)
 
@@ -824,7 +812,7 @@ class GSuiteConnector(BaseConnector):
 
     def _handle_on_poll(self, param):
         # Implement the handler here, some basic code is already in
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
@@ -839,7 +827,7 @@ class GSuiteConnector(BaseConnector):
         config = self.get_config()
 
         login_email = config["login_email"]
-        self.save_progress("login_email is {0}".format(login_email))
+        self.save_progress(f"login_email is {login_email}")
 
         ret_val, service = self._create_service(action_result, scopes, "gmail", "v1", login_email)
         if phantom.is_fail(ret_val):
@@ -926,12 +914,12 @@ class GSuiteConnector(BaseConnector):
         for vault_id in vault_ids:
             vault_info = self._get_vault_info(vault_id)
             if not vault_info:
-                self.debug_print("Failed to find vault entry {}".format(vault_id))
+                self.debug_print(f"Failed to find vault entry {vault_id}")
                 continue
 
             current_size += vault_info["size"]
             if current_size > GSGMAIL_ATTACHMENTS_CUTOFF_SIZE:
-                self.debug_print("Total attachment size reached max capacity. No longer adding attachments after vault id {0}".format(vault_id))
+                self.debug_print(f"Total attachment size reached max capacity. No longer adding attachments after vault id {vault_id}")
                 break
 
             content_type = vault_info["mime_type"]
@@ -944,7 +932,7 @@ class GSuiteConnector(BaseConnector):
             elif main_type == "application" and sub_type == "pdf":
                 consumer = application.MIMEApplication
 
-            self.debug_print("Content type is {0}".format(content_type))
+            self.debug_print(f"Content type is {content_type}")
             attachment_part = None
             mode = "r" if main_type == "text" else "rb"
             if not consumer:
@@ -957,7 +945,7 @@ class GSuiteConnector(BaseConnector):
                 with open(vault_info["path"], mode=mode) as file:
                     attachment_part = consumer(file.read(), _subtype=sub_type)
 
-            attachment_part.add_header("Content-Disposition", "attachment; filename={0}".format(vault_info["name"]))
+            attachment_part.add_header("Content-Disposition", "attachment; filename={}".format(vault_info["name"]))
             attachment_part.add_header("Content-Length", str(vault_info["size"]))  # File size in bytes
             attachment_part.add_header("Content-ID", vault_info["vault_id"])
             message.attach(attachment_part)
@@ -969,8 +957,8 @@ class GSuiteConnector(BaseConnector):
             sent_message = service.users().messages().send(userId=user_id, body={}, media_body=media).execute()
             return phantom.APP_SUCCESS, sent_message
         except Exception as error:
-            self.debug_print("Error occured when sending draft: {0}".format(error))
-            return action_result.set_status(phantom.APP_ERROR, "Message not sent because of {0}".format(error)), None
+            self.debug_print(f"Error occured when sending draft: {error}")
+            return action_result.set_status(phantom.APP_ERROR, f"Message not sent because of {error}"), None
 
     def _get_vault_info(self, vault_id):
         _, _, vault_infos = phantom_vault.vault_info(container_id=self.get_container_id(), vault_id=vault_id)
@@ -991,7 +979,6 @@ class GSuiteConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, error), None
 
     def _create_alias(self, service, user_id, alias_email):
-
         alias_body = {"alias": alias_email}
 
         try:
@@ -1001,7 +988,7 @@ class GSuiteConnector(BaseConnector):
             return phantom.APP_ERROR, error
 
     def _handle_send_email(self, param):
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
@@ -1042,9 +1029,9 @@ class GSuiteConnector(BaseConnector):
                 ret_val, res = self._create_send_as_alias(settings_service, "me", alias_email, action_result, alias_name)
                 if phantom.is_fail(ret_val):
                     action_result.get_status()
-                self.debug_print("Successfully created alias {0}".format(alias_email))
+                self.debug_print(f"Successfully created alias {alias_email}")
             elif res.resp.status == 409 and "already exists" in res._get_reason():
-                self.debug_print("Alias {0} already exists. Using to send emails".format(alias_email))
+                self.debug_print(f"Alias {alias_email} already exists. Using to send emails")
             else:
                 action_result.set_status(phantom.APP_ERROR, res)
                 return action_result.get_status()
@@ -1069,11 +1056,11 @@ class GSuiteConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
         action_result.add_data(sent_message)
-        return action_result.set_status(phantom.APP_SUCCESS, "Email sent with id {0}".format(sent_message["id"]))
+        return action_result.set_status(phantom.APP_SUCCESS, "Email sent with id {}".format(sent_message["id"]))
 
     def _process_email_ids(self, action_result, config, service, email_ids, data_type="utf-8"):
         for i, emid in enumerate(email_ids):
-            self.send_progress("Parsing email id: {0}".format(emid))
+            self.send_progress(f"Parsing email id: {emid}")
             try:
                 message = service.users().messages().get(userId="me", id=emid, format="raw").execute()  # pylint: disable=E1101
             except errors.HttpError as error:
@@ -1089,9 +1076,9 @@ class GSuiteConnector(BaseConnector):
             if config.get("auto_reply"):
                 ret_val, sent_message = self._auto_reply(message, config, action_result)
                 if phantom.is_fail(ret_val):
-                    self.send_progress("Auto reply to email with id {0} failed".format(emid))
+                    self.send_progress(f"Auto reply to email with id {emid} failed")
                 else:
-                    self.send_progress("Auto reply to email with id {0} succeeded. Id of reply: {1}".format(emid, sent_message["id"]))
+                    self.send_progress("Auto reply to email with id {} succeeded. Id of reply: {}".format(emid, sent_message["id"]))
             process_email = ProcessMail(self, config)
             ret_val, msg, vault_ids = process_email.process_email(raw_decode, emid, timestamp, data_type)
 
@@ -1099,9 +1086,9 @@ class GSuiteConnector(BaseConnector):
                 ret_val, sent_message = self._forward_email(message, vault_ids, config, action_result)
                 to = config["forwarding_address"]
                 if phantom.is_fail(ret_val):
-                    self.send_progress("Forwarded email with id {0} to {1} failed".format(emid, to))
+                    self.send_progress(f"Forwarded email with id {emid} to {to} failed")
                 else:
-                    self.send_progress("Forwarded email with id {0} to {1}. Forwarded message id: {2}".format(emid, to, sent_message["id"]))
+                    self.send_progress("Forwarded email with id {} to {}. Forwarded message id: {}".format(emid, to, sent_message["id"]))
 
     def _auto_reply(self, message, config, action_result):
         raw_encoded = base64.urlsafe_b64decode(message["raw"].encode("UTF8"))
@@ -1158,9 +1145,8 @@ class GSuiteConnector(BaseConnector):
         return phantom.APP_SUCCESS, sent_message
 
     def _get_email_ids(self, action_result, config, service, max_emails, ingest_manner):
-
-        self.save_progress("Getting {0} '{1}' email ids".format(max_emails, ingest_manner))
-        self.debug_print("Getting {0} '{1}' email ids".format(max_emails, ingest_manner))
+        self.save_progress(f"Getting {max_emails} '{ingest_manner}' email ids")
+        self.debug_print(f"Getting {max_emails} '{ingest_manner}' email ids")
         labels = []
         if "label" in config:
             labels_val = config["label"]
@@ -1209,7 +1195,6 @@ class GSuiteConnector(BaseConnector):
 
 
 if __name__ == "__main__":
-
     import argparse
 
     import pudb

@@ -18,7 +18,7 @@
     ],
     "app_version": "2.6.0",
     "product_version_regex": ".*",
-    "license": "Copyright (c) 2017-2024 Splunk Inc.",
+    "license": "Copyright (c) 2017-2025 Splunk Inc.",
     "utctime_updated": "2024-09-24T16:12:52.000000Z",
     "configuration": {
         "login_email": {
@@ -1280,6 +1280,14 @@
                     "example_values": [
                         1
                     ]
+                },
+                {
+                    "data_path": "action_result.parameter.extract_nested",
+                    "data_type": "boolean"
+                },
+                {
+                    "data_path": "action_result.parameter.format",
+                    "data_type": "string"
                 }
             ],
             "versions": "EQ(*)",
