@@ -22,6 +22,7 @@ import json
 # Fix to add __init__.py in dependencies folder
 import os
 import sys
+import tempfile
 from copy import deepcopy
 from email import encoders
 from email.mime import application, audio, base, image, multipart, text
@@ -29,6 +30,7 @@ from email.mime.text import MIMEText
 from io import BytesIO
 
 import phantom.app as phantom
+import phantom.rules as ph_rules
 import phantom.utils as ph_utils
 import phantom.vault as phantom_vault
 import requests
@@ -473,6 +475,29 @@ class GSuiteConnector(BaseConnector):
         self._join_email_bodies(email_details)
         return ret_val
 
+    def _add_email_to_vault(self, email, email_id, container_id, headers):
+        self.debug_print("Adding email to vault...")
+        self.save_progress(f"Email id: {email_id}")
+        fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
+        os.close(fd)
+        file_mode = "wb" if isinstance(email, bytes) else "w"
+        with open(tmp_file_path, file_mode) as f:
+            f.write(email)
+            # f.write(str(headers))
+
+        file_name = f"email_message_{email_id}"
+        self.debug_print(f"Filename for vault attachment: {file_name}")
+
+        success, msg, vault_id = ph_rules.vault_add(
+            container=container_id,
+            file_location=tmp_file_path,
+            file_name=file_name,
+        )
+        if not success:
+            return RetVal2(phantom.APP_ERROR, msg)
+        else:
+            return RetVal2(phantom.APP_SUCCESS, vault_id)
+
     def _handle_get_email(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
@@ -497,6 +522,12 @@ class GSuiteConnector(BaseConnector):
         if not format:
             format = config["default_format"]
 
+        if format != "raw" and param.get("download_email", False):
+            return action_result.set_status(
+                phantom.APP_ERROR,
+                "To download email the value for format needs to be 'raw'",
+            )
+
         try:
             messages_resp = service.users().messages().list(**kwargs).execute()
         except Exception as e:
@@ -516,7 +547,6 @@ class GSuiteConnector(BaseConnector):
             if format == "raw":
                 raw_encoded = base64.urlsafe_b64decode(email_details_resp.pop("raw").encode("UTF8"))
                 msg = email.message_from_bytes(raw_encoded)
-
                 if msg.is_multipart():
                     ret_val = self._parse_multipart_message(
                         action_result,
@@ -540,6 +570,22 @@ class GSuiteConnector(BaseConnector):
                     except Exception as e:
                         message = self._get_error_message_from_exception(e)
                         self.error_print(f"Unable to add email body: {message}")
+
+                if param.get("download_email", False):
+                    try:
+                        ret_val, id = self._add_email_to_vault(
+                            self,
+                            msg,
+                            curr_message.get("id"),
+                            self.get_container_id(),
+                            headers,
+                        )
+                        if phantom.is_fail(ret_val):
+                            return action_result.set_status(phantom.APP_ERROR, f"Failed to add email to vault: {id}")
+                        email_details_resp["download_email_vault_id"] = id
+                    except Exception as e:
+                        message = self._get_error_message_from_exception(e)
+                        self.error_print(f"Error occurred whike downloading email: {message}")
             elif format == "metadata":
                 email_details_resp["email_headers"] = []
                 payload = email_details_resp.pop("payload")
