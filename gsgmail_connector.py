@@ -25,6 +25,7 @@ import sys
 import tempfile
 from copy import deepcopy
 from email import encoders
+from email.header import decode_header
 from email.mime import application, audio, base, image, multipart, text
 from email.mime.text import MIMEText
 from io import BytesIO
@@ -94,7 +95,7 @@ class GSuiteConnector(BaseConnector):
                 credentials = credentials.with_subject(delegated_user)
             except Exception as e:
                 return RetVal2(
-                    action_result.set_status(phantom.APP_ERROR, GSGMAIL_CREDENTIALS_FAILED, self._get_error_message_from_exception(e)), None
+                    action_result.sxet_status(phantom.APP_ERROR, GSGMAIL_CREDENTIALS_FAILED, self._get_error_message_from_exception(e)), None
                 )
 
         try:
@@ -475,7 +476,7 @@ class GSuiteConnector(BaseConnector):
         self._join_email_bodies(email_details)
         return ret_val
 
-    def _add_email_to_vault(self, email, email_id, container_id, headers):
+    def _add_email_to_vault(self, email, email_id, container_id, subject):
         self.debug_print("Adding email to vault...")
         self.save_progress(f"Email id: {email_id}")
         fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
@@ -483,11 +484,13 @@ class GSuiteConnector(BaseConnector):
         file_mode = "wb" if isinstance(email, bytes) else "w"
         with open(tmp_file_path, file_mode) as f:
             f.write(email)
-            # f.write(str(headers))
+        # decode the subject header to get original text
+        # for cases where subject contains unicode characters
+        decoded_parts = decode_header(subject)
+        subject = "".join(part.decode(encoding or "utf-8") if isinstance(part, bytes) else part for part, encoding in decoded_parts)
 
-        file_name = f"email_message_{email_id}"
+        file_name = f"{subject}.eml" if subject else f"email_message_{email_id}.eml"
         self.debug_print(f"Filename for vault attachment: {file_name}")
-
         success, msg, vault_id = ph_rules.vault_add(
             container=container_id,
             file_location=tmp_file_path,
@@ -522,7 +525,7 @@ class GSuiteConnector(BaseConnector):
         if not format:
             format = config["default_format"]
 
-        if format != "raw" and param.get("download_email", False):
+        if param.get("download_email", False) and format != "raw":
             return action_result.set_status(
                 phantom.APP_ERROR,
                 "To download email the value for format needs to be 'raw'",
@@ -573,13 +576,8 @@ class GSuiteConnector(BaseConnector):
 
                 if param.get("download_email", False):
                     try:
-                        ret_val, id = self._add_email_to_vault(
-                            self,
-                            msg,
-                            curr_message.get("id"),
-                            self.get_container_id(),
-                            headers,
-                        )
+                        subject = email_details_resp["email_headers"][0].get("subject") if email_details_resp["email_headers"] else None
+                        ret_val, id = self._add_email_to_vault(str(msg), curr_message.get("id"), self.get_container_id(), subject)
                         if phantom.is_fail(ret_val):
                             return action_result.set_status(phantom.APP_ERROR, f"Failed to add email to vault: {id}")
                         email_details_resp["download_email_vault_id"] = id
