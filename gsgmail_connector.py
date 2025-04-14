@@ -484,8 +484,7 @@ class GSuiteConnector(BaseConnector):
         file_mode = "wb" if isinstance(email, bytes) else "w"
         with open(tmp_file_path, file_mode) as f:
             f.write(email)
-        # decode the subject header to get original text
-        # for cases where subject contains unicode characters
+        # decode the subject header to get original text for vault file name in case of unicode characters
         decoded_parts = decode_header(subject)
         subject = "".join(part.decode(encoding or "utf-8") if isinstance(part, bytes) else part for part, encoding in decoded_parts)
 
