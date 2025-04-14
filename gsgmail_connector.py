@@ -95,7 +95,7 @@ class GSuiteConnector(BaseConnector):
                 credentials = credentials.with_subject(delegated_user)
             except Exception as e:
                 return RetVal2(
-                    action_result.sxet_status(phantom.APP_ERROR, GSGMAIL_CREDENTIALS_FAILED, self._get_error_message_from_exception(e)), None
+                    action_result.set_status(phantom.APP_ERROR, GSGMAIL_CREDENTIALS_FAILED, self._get_error_message_from_exception(e)), None
                 )
 
         try:
