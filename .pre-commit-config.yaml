@@ -14,9 +14,11 @@ repos:
     hooks:
       - id: check-merge-conflict
       - id: end-of-file-fixer
+        exclude: ^NOTICE$
         exclude_types: [ markdown ]
       - id: trailing-whitespace
         exclude_types: [ markdown ]
+        exclude: ^NOTICE$
       - id: requirements-txt-fixer
       - id: check-json
       - id: check-yaml
