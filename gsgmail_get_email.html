@@ -114,14 +114,14 @@
                 <td>{{ current_entry.subject }}</td>
                 <td>
                   {% if current_entry.download_email_vault_id %}
-                  <a href="javascript:;"
-                     onclick="context_menu(this, [{'contains': ['vault id'], 'value': '{{ current_entry.download_email_vault_id }}' }], 0, {{ container.id }}, null, false);">
-                    {{ current_entry.download_email_vault_id }}
-                    &nbsp;
-                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                  </a>
+                    <a href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['vault id'], 'value': '{{ current_entry.download_email_vault_id }}' }], 0, {{ container.id }}, null, false);">
+                      {{ current_entry.download_email_vault_id }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
                   {% else %}
-                  None
+                    None
                   {% endif %}
                 </td>
               </tr>
