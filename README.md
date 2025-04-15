@@ -302,7 +302,7 @@ Retrieve email details via internet message id
 Type: **investigate** \
 Read only: **False**
 
-Action uses the GMail API to search in a user's mailbox (specified in the <b>email</b> parameter). Use the <b>run query</b> action to retrieve <b>internet message id</b>.<br>Use <b>extract attachments</b> parameter to add attachments to vault and add corresponding vault artifacts.<br>Requires authorization with the following scope: <b>https://www.googleapis.com/auth/gmail.readonly</b>.
+Action uses the GMail API to search in a user's mailbox (specified in the <b>email</b> parameter). Use the <b>run query</b> action to retrieve <b>internet message id</b>.<br>Use <b>extract attachments</b> parameter to add attachments to vault and add corresponding vault artifacts.<br>Requires authorization with the following scope: <b>https://www.googleapis.com/auth/gmail.readonly</b>. To download email, the <b>format<b> parameter's value should be set to 'raw'.
 
 #### Action Parameters
 
@@ -313,6 +313,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **extract_attachments** | optional | Add attachments to vault and create vault artifacts | boolean | |
 **extract_nested** | optional | Works when `extract_attachments` is set to `true`. Extracts attachments from nested email attachments. | boolean | |
 **format** | optional | Format used for the get email action | string | |
+**download_email** | optional | Download email as .eml | boolean | |
 
 #### Action Output
 
@@ -322,6 +323,7 @@ action_result.status | string | | success failed |
 action_result.parameter.email | string | `email` | admin@testcorp.biz |
 action_result.parameter.extract_attachments | boolean | | False |
 action_result.parameter.internet_message_id | string | `internet message id` | <e3d885faf2cc04f261d3874bafe2dc8afc44a230-10004962-100081937@test.com> |
+action_result.parameter.download_email | boolean | | True |
 action_result.data.\*.email_headers.\*.arc_authentication_results | string | | i=1; mx.test.com; dkim=pass header.i=@test.com header.s=20161025 header.b=S15AEvGA; spf=pass (test.com: domain of 33buoybakbvceznb3cih-cdg3ean5dd5a3.1dbz2b7c63gbzc1dge.07o@scoutcamp.bounces.test.com designates 2607:f8b0:4864:20::147 as permitted sender) smtp.mailfrom=33BuOYBAKBVcEzNB3CIH-CDG3EAN5DD5A3.1DBz2B7C63GBzC1DGE.07O@scoutcamp.bounces.test.com; dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=test.com |
 action_result.data.\*.email_headers.\*.arc_message_signature | string | | i=1; a=rsa-sha256; c=relaxed/relaxed; d=test.com; s=arc-20160816;\\r\\n h=to:from:subject:message-id:feedback-id:reply-to:date:mime-version\\r\\n :dkim-signature;\\r\\n bh=z/kirlEQ2aVcgVc3qMye/grykWqFcVQv0Yr0y2Mbewo=;\\r\\n b=K0Q7B+6Dq2695j4C/fRV8QlFGfFo42i3i6TNVIVR3/xvcVZcChH7+XcQ4e43rT4bYz\\r\\n /wZZzTVm1BbohPZOLvAsQE07vFMb0T7eggAAesqpoV0aPqahN7ECabqx6JXSPiYIhK/j\\r\\n n6BdpvfBdYXhh34tKpNQKgblkkgrpZaiHRYcys+s+e06Xh41W+92j1KahxqKvujgQ50w\\r\\n MtD0G492zoocCBJdUl1IGYYCNjbxSZTbO48u7UTqWS4xP1KNLmV9vRpPDp/QwjQDv5Ux\\r\\n 69G3NeFGJcH0z3REg1AhqHHKtF1/GX2yngvKSUyO4yUajI/tdQdXF0Uxz93w4aOYH5J7\\r\\n FV8A== |
 action_result.data.\*.email_headers.\*.arc_seal | string | | i=1; a=rsa-sha256; t=1619925981; cv=none;\\r\\n d=test.com; s=arc-20160816;\\r\\n b=b1K9fT7s6nA56FOt2CMy22w5fhwxHjx63FzKVzpWlWmeHn4neo4mrtpauZFiiy7tQA\\r\\n /VITLzcFg8GMtPaN7pDWQkHUVQ8qyuUi3Kl8xpYre8DoI1KzLfTUz8LqxaBKuYl3Ln00\\r\\n rQ/fBj+v16+HuuVOKwd8roet3A5SCmDZBvSOk+pcRfjAtL7GDqF2LVEtDYVDJ0V7eUxx\\r\\n V6eZjsFOg9tZTkyHTPq8S+pN7e5KCV7rIgelF25MJcYdt+4OJjs6jfmsn2p1NC14QvRP\\r\\n ONhqWc1lMseCp6/GdtoM2tIDHORdLy/upg3mC63jhi5JDIRWiObg1HC2PI8AFxqhkJCW\\r\\n rFCQ== |
@@ -394,6 +396,7 @@ action_result.data.\*.emailAddress | string | `email` | admin@testcorp.biz |
 action_result.data.\*.messagesTotal | numeric | | 1234 |
 action_result.data.\*.threadsTotal | numeric | | 567 |
 action_result.data.\*.historyId | string | | 987654321 |
+action_result.summary | string | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -441,6 +444,7 @@ action_result.parameter.to | string | `email` | test@testdomain.abc.com |
 action_result.data.\*.id | string | | rfc822t1500000000t3a1d2e0fghijklm |
 action_result.data.\*.threadId | string | | 16d1234567890abcdef |
 action_result.data.\*.labelIds | string | | INBOX |
+action_result.summary | string | | |
 action_result.message | string | | All the provided emails were already deleted |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |

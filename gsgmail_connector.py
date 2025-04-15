@@ -477,16 +477,22 @@ class GSuiteConnector(BaseConnector):
         return ret_val
 
     def _add_email_to_vault(self, email, email_id, container_id, subject):
-        self.debug_print("Adding email to vault...")
-        self.save_progress(f"Email id: {email_id}")
-        fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
-        os.close(fd)
-        file_mode = "wb" if isinstance(email, bytes) else "w"
-        with open(tmp_file_path, file_mode) as f:
-            f.write(email)
+        self.save_progress(f"Adding email to vault with id: {email_id}")
+        if not email:
+            message = "No data found in email"
+            return RetVal2(phantom.APP_ERROR, message)
+        try:
+            email_data = email.decode()
+        except Exception as e:
+            return RetVal2(phantom.APP_ERROR, f"Error occurred while decoding the email: {e}")
+
+        with tempfile.NamedTemporaryFile(mode="w", dir=Vault.get_vault_tmp_dir(), delete=False, encoding="utf-8") as f:
+            tmp_file_path = f.name
+            f.write(email_data)
         # decode the subject header to get original text for vault file name in case of unicode characters
-        decoded_parts = decode_header(subject)
-        subject = "".join(part.decode(encoding or "utf-8") if isinstance(part, bytes) else part for part, encoding in decoded_parts)
+        if subject:
+            decoded_parts = decode_header(subject)
+            subject = "".join(part.decode(encoding or "utf-8") if isinstance(part, bytes) else part for part, encoding in decoded_parts)
 
         file_name = f"{subject}.eml" if subject else f"email_message_{email_id}.eml"
         self.debug_print(f"Filename for vault attachment: {file_name}")
@@ -576,13 +582,13 @@ class GSuiteConnector(BaseConnector):
                 if param.get("download_email", False):
                     try:
                         subject = email_details_resp["email_headers"][0].get("subject") if email_details_resp["email_headers"] else None
-                        ret_val, id = self._add_email_to_vault(str(msg), curr_message.get("id"), self.get_container_id(), subject)
+                        ret_val, id = self._add_email_to_vault(raw_encoded, curr_message.get("id"), self.get_container_id(), subject)
                         if phantom.is_fail(ret_val):
                             return action_result.set_status(phantom.APP_ERROR, f"Failed to add email to vault: {id}")
                         email_details_resp["download_email_vault_id"] = id
                     except Exception as e:
                         message = self._get_error_message_from_exception(e)
-                        self.error_print(f"Error occurred whike downloading email: {message}")
+                        self.error_print(f"Error occurred while downloading email: {message}")
             elif format == "metadata":
                 email_details_resp["email_headers"] = []
                 payload = email_details_resp.pop("payload")
