@@ -403,6 +403,13 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.suspensionReason",
+                    "data_type": "string",
+                    "example_values": [
+                        "ADMIN"
+                    ]
+                },
+                {
                     "data_path": "action_result.summary.next_page_token",
                     "data_type": "string",
                     "contains": [
@@ -886,7 +893,7 @@
         {
             "action": "get email",
             "description": "Retrieve email details via internet message id",
-            "verbose": "Action uses the GMail API to search in a user's mailbox (specified in the <b>email</b> parameter). Use the <b>run query</b> action to retrieve <b>internet message id</b>.<br>Use <b>extract attachments</b> parameter to add attachments to vault and add corresponding vault artifacts.<br>Requires authorization with the following scope: <b>https://www.googleapis.com/auth/gmail.readonly</b>.",
+            "verbose": "Action uses the GMail API to search in a user's mailbox (specified in the <b>email</b> parameter). Use the <b>run query</b> action to retrieve <b>internet message id</b>.<br>Use <b>extract attachments</b> parameter to add attachments to vault and add corresponding vault artifacts. To download email, the <b>format<b> parameter's value should be set to 'raw'.<br>Requires authorization with the following scope: <b>https://www.googleapis.com/auth/gmail.readonly</b>.",
             "type": "investigate",
             "identifier": "get_email",
             "read_only": false,
@@ -933,6 +940,11 @@
                     ],
                     "default": "",
                     "order": 4
+                },
+                "download_email": {
+                    "description": "Download email to vault",
+                    "data_type": "boolean",
+                    "order": 5
                 }
             },
             "output": [
@@ -969,6 +981,13 @@
                     ],
                     "contains": [
                         "internet message id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.download_email",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true
                     ]
                 },
                 {
@@ -1254,6 +1273,139 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.raw",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.payload.body.size",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.payload.parts.*.body.size",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.payload.parts.*.parts.*.body.data",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.payload.parts.*.parts.*.body.size",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1329
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.payload.parts.*.parts.*.partId",
+                    "data_type": "string",
+                    "example_values": [
+                        "0.0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.payload.parts.*.parts.*.headers.*.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Content-Type"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.payload.parts.*.parts.*.headers.*.value",
+                    "data_type": "string",
+                    "example_values": [
+                        "text/plain; charset=\"UTF-8\"; format=flowed; delsp=yes"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.payload.parts.*.parts.*.filename",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.payload.parts.*.parts.*.mimeType",
+                    "data_type": "string",
+                    "example_values": [
+                        "text/plain"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.payload.parts.*.partId",
+                    "data_type": "string",
+                    "example_values": [
+                        "0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.payload.parts.*.headers.*.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Content-Type"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.payload.parts.*.headers.*.value",
+                    "data_type": "string",
+                    "example_values": [
+                        "multipart/alternative; boundary=\"000000000000bd4Test123f97608\""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.payload.parts.*.filename",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.payload.parts.*.mimeType",
+                    "data_type": "string",
+                    "example_values": [
+                        "multipart/alternative"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.payload.parts.*.body.attachmentId",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test123WAKpA-gxuP3PTest123EJiQlmLETest123UCne4L-qsJyTest123R3wMTLL8-NGaVj5sV7CJLTest123Aqt-Xy2Ba42L0hY7KtTest123rz6wmETWly1Test123_bZP_H8idhM1vTest123OjYXzeoPIPTest123sFYsmTest123aCcTCZI53rFAO5zqsiGepCTest123gUfwt75y33o5S8Test123r6itGv7BiFNwKZOwVrt7oo7UuoIaTest123uiIgnz4xZby0QjUUxyaZ1noCGaKTest123hz34dlfpdT51REeZjTest123R-8gpgLVtMFhTFqnHBcwTest123-uLmwIQ2Test123Pum4a06j7oTest123WvU-NFcbMeDmJTest123QYbu8rTest123d1fAsAC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.payload.partId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.payload.headers.*.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Delivered-To"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.payload.headers.*.value",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@company.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.payload.filename",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.payload.mimeType",
+                    "data_type": "string",
+                    "example_values": [
+                        "multipart/mixed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.download_email_vault_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "000094000006f00004cd60000b1f8e0000e5fa3e"
+                    ],
+                    "contains": [
+                        "vault id"
+                    ]
+                },
+                {
                     "data_path": "action_result.summary.total_messages_returned",
                     "data_type": "numeric",
                     "example_values": [
@@ -1283,11 +1435,17 @@
                 },
                 {
                     "data_path": "action_result.parameter.extract_nested",
-                    "data_type": "boolean"
+                    "data_type": "boolean",
+                    "example_values": [
+                        true
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.format",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "raw"
+                    ]
                 }
             ],
             "versions": "EQ(*)",
@@ -1374,6 +1532,10 @@
                     "example_values": [
                         "987654321"
                     ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -1520,7 +1682,10 @@
                 },
                 {
                     "data_path": "action_result.parameter.alias_name",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.abc.com"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.attachments",
@@ -1548,6 +1713,9 @@
                     "data_type": "string",
                     "contains": [
                         "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -1623,6 +1791,17 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.from_email",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@company.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
                     "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
@@ -1689,7 +1868,7 @@
             },
             {
                 "module": "pyparsing",
-                "input_file": "wheels/py3/pyparsing-3.2.0-py3-none-any.whl"
+                "input_file": "wheels/py3/pyparsing-3.2.3-py3-none-any.whl"
             },
             {
                 "module": "python_magic",

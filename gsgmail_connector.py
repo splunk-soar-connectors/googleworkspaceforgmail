@@ -22,13 +22,16 @@ import json
 # Fix to add __init__.py in dependencies folder
 import os
 import sys
+import tempfile
 from copy import deepcopy
 from email import encoders
+from email.header import decode_header
 from email.mime import application, audio, base, image, multipart, text
 from email.mime.text import MIMEText
 from io import BytesIO
 
 import phantom.app as phantom
+import phantom.rules as ph_rules
 import phantom.utils as ph_utils
 import phantom.vault as phantom_vault
 import requests
@@ -473,6 +476,36 @@ class GSuiteConnector(BaseConnector):
         self._join_email_bodies(email_details)
         return ret_val
 
+    def _add_email_to_vault(self, email, email_id, container_id, subject):
+        self.save_progress(f"Adding email to vault with id: {email_id}")
+        if not email:
+            message = "No data found in email"
+            return RetVal2(phantom.APP_ERROR, message)
+        try:
+            email_data = email.decode()
+        except Exception as e:
+            return RetVal2(phantom.APP_ERROR, f"Error occurred while decoding the email: {e}")
+
+        with tempfile.NamedTemporaryFile(mode="w", dir=Vault.get_vault_tmp_dir(), delete=False, encoding="utf-8") as f:
+            tmp_file_path = f.name
+            f.write(email_data)
+        # decode the subject header to get original text for vault file name in case of unicode characters
+        if subject:
+            decoded_parts = decode_header(subject)
+            subject = "".join(part.decode(encoding or "utf-8") if isinstance(part, bytes) else part for part, encoding in decoded_parts)
+
+        file_name = f"{subject}.eml" if subject else f"email_message_{email_id}.eml"
+        self.debug_print(f"Filename for vault attachment: {file_name}")
+        success, msg, vault_id = ph_rules.vault_add(
+            container=container_id,
+            file_location=tmp_file_path,
+            file_name=file_name,
+        )
+        if not success:
+            return RetVal2(phantom.APP_ERROR, msg)
+        else:
+            return RetVal2(phantom.APP_SUCCESS, vault_id)
+
     def _handle_get_email(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
@@ -497,6 +530,12 @@ class GSuiteConnector(BaseConnector):
         if not format:
             format = config["default_format"]
 
+        if param.get("download_email", False) and format != "raw":
+            return action_result.set_status(
+                phantom.APP_ERROR,
+                "To download email the value for format needs to be 'raw'",
+            )
+
         try:
             messages_resp = service.users().messages().list(**kwargs).execute()
         except Exception as e:
@@ -516,7 +555,6 @@ class GSuiteConnector(BaseConnector):
             if format == "raw":
                 raw_encoded = base64.urlsafe_b64decode(email_details_resp.pop("raw").encode("UTF8"))
                 msg = email.message_from_bytes(raw_encoded)
-
                 if msg.is_multipart():
                     ret_val = self._parse_multipart_message(
                         action_result,
@@ -540,6 +578,17 @@ class GSuiteConnector(BaseConnector):
                     except Exception as e:
                         message = self._get_error_message_from_exception(e)
                         self.error_print(f"Unable to add email body: {message}")
+
+                if param.get("download_email", False):
+                    try:
+                        subject = email_details_resp["email_headers"][0].get("subject") if email_details_resp["email_headers"] else None
+                        ret_val, id = self._add_email_to_vault(raw_encoded, curr_message.get("id"), self.get_container_id(), subject)
+                        if phantom.is_fail(ret_val):
+                            return action_result.set_status(phantom.APP_ERROR, f"Failed to add email to vault: {id}")
+                        email_details_resp["download_email_vault_id"] = id
+                    except Exception as e:
+                        message = self._get_error_message_from_exception(e)
+                        self.error_print(f"Error occurred while downloading email: {message}")
             elif format == "metadata":
                 email_details_resp["email_headers"] = []
                 payload = email_details_resp.pop("payload")
