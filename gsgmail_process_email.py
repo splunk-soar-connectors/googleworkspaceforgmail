@@ -582,6 +582,8 @@ class ProcessMail:
         :param e: Exception object
         :return: error message
         """
+        error_code = "Error code unavailable"
+        error_msg = "Error message unavailable. Please check the asset configuration and|or action parameters."
 
         try:
             if e.args:
@@ -911,7 +913,7 @@ class ProcessMail:
             self._del_tmp_dirs()
             error_message = self._base_connector._get_error_message_from_exception(e)
             message = f"Parsing results failed. {error_message}"
-            self._debug_print(message)
+            self._base_connector.debug_print(message)
             return phantom.APP_ERROR, message, self._vault_ids
 
         return phantom.APP_SUCCESS, PROC_EMAIL_PROCESSED, self._vault_ids
