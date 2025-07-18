@@ -1257,7 +1257,7 @@ if __name__ == "__main__":
     argparser.add_argument("-p", "--password", help="password", required=False)
     argparser.add_argument("-v", "--verify", action="store_true", help="verify", required=False, default=False)
 
-    args = argv_temp.parse_args()
+    args = argparser.parse_args()
     session_id = None
 
     username = args.username
