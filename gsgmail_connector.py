@@ -811,7 +811,7 @@ class GSuiteConnector(BaseConnector):
                             if gmail_label["name"].lower() == label.lower():
                                 self._state["labels"][label.lower()] = gmail_label["id"]
                     except errors.HttpError as error:
-                        return action_result.set_status(phantom.APP_ERROR, error), None
+                        return action_result.set_status(phantom.APP_ERROR, str(error)), None
                 if label.lower() not in self._state["labels"]:
                     return action_result.set_status(phantom.APP_ERROR, f'Unable to find label "{label}"'), None
                 label_ids.append(self._state["labels"][label.lower()])
@@ -857,7 +857,7 @@ class GSuiteConnector(BaseConnector):
 
             return action_result.set_status(phantom.APP_SUCCESS), message_ids
         except errors.HttpError as error:
-            return action_result.set_status(phantom.APP_ERROR, error), None
+            return action_result.set_status(phantom.APP_ERROR, str(error)), None
 
     def _handle_on_poll(self, param):
         # Implement the handler here, some basic code is already in
@@ -1025,7 +1025,7 @@ class GSuiteConnector(BaseConnector):
             result = service.users().settings().sendAs().create(userId=user_id, body=send_as).execute()
             return phantom.APP_SUCCESS, result
         except errors.HttpError as error:
-            return action_result.set_status(phantom.APP_ERROR, error), None
+            return action_result.set_status(phantom.APP_ERROR, str(error)), None
 
     def _create_alias(self, service, user_id, alias_email):
         alias_body = {"alias": alias_email}
@@ -1058,7 +1058,7 @@ class GSuiteConnector(BaseConnector):
         try:
             headers = json.loads(param.get("headers", "{}"))
         except json.JSONDecodeError as e:
-            return action_result.set_status(phantom.APP_ERROR, e), None
+            return action_result.set_status(phantom.APP_ERROR, str(e)), None
 
         vault_ids = [vault_id for x in param.get("attachments", "").split(",") if (vault_id := x.strip())]
 
@@ -1101,9 +1101,9 @@ class GSuiteConnector(BaseConnector):
 
         media = MediaIoBaseUpload(BytesIO(message.as_bytes()), mimetype="message/rfc822", resumable=True)
         ret_val, sent_message = self._send_email(service, "me", media, action_result)
-        sent_message["from_email"] = from_email
         if phantom.is_fail(ret_val):
             return action_result.get_status()
+        sent_message["from_email"] = from_email
         action_result.add_data(sent_message)
         return action_result.set_status(phantom.APP_SUCCESS, "Email sent with id {}".format(sent_message["id"]))
 
@@ -1113,7 +1113,7 @@ class GSuiteConnector(BaseConnector):
             try:
                 message = service.users().messages().get(userId="me", id=emid, format="raw").execute()  # pylint: disable=E1101
             except errors.HttpError as error:
-                return action_result.set_status(phantom.APP_ERROR, error)
+                return action_result.set_status(phantom.APP_ERROR, str(error))
 
             timestamp = int(message["internalDate"]) // 1000
             if not self.is_poll_now() and i == 0:

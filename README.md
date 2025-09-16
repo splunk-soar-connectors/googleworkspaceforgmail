@@ -1,9 +1,9 @@
 # G Suite for GMail
 
-Publisher: Splunk \
-Connector Version: 2.7.0 \
-Product Vendor: Google \
-Product Name: GMail \
+Publisher: Splunk <br>
+Connector Version: 2.7.0 <br>
+Product Vendor: Google <br>
+Product Name: GMail <br>
 Minimum Product Version: 6.3.0
 
 Integrates with G Suite for various investigative and containment actions
@@ -100,20 +100,20 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 
 ### Supported Actions
 
-[test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity \
-[list users](#action-list-users) - Get the list of users \
-[run query](#action-run-query) - Search emails with query/filtering options \
-[delete email](#action-delete-email) - Delete emails \
-[on poll](#action-on-poll) - Callback action for the on-poll ingest functionality \
-[get email](#action-get-email) - Retrieve email details via internet message id \
-[get user](#action-get-user) - Retrieve user details via email address \
+[test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity <br>
+[list users](#action-list-users) - Get the list of users <br>
+[run query](#action-run-query) - Search emails with query/filtering options <br>
+[delete email](#action-delete-email) - Delete emails <br>
+[on poll](#action-on-poll) - Callback action for the on-poll ingest functionality <br>
+[get email](#action-get-email) - Retrieve email details via internet message id <br>
+[get user](#action-get-user) - Retrieve user details via email address <br>
 [send email](#action-send-email) - Send emails
 
 ## action: 'test connectivity'
 
 Validate the asset configuration for connectivity
 
-Type: **test** \
+Type: **test** <br>
 Read only: **True**
 
 Action uses the Admin SDK API to get a list of users. Requires authorization with the following scope: <b>https://www.googleapis.com/auth/admin.directory.user.readonly</b>.
@@ -130,7 +130,7 @@ No Output
 
 Get the list of users
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 Action uses the Admin SDK API to get a list of users. Requires authorization with the following scope: <b>https://www.googleapis.com/auth/admin.directory.user.readonly</b>.<br>The action will limit the number of users returned to <b>max_items</b> or (if not specified) 500. If the system has any more users, a next page token will be returned in <b>action_result.summary.next_page_token</b>. Use this value as input to <b>page_token</b> in subsequent calls to <b>list users</b>.
@@ -191,7 +191,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Search emails with query/filtering options
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 Action uses the GMail API to search in a users mailbox (specified in the <b>email</b> parameter).<br>Requires authorization with the following scope: <b>https://www.googleapis.com/auth/gmail.readonly</b>.<br>If none of the filtering parameters are specified the action will return all emails in the mailbox. If the <b>query</b> parameter is specified, all other filtering parameters are ignored.<br>The query parameter uses the same filtering options (operators) as the GMail search box. A brief description of these can be found <a href="https://support.google.com/mail/answer/7190?hl=en">at this link</a>.<br>To page through results, execute the action without a <b>page_token</b> parameter and a valid <b>max_results</b> value. If the query matches more than <b>max_results</b>, the action will return a value in the <b>action_result.summary.next_page_token</b> data path. This value should be used as the input value to the <b>page_token</b> parameter in the next call to <b>run query</b> to get the next set of results.
@@ -246,7 +246,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Delete emails
 
-Type: **contain** \
+Type: **contain** <br>
 Read only: **False**
 
 Action uses the GMail API. Requires authorization with the following scope: <b>https://mail.google.com</b>.
@@ -276,7 +276,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Callback action for the on-poll ingest functionality
 
-Type: **ingest** \
+Type: **ingest** <br>
 Read only: **True**
 
 Requires authorization with the following scope: <b>https://www.googleapis.com/auth/gmail.readonly</b>.
@@ -300,7 +300,7 @@ No Output
 
 Retrieve email details via internet message id
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **False**
 
 Action uses the GMail API to search in a user's mailbox (specified in the <b>email</b> parameter). Use the <b>run query</b> action to retrieve <b>internet message id</b>.<br>Use <b>extract attachments</b> parameter to add attachments to vault and add corresponding vault artifacts. To download email, the <b>format<b> parameter's value should be set to 'raw'.<br>Requires authorization with the following scope: <b>https://www.googleapis.com/auth/gmail.readonly</b>.
@@ -397,7 +397,7 @@ action_result.parameter.format | string | | raw |
 
 Retrieve user details via email address
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **False**
 
 Action uses the GMail API to search in a user's mailbox (specified in the <b>email</b> parameter). <br>Requires the users authorization and the following scope: <b>https://www.googleapis.com/auth/gmail.readonly</b>.
@@ -427,7 +427,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Send emails
 
-Type: **contain** \
+Type: **contain** <br>
 Read only: **False**
 
 Action uses the GMail API. Requires authorization with the following scope: <b>https://www.googleapis.com</b>, <b>https://www.googleapis.com/auth/gmail.settings.sharing</b> and <b>https://www.googleapis.com/auth/admin.directory.user.alias</b>.
