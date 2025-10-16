@@ -56,7 +56,7 @@ except Exception:
     pass
 sys.argv = [""]
 
-import apiclient
+from googleapiclient import discovery
 
 
 class RetVal2(tuple):
@@ -99,7 +99,7 @@ class GSuiteConnector(BaseConnector):
                 )
 
         try:
-            service = apiclient.discovery.build(api_name, api_version, credentials=credentials)
+            service = discovery.build(api_name, api_version, credentials=credentials)
         except Exception as e:
             return RetVal2(
                 action_result.set_status(
@@ -646,7 +646,7 @@ class GSuiteConnector(BaseConnector):
             kwargs = {"id": email_id, "userId": user_email}
             try:
                 get_msg_resp = service.users().messages().get(**kwargs).execute()
-            except apiclient.errors.HttpError:
+            except errors.HttpError:
                 self.error_print("Caught HttpError")
                 bad_ids.add(email_id)
                 continue
