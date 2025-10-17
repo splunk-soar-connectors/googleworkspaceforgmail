@@ -1887,10 +1887,6 @@
                 "input_file": "wheels/py3/pyparsing-3.2.5-py3-none-any.whl"
             },
             {
-                "module": "python_magic",
-                "input_file": "wheels/shared/python_magic-0.4.27-py2.py3-none-any.whl"
-            },
-            {
                 "module": "rsa",
                 "input_file": "wheels/py3/rsa-4.9-py3-none-any.whl"
             },
@@ -1953,10 +1949,6 @@
             {
                 "module": "pyparsing",
                 "input_file": "wheels/py3/pyparsing-3.2.5-py3-none-any.whl"
-            },
-            {
-                "module": "python_magic",
-                "input_file": "wheels/shared/python_magic-0.4.27-py2.py3-none-any.whl"
             },
             {
                 "module": "rsa",
