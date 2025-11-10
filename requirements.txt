@@ -1,9 +1,8 @@
-cachetools==5.2.1
-google-auth==2.15.0
-google-auth-httplib2==0.1.0
-google_api_python_client==1.7.12
+cachetools==6.2.1
+google-auth==2.41.1
+google-auth-httplib2==0.2.0
+google_api_python_client==2.184.0
 httplib2==0.21.0
 oauth2client==4.1.3
 pyasn1-modules==0.2.8
-python-magic==0.4.27
 rsa==4.9
