@@ -153,8 +153,17 @@ def run_query(params: RunQueryParams, soar: SOARClient, asset) -> list[RunQueryO
 
     logger.progress(f"Executing query: {query_string}")
 
-    # Build request parameters
-    max_results = int(params.max_results) if params.max_results else 100
+    # Validate and build request parameters
+    raw_max = params.max_results if params.max_results is not None else 100.0
+    if not float(raw_max).is_integer():
+        raise ActionFailure(
+            "Please provide a valid non-zero positive integer value in the 'max_results' parameter"
+        )
+    max_results = int(raw_max)
+    if max_results <= 0:
+        raise ActionFailure(
+            "Please provide a valid non-zero positive integer value in the 'max_results' parameter"
+        )
     kwargs = {
         "userId": params.email,
         "q": query_string,
