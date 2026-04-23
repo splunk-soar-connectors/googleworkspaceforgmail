@@ -103,9 +103,11 @@ def delete_email(
             logger.progress(f"Deleted email {email_id}")
         except Exception as e:
             error_str = str(e).lower()
-            # Treat 404 (not found) and 400 (invalid id) as ignorable
-            if any(
-                code in error_str for code in ("404", "400", "not found", "invalid")
+            # Treat 404 (not found) and 400 "invalid id value" as ignorable
+            if (
+                "404" in error_str
+                or "not found" in error_str
+                or "invalid id value" in error_str
             ):
                 logger.progress(f"Email {email_id} not found or invalid ID (ignored)")
                 ignored_ids.append(email_id)
