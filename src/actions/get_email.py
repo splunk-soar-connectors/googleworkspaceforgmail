@@ -104,7 +104,7 @@ class GetEmailOutput(ActionOutput):
     )
 
 
-def get_email(params: GetEmailParams, soar: SOARClient, asset) -> GetEmailOutput:
+def get_email(params: GetEmailParams, soar: SOARClient, asset) -> list[GetEmailOutput]:
     """
     Retrieve and parse email details.
 
@@ -151,9 +151,8 @@ def get_email(params: GetEmailParams, soar: SOARClient, asset) -> GetEmailOutput
 
     messages = search_response.get("messages", [])
     if not messages:
-        raise ActionFailure(
-            f"Email with message ID {params.internet_message_id} not found"
-        )
+        soar.set_message("Total messages returned: 0")
+        return []
 
     # Get the first (and should be only) result
     message_id = messages[0]["id"]
@@ -318,32 +317,34 @@ def get_email(params: GetEmailParams, soar: SOARClient, asset) -> GetEmailOutput
     logger.progress("Building output...")
     soar.set_message("Total messages returned: 1")
 
-    return GetEmailOutput(
-        subject=next(
-            (h.value for h in headers_list if h.name.lower() == "subject"), ""
-        ),
-        from_=next((h.value for h in headers_list if h.name.lower() == "from"), ""),
-        to=next((h.value for h in headers_list if h.name.lower() == "to"), ""),
-        date=next((h.value for h in headers_list if h.name.lower() == "date"), ""),
-        message_id=next(
-            (h.value for h in headers_list if h.name.lower() == "message-id"), ""
-        ),
-        id=message_id,
-        thread_id=full_message.get("threadId", ""),
-        history_id=full_message.get("historyId", ""),
-        internal_date=full_message.get("internalDate", ""),
-        label_ids=", ".join(full_message.get("labelIds", [])),
-        size_estimate=float(full_message.get("sizeEstimate", 0)),
-        snippet=full_message.get("snippet", ""),
-        parsed_plain_body=parsed_plain_body,
-        parsed_html_body=parsed_html_body,
-        headers=headers_list,
-        urls=urls,
-        ips=ips,
-        domains=domains,
-        hashes=hashes,
-        download_email_vault_id=download_vault_id,
-    )
+    return [
+        GetEmailOutput(
+            subject=next(
+                (h.value for h in headers_list if h.name.lower() == "subject"), ""
+            ),
+            from_=next((h.value for h in headers_list if h.name.lower() == "from"), ""),
+            to=next((h.value for h in headers_list if h.name.lower() == "to"), ""),
+            date=next((h.value for h in headers_list if h.name.lower() == "date"), ""),
+            message_id=next(
+                (h.value for h in headers_list if h.name.lower() == "message-id"), ""
+            ),
+            id=message_id,
+            thread_id=full_message.get("threadId", ""),
+            history_id=full_message.get("historyId", ""),
+            internal_date=full_message.get("internalDate", ""),
+            label_ids=", ".join(full_message.get("labelIds", [])),
+            size_estimate=float(full_message.get("sizeEstimate", 0)),
+            snippet=full_message.get("snippet", ""),
+            parsed_plain_body=parsed_plain_body,
+            parsed_html_body=parsed_html_body,
+            headers=headers_list,
+            urls=urls,
+            ips=ips,
+            domains=domains,
+            hashes=hashes,
+            download_email_vault_id=download_vault_id,
+        )
+    ]
 
 
 def render_get_email_view(output: list[GetEmailOutput]) -> dict:
