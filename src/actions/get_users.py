@@ -102,10 +102,20 @@ def list_users(
     Raises:
         ActionFailure: If user listing fails
     """
-    max_items = int(params.max_items) if params.max_items else 500
+    raw_max = params.max_items if params.max_items is not None else 500.0
+    if not float(raw_max).is_integer():
+        raise ActionFailure(
+            "Please provide a valid non-zero positive integer value in the 'max_items' parameter"
+        )
+    max_items = int(raw_max)
+    if max_items <= 0:
+        raise ActionFailure(
+            "Please provide a valid non-zero positive integer value in the 'max_items' parameter"
+        )
     if max_items > 500:
-        max_items = 500
-        logger.progress("Limited max_items to 500 (API maximum)")
+        raise ActionFailure(
+            "Please provide a value less than or equal to 500 in the 'max_items' parameter"
+        )
 
     logger.progress(f"Retrieving up to {max_items} users from domain...")
 
