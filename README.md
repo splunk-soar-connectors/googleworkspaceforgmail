@@ -1,7 +1,7 @@
 # G Suite for GMail
 
 Publisher: Splunk <br>
-Connector Version: 2.8.1 <br>
+Connector Version: 3.0.0 <br>
 Product Vendor: Google <br>
 Product Name: GMail <br>
 Minimum Product Version: 7.0.0
