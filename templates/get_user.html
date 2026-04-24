@@ -1,0 +1,112 @@
+{% extends 'base/logo_header.html' %}
+{% block widget_content %}
+  <!-- File: get_user.html
+  Copyright (c) 2026 Splunk Inc.
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+  either express or implied. See the License for the specific language governing permissions
+  and limitations under the License.
+-->
+  <style>
+    a:hover {
+        text-decoration: underline;
+    }
+
+    .wf-table-vertical {
+        width: initial;
+        font-size: 12px;
+    }
+
+    .wf-table-vertical td {
+        padding: 8px 10px;
+        border: 1px solid;
+    }
+
+    .wf-table-vertical tr td:first-child {
+        font-weight: bold;
+    }
+
+    .wf-table-horizontal {
+        width: initial;
+        border: 1px solid;
+        font-size: 12px;
+    }
+
+    .wf-table-horizontal th {
+        text-align: center;
+        border: 1px solid;
+        text-transform: uppercase;
+        font-weight: normal;
+        padding: 5px;
+    }
+
+    .wf-table-horizontal td {
+        border: 1px solid;
+        padding: 5px;
+        padding-left: 4px;
+    }
+
+    .wf-h3-style {
+        font-size: 20px
+    }
+
+    .wf-h4-style {
+        font-size: 16px
+    }
+  </style>
+  <div style="overflow: auto;
+              width: 100%;
+              height: 100%;
+              padding-left:10px;
+              padding-right:10px">
+    <!-- Main Div -->
+    <br>
+    {% if not users %}
+      <h4 class="wf-h4-style">No users found</h4>
+    {% else %}
+      <table class="wf-table-horizontal datatable">
+        <thead>
+          <tr>
+            <th>PRIMARY EMAIL</th>
+            <th>TOTAL MESSAGES</th>
+            <th>TOTAL THREADS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+            <tr>
+              <td>{{ user.email_address }}</td>
+              <td>{{ user.messages_total }}</td>
+              <td>{{ user.threads_total }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <br>
+    {% endif %}
+  </div>
+  <!-- Main Div -->
+  <script>
+    $.extend(true, $.fn.dataTable.defaults, {
+        "searching": false,
+        "bLengthChange": false,
+        "language": {
+            "paginate": {
+                "previous": "<i class='fa fa-angle-left fa-lg'></i>",
+                "next": "<i class='fa fa-angle-right fa-lg'></i>"
+            }
+        },
+        "dom": '<"top">rt<"bottom"p><"clear">',
+        drawCallback: function (settings) {
+            var pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
+            pagination.toggle(this.api().page.info().pages > 1);
+        }
+    });
+    $.fn.DataTable.ext.pager.numbers_length = 5;
+    $('.datatable').DataTable();
+  </script>
+{% endblock %}
