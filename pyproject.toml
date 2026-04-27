@@ -1,6 +1,6 @@
 [project]
 name = "gsgmail"
-version = "3.0.1"
+version = "3.0.2"
 description = "Integrates with G Suite for various investigative and containment actions"
 license = "Copyright (c) 2017-2025 Splunk Inc."
 requires-python = ">=3.13, <3.15"
