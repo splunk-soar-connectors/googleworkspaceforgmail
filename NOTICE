@@ -652,7 +652,7 @@ SOFTWARE.
 
 @@@@============================================================================
 
-Library: cryptography - 46.0.7
+Library: cryptography - 47.0.0
 Homepage: https://github.com/pyca/cryptography
 License: Apache-2.0 OR BSD-3-Clause
 License Text:
@@ -3216,7 +3216,7 @@ SOFTWARE.
 
 @@@@============================================================================
 
-Library: packaging - 26.1
+Library: packaging - 26.2
 Homepage: https://github.com/pypa/packaging
 License: Apache-2.0 OR BSD-2-Clause
 License Text:
@@ -3228,7 +3228,7 @@ under the terms of *both* these licenses.
 
 @@@@============================================================================
 
-Library: pathspec - 1.1.0
+Library: pathspec - 1.1.1
 Homepage: https://python-path-specification.readthedocs.io/en/latest/index.html
 License: Mozilla Public License 2.0 (MPL 2.0)
 License Text:
@@ -4967,7 +4967,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 @@@@============================================================================
 
-Library: splunk-soar-sdk - 3.20.0
+Library: splunk-soar-sdk - 3.20.1
 Homepage: https://github.com/phantomcyber/splunk-soar-sdk
 License: Apache-2.0
 License Text:
