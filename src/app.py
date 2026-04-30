@@ -743,6 +743,9 @@ app.register_action(
     view_template="get_email.html",
 )
 app.register_action("actions.send_email.send_email", render_as="table")
+app.register_action("actions.trash_email.trash_email", render_as="table")
+app.register_action("actions.untrash_email.untrash_email", render_as="table")
+app.register_action("actions.add_label.add_label", render_as="table")
 
 
 if __name__ == "__main__":
