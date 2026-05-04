@@ -45,7 +45,9 @@ class UntrashEmailParams(Params):
 class UntrashEmailSummary(ActionOutput):
     """Summary of untrash results."""
 
-    untrashed_emails: list[str] = OutputField(example_values=["email_id_1", "email_id_2"])
+    untrashed_emails: list[str] = OutputField(
+        example_values=["email_id_1", "email_id_2"]
+    )
     ignored_ids: list[str] = OutputField(example_values=["invalid_id"])
 
 

@@ -132,8 +132,8 @@ Raises:
 ActionFailure: If email send fails <br>
 [trash email](#action-trash-email) - Move emails to trash in a user's mailbox (idempotent).
 
-Moves one or more emails to the Trash label by their message IDs. If a message ID doesn't
-exist, it's treated as successful and added to ignored_ids.
+Moves one or more emails to the Trash label by their message IDs. If a
+message ID doesn't exist, it is treated as successful and added to ignored_ids.
 
 Args:
 params: Action parameters with email and message IDs
@@ -141,15 +141,15 @@ soar: SOAR client instance
 asset: Asset configuration object
 
 Returns:
-Summary of trashed and ignored email IDs
+Summary of trashed and ignored/already-trashed email IDs
 
 Raises:
-ActionFailure: If no valid email IDs are provided, or if any trash operation
-fails for a reason other than the message not existing (404) <br>
+ActionFailure: If no valid email IDs are provided, or if any trash
+operation fails for a reason other than the message not existing (404) <br>
 [untrash email](#action-untrash-email) - Restore emails from trash in a user's mailbox (idempotent).
 
-Removes one or more emails from the Trash label by their message IDs. If a message ID
-doesn't exist, it's treated as successful and added to ignored_ids.
+Removes one or more emails from the Trash label by their message IDs. If a
+message ID doesn't exist, it is treated as successful and added to ignored_ids.
 
 Args:
 params: Action parameters with email and message IDs
@@ -160,12 +160,13 @@ Returns:
 Summary of untrashed and ignored email IDs
 
 Raises:
-ActionFailure: If no valid email IDs are provided, or if any untrash operation
-fails for a reason other than the message not existing (404) <br>
+ActionFailure: If no valid email IDs are provided, or if any untrash
+operation fails for a reason other than the message not existing (404) <br>
 [add label](#action-add-label) - Add labels to emails in a user's mailbox (idempotent).
 
-Applies one or more label IDs to one or more messages using the Gmail modify API.
-If a message ID doesn't exist, it's treated as successful and added to ignored_ids.
+Applies one or more label IDs to one or more messages using the Gmail
+modify API. If a message ID doesn't exist, it is treated as successful
+and added to ignored_ids.
 
 Args:
 params: Action parameters with email, message IDs, and label IDs
@@ -176,8 +177,9 @@ Returns:
 Summary of labeled and ignored email IDs
 
 Raises:
-ActionFailure: If no valid email IDs or label IDs are provided, or if any modify
-operation fails for a reason other than the message not existing (404)
+ActionFailure: If no valid email IDs or label IDs are provided, or if
+any modify operation fails for a reason other than the message not
+existing (404)
 
 ## action: 'on poll'
 
@@ -592,8 +594,23 @@ summary.total_objects_successful | numeric | | 1 |
 
 Move emails to trash in a user's mailbox (idempotent).
 
+Moves one or more emails to the Trash label by their message IDs. If a
+message ID doesn't exist, it is treated as successful and added to ignored_ids.
+
+Args:
+params: Action parameters with email and message IDs
+soar: SOAR client instance
+asset: Asset configuration object
+
+Returns:
+Summary of trashed and ignored/already-trashed email IDs
+
+Raises:
+ActionFailure: If no valid email IDs are provided, or if any trash
+operation fails for a reason other than the message not existing (404)
+
 Type: **generic** <br>
-Read only: **False**
+Read only: **True**
 
 #### Action Parameters
 
@@ -612,8 +629,6 @@ action_result.parameter.id | string | `gmail email id` | |
 action_result.parameter.email | string | `email` | |
 action_result.data.\*.trashed_emails.\* | string | | email_id_1 email_id_2 |
 action_result.data.\*.ignored_ids.\* | string | | invalid_id |
-action_result.summary.trashed_emails.\* | string | | email_id_1 email_id_2 |
-action_result.summary.ignored_ids.\* | string | | invalid_id |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -621,8 +636,23 @@ summary.total_objects_successful | numeric | | 1 |
 
 Restore emails from trash in a user's mailbox (idempotent).
 
+Removes one or more emails from the Trash label by their message IDs. If a
+message ID doesn't exist, it is treated as successful and added to ignored_ids.
+
+Args:
+params: Action parameters with email and message IDs
+soar: SOAR client instance
+asset: Asset configuration object
+
+Returns:
+Summary of untrashed and ignored email IDs
+
+Raises:
+ActionFailure: If no valid email IDs are provided, or if any untrash
+operation fails for a reason other than the message not existing (404)
+
 Type: **generic** <br>
-Read only: **False**
+Read only: **True**
 
 #### Action Parameters
 
@@ -641,8 +671,6 @@ action_result.parameter.id | string | `gmail email id` | |
 action_result.parameter.email | string | `email` | |
 action_result.data.\*.untrashed_emails.\* | string | | email_id_1 email_id_2 |
 action_result.data.\*.ignored_ids.\* | string | | invalid_id |
-action_result.summary.untrashed_emails.\* | string | | email_id_1 email_id_2 |
-action_result.summary.ignored_ids.\* | string | | invalid_id |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -650,8 +678,25 @@ summary.total_objects_successful | numeric | | 1 |
 
 Add labels to emails in a user's mailbox (idempotent).
 
+Applies one or more label IDs to one or more messages using the Gmail
+modify API. If a message ID doesn't exist, it is treated as successful
+and added to ignored_ids.
+
+Args:
+params: Action parameters with email, message IDs, and label IDs
+soar: SOAR client instance
+asset: Asset configuration object
+
+Returns:
+Summary of labeled and ignored email IDs
+
+Raises:
+ActionFailure: If no valid email IDs or label IDs are provided, or if
+any modify operation fails for a reason other than the message not
+existing (404)
+
 Type: **generic** <br>
-Read only: **False**
+Read only: **True**
 
 #### Action Parameters
 
@@ -672,8 +717,6 @@ action_result.parameter.email | string | `email` | |
 action_result.parameter.label_ids | string | `gmail label` | |
 action_result.data.\*.labeled_emails.\* | string | | email_id_1 email_id_2 |
 action_result.data.\*.ignored_ids.\* | string | | invalid_id |
-action_result.summary.labeled_emails.\* | string | | email_id_1 email_id_2 |
-action_result.summary.ignored_ids.\* | string | | invalid_id |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 

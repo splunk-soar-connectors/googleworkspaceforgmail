@@ -56,9 +56,7 @@ class AddLabelSummary(ActionOutput):
     ignored_ids: list[str] = OutputField(example_values=["invalid_id"])
 
 
-def add_label(
-    params: AddLabelParams, soar: SOARClient, asset
-) -> AddLabelSummary:
+def add_label(params: AddLabelParams, soar: SOARClient, asset) -> AddLabelSummary:
     """
     Add labels to emails in a user's mailbox (idempotent).
 
@@ -125,7 +123,9 @@ def add_label(
                 logger.progress(f"Email {email_id} not found or invalid ID (ignored)")
                 ignored_ids.append(email_id)
             else:
-                raise ActionFailure(f"Failed to add labels to email {email_id}: {e}") from e
+                raise ActionFailure(
+                    f"Failed to add labels to email {email_id}: {e}"
+                ) from e
 
     logger.progress(
         f"Successfully labeled {len(labeled_email_ids)} emails, {len(ignored_ids)} ignored"

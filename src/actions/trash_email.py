@@ -49,9 +49,7 @@ class TrashEmailSummary(ActionOutput):
     ignored_ids: list[str] = OutputField(example_values=["invalid_id"])
 
 
-def trash_email(
-    params: TrashEmailParams, soar: SOARClient, asset
-) -> TrashEmailSummary:
+def trash_email(params: TrashEmailParams, soar: SOARClient, asset) -> TrashEmailSummary:
     """
     Move emails to trash in a user's mailbox (idempotent).
 
@@ -94,9 +92,7 @@ def trash_email(
 
     for email_id in email_ids:
         try:
-            service.users().messages().trash(
-                userId=params.email, id=email_id
-            ).execute()
+            service.users().messages().trash(userId=params.email, id=email_id).execute()
             trashed_ids.append(email_id)
             logger.progress(f"Trashed email {email_id}")
         except Exception as e:
