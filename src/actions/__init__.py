@@ -12,18 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from . import add_label
 from . import delete_email
 from . import get_email
 from . import get_user
 from . import get_users
 from . import run_query
 from . import send_email
+from . import trash_email
+from . import untrash_email
 
 __all__ = [
+    "add_label",
     "delete_email",
     "get_email",
     "get_user",
     "get_users",
     "run_query",
     "send_email",
+    "trash_email",
+    "untrash_email",
 ]
