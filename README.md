@@ -1,7 +1,7 @@
 # G Suite for GMail
 
 Publisher: Splunk <br>
-Connector Version: 3.0.2 <br>
+Connector Version: 3.0.2.post20260519 <br>
 Product Vendor: Google <br>
 Product Name: GMail <br>
 Minimum Product Version: 7.0.0
@@ -629,6 +629,8 @@ action_result.parameter.id | string | `gmail email id` | |
 action_result.parameter.email | string | `email` | |
 action_result.data.\*.trashed_emails.\* | string | | email_id_1 email_id_2 |
 action_result.data.\*.ignored_ids.\* | string | | invalid_id |
+action_result.summary.trashed_emails.\* | string | | email_id_1 email_id_2 |
+action_result.summary.ignored_ids.\* | string | | invalid_id |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -671,6 +673,8 @@ action_result.parameter.id | string | `gmail email id` | |
 action_result.parameter.email | string | `email` | |
 action_result.data.\*.untrashed_emails.\* | string | | email_id_1 email_id_2 |
 action_result.data.\*.ignored_ids.\* | string | | invalid_id |
+action_result.summary.untrashed_emails.\* | string | | email_id_1 email_id_2 |
+action_result.summary.ignored_ids.\* | string | | invalid_id |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -717,6 +721,8 @@ action_result.parameter.email | string | `email` | |
 action_result.parameter.label_ids | string | `gmail label` | |
 action_result.data.\*.labeled_emails.\* | string | | email_id_1 email_id_2 |
 action_result.data.\*.ignored_ids.\* | string | | invalid_id |
+action_result.summary.labeled_emails.\* | string | | email_id_1 email_id_2 |
+action_result.summary.ignored_ids.\* | string | | invalid_id |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 

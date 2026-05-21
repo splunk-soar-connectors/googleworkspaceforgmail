@@ -52,7 +52,10 @@ from .actions.get_user import render_get_user_view
 from .actions.get_users import render_list_users_view
 from .actions.get_email import render_get_email_view
 from .actions.run_query import RunQuerySummary
+from .actions.add_label import AddLabelSummary
 from .actions.delete_email import DeleteEmailSummary
+from .actions.trash_email import TrashEmailSummary
+from .actions.untrash_email import UntrashEmailSummary
 
 logger = getLogger()
 
@@ -743,9 +746,21 @@ app.register_action(
     view_template="get_email.html",
 )
 app.register_action("actions.send_email.send_email", render_as="table")
-app.register_action("actions.trash_email.trash_email", render_as="table")
-app.register_action("actions.untrash_email.untrash_email", render_as="table")
-app.register_action("actions.add_label.add_label", render_as="table")
+app.register_action(
+    "actions.trash_email.trash_email",
+    render_as="table",
+    summary_type=TrashEmailSummary,
+)
+app.register_action(
+    "actions.untrash_email.untrash_email",
+    render_as="table",
+    summary_type=UntrashEmailSummary,
+)
+app.register_action(
+    "actions.add_label.add_label",
+    render_as="table",
+    summary_type=AddLabelSummary,
+)
 
 
 if __name__ == "__main__":
