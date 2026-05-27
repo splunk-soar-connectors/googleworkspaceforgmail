@@ -17,6 +17,7 @@ from . import delete_email
 from . import get_email
 from . import get_user
 from . import get_users
+from . import make_request
 from . import run_query
 from . import send_email
 from . import trash_email
@@ -28,6 +29,7 @@ __all__ = [
     "get_email",
     "get_user",
     "get_users",
+    "make_request",
     "run_query",
     "send_email",
     "trash_email",
