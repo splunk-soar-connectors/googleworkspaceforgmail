@@ -23,6 +23,8 @@ from google_service import GoogleServiceBuilder, GMAIL_SEND_SCOPE
 
 logger = getLogger()
 
+MAX_BATCH_MODIFY_MESSAGE_IDS = 1000
+
 
 class AddLabelParams(Params):
     """Parameters for add_label action."""
@@ -53,16 +55,13 @@ class AddLabelSummary(ActionOutput):
     """Summary of add label results."""
 
     labeled_emails: list[str] = OutputField(example_values=["email_id_1", "email_id_2"])
-    ignored_ids: list[str] = OutputField(example_values=["invalid_id"])
 
 
 def add_label(params: AddLabelParams, soar: SOARClient, asset) -> AddLabelSummary:
     """
-    Add labels to emails in a user's mailbox (idempotent).
+    Add labels to emails in a user's mailbox using Gmail batchModify.
 
-    Applies one or more label IDs to one or more messages using the Gmail
-    modify API. If a message ID doesn't exist, it is treated as successful
-    and added to ignored_ids.
+    Applies one or more label IDs to one or more messages.
 
     Args:
         params: Action parameters with email, message IDs, and label IDs
@@ -70,12 +69,12 @@ def add_label(params: AddLabelParams, soar: SOARClient, asset) -> AddLabelSummar
         asset: Asset configuration object
 
     Returns:
-        Summary of labeled and ignored email IDs
+        Summary of labeled email IDs
 
     Raises:
-        ActionFailure: If no valid email IDs or label IDs are provided, or if
-            any modify operation fails for a reason other than the message not
-            existing (404)
+        ActionFailure: If no valid email IDs or label IDs are provided, if more
+            than 1000 message IDs are supplied, or if the batch modify request
+            fails
     """
     logger.progress(f"Adding labels to emails in {params.email}...")
 
@@ -98,42 +97,29 @@ def add_label(params: AddLabelParams, soar: SOARClient, asset) -> AddLabelSummar
         raise ActionFailure("No valid email IDs provided")
     if not label_ids:
         raise ActionFailure("No valid label IDs provided")
+    if len(email_ids) > MAX_BATCH_MODIFY_MESSAGE_IDS:
+        raise ActionFailure(
+            f"Gmail batchModify supports at most {MAX_BATCH_MODIFY_MESSAGE_IDS} "
+            f"message IDs per request; received {len(email_ids)}"
+        )
 
     logger.progress(f"Adding labels {label_ids} to {len(email_ids)} emails...")
 
-    labeled_email_ids = []
-    ignored_ids = []
+    try:
+        service.users().messages().batchModify(
+            userId=params.email,
+            body={
+                "ids": email_ids,
+                "addLabelIds": label_ids,
+            },
+        ).execute()
+    except Exception as e:
+        raise ActionFailure(f"Failed to add labels to emails: {e}") from e
 
-    for email_id in email_ids:
-        try:
-            service.users().messages().modify(
-                userId=params.email,
-                id=email_id,
-                body={"addLabelIds": label_ids},
-            ).execute()
-            labeled_email_ids.append(email_id)
-            logger.progress(f"Added labels to email {email_id}")
-        except Exception as e:
-            error_str = str(e).lower()
-            if (
-                "404" in error_str
-                or "not found" in error_str
-                or "invalid id value" in error_str
-            ):
-                logger.progress(f"Email {email_id} not found or invalid ID (ignored)")
-                ignored_ids.append(email_id)
-            else:
-                raise ActionFailure(
-                    f"Failed to add labels to email {email_id}: {e}"
-                ) from e
-
-    logger.progress(
-        f"Successfully labeled {len(labeled_email_ids)} emails, {len(ignored_ids)} ignored"
-    )
+    logger.progress(f"Successfully submitted label update for {len(email_ids)} emails")
 
     summary = AddLabelSummary(
-        labeled_emails=labeled_email_ids,
-        ignored_ids=ignored_ids,
+        labeled_emails=email_ids,
     )
     soar.set_summary(summary)
     return summary
