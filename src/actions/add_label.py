@@ -43,7 +43,7 @@ class AddLabelParams(Params):
         column_name="Email",
     )
     label_ids: str = Param(
-        description="Label IDs to add (comma-separated)",
+        description="Label IDs to add (comma-separated, for example: STARRED,IMPORTANT or Label_1234567890)",
         primary=True,
         cef_types=["gmail label"],
         allow_list=True,
