@@ -704,7 +704,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **id** | required | Email message IDs to label (comma-separated) | string | `gmail email id` |
 **email** | required | Email address of mailbox owner | string | `email` |
-**label_ids** | required | Label IDs to add (comma-separated) | string | `gmail label` |
+**label_ids** | required | Label IDs to add (comma-separated, for example: STARRED,IMPORTANT or Label_1234567890) | string | `gmail label` |
 
 #### Action Output
 
