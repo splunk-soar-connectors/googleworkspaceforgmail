@@ -51,7 +51,9 @@ class GmailMakeRequestParams(MakeRequestParams):
 
 class GmailMakeRequestOutput(ActionOutput):
     status_code: int = OutputField(example_values=[200])
-    response_body: str = OutputField(example_values=['{"emailAddress": "user@example.com"}'])
+    response_body: str = OutputField(
+        example_values=['{"emailAddress": "user@example.com"}']
+    )
 
     @classmethod
     def from_response(cls, response: requests.Response) -> "GmailMakeRequestOutput":
@@ -59,9 +61,7 @@ class GmailMakeRequestOutput(ActionOutput):
 
 
 @app.make_request()
-def http_action(
-    params: GmailMakeRequestParams, asset: Asset
-) -> GmailMakeRequestOutput:
+def http_action(params: GmailMakeRequestParams, asset: Asset) -> GmailMakeRequestOutput:
     if params.endpoint.startswith(("http://", "https://")):
         raise ActionFailure(
             f"Invalid endpoint: {params.endpoint}. Do not include the base URL — "
@@ -81,7 +81,9 @@ def http_action(
     except Exception as e:
         raise ActionFailure(f"Failed to obtain access token: {e}") from e
 
-    endpoint = params.endpoint if params.endpoint.startswith("/") else f"/{params.endpoint}"
+    endpoint = (
+        params.endpoint if params.endpoint.startswith("/") else f"/{params.endpoint}"
+    )
     url = f"{GMAIL_API_BASE_URL}{endpoint}"
 
     headers: dict = {

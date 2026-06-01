@@ -762,7 +762,7 @@ app.register_action(
     summary_type=AddLabelSummary,
 )
 
-from .actions import make_request  # noqa: F401, E402
+from .actions import make_request  # noqa: F401
 
 
 if __name__ == "__main__":
