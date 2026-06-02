@@ -177,7 +177,8 @@ Summary of labeled email IDs
 Raises:
 ActionFailure: If no valid email IDs or label IDs are provided, if more
 than 1000 message IDs are supplied, or if the batch modify request
-fails
+fails <br>
+[make request](#action-make-request) - make request
 
 ## action: 'on poll'
 
@@ -717,6 +718,45 @@ action_result.parameter.email | string | `email` | |
 action_result.parameter.label_ids | string | `gmail label` | |
 action_result.data.\*.labeled_emails.\* | string | | email_id_1 email_id_2 |
 action_result.summary.labeled_emails.\* | string | | email_id_1 email_id_2 |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'make request'
+
+make request
+
+Type: **generic** <br>
+Read only: **False**
+
+'make request' action for the app. Used to handle arbitrary HTTP requests with the app's asset
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**http_method** | required | The HTTP method to use for the request. | string | |
+**endpoint** | required | Gmail API endpoint to call, appended to the API base URL. Example: '/gmail/v1/users/me/profile'. Note: this action is authorized with the gmail.readonly scope only — write or modify endpoints will require additional domain-wide delegation. | string | |
+**headers** | optional | The headers to send with the request (JSON object). An example is {'Content-Type': 'application/json'} | string | |
+**query_parameters** | optional | Parameters to append to the URL (JSON object or query string). An example is ?key=value&key2=value2 | string | |
+**body** | optional | The body to send with the request (JSON object). An example is {'key': 'value', 'key2': 'value2'} | string | |
+**timeout** | optional | The timeout for the request in seconds. | numeric | |
+**verify_ssl** | optional | Whether to verify the SSL certificate. | boolean | |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.http_method | string | | |
+action_result.parameter.endpoint | string | | |
+action_result.parameter.headers | string | | |
+action_result.parameter.query_parameters | string | | |
+action_result.parameter.body | string | | |
+action_result.parameter.timeout | numeric | | |
+action_result.parameter.verify_ssl | boolean | | |
+action_result.data.\*.status_code | numeric | | 200 |
+action_result.data.\*.response_body | string | | {"emailAddress": "user@example.com"} |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
