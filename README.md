@@ -1,7 +1,7 @@
 # G Suite for GMail
 
 Publisher: Splunk <br>
-Connector Version: 3.0.2 <br>
+Connector Version: 3.0.3 <br>
 Product Vendor: Google <br>
 Product Name: GMail <br>
 Minimum Product Version: 7.0.0
@@ -129,7 +129,55 @@ Returns:
 Send result with message ID and thread ID
 
 Raises:
-ActionFailure: If email send fails
+ActionFailure: If email send fails <br>
+[trash email](#action-trash-email) - Move emails to trash in a user's mailbox (idempotent).
+
+Moves one or more emails to the Trash label by their message IDs. If a
+message ID doesn't exist, it is treated as successful and added to ignored_ids.
+
+Args:
+params: Action parameters with email and message IDs
+soar: SOAR client instance
+asset: Asset configuration object
+
+Returns:
+Summary of trashed and ignored/already-trashed email IDs
+
+Raises:
+ActionFailure: If no valid email IDs are provided, or if any trash
+operation fails for a reason other than the message not existing (404) <br>
+[untrash email](#action-untrash-email) - Restore emails from trash in a user's mailbox (idempotent).
+
+Removes one or more emails from the Trash label by their message IDs. If a
+message ID doesn't exist, it is treated as successful and added to ignored_ids.
+
+Args:
+params: Action parameters with email and message IDs
+soar: SOAR client instance
+asset: Asset configuration object
+
+Returns:
+Summary of untrashed and ignored email IDs
+
+Raises:
+ActionFailure: If no valid email IDs are provided, or if any untrash
+operation fails for a reason other than the message not existing (404) <br>
+[add label](#action-add-label) - Add labels to emails in a user's mailbox using Gmail batchModify.
+
+Applies one or more label IDs to one or more messages.
+
+Args:
+params: Action parameters with email, message IDs, and label IDs
+soar: SOAR client instance
+asset: Asset configuration object
+
+Returns:
+Summary of labeled email IDs
+
+Raises:
+ActionFailure: If no valid email IDs or label IDs are provided, if more
+than 1000 message IDs are supplied, or if the batch modify request
+fails
 
 ## action: 'on poll'
 
@@ -537,6 +585,138 @@ action_result.data.\*.id | string | `gmail email id` | |
 action_result.data.\*.thread_id | string | | |
 action_result.data.\*.label_ids | string | | |
 action_result.data.\*.from_email | string | `email` | |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'trash email'
+
+Move emails to trash in a user's mailbox (idempotent).
+
+Moves one or more emails to the Trash label by their message IDs. If a
+message ID doesn't exist, it is treated as successful and added to ignored_ids.
+
+Args:
+params: Action parameters with email and message IDs
+soar: SOAR client instance
+asset: Asset configuration object
+
+Returns:
+Summary of trashed and ignored/already-trashed email IDs
+
+Raises:
+ActionFailure: If no valid email IDs are provided, or if any trash
+operation fails for a reason other than the message not existing (404)
+
+Type: **generic** <br>
+Read only: **True**
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**id** | required | Email message IDs to trash (comma-separated) | string | `gmail email id` |
+**email** | required | Email address of mailbox owner | string | `email` |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.id | string | `gmail email id` | |
+action_result.parameter.email | string | `email` | |
+action_result.data.\*.trashed_emails.\* | string | | email_id_1 email_id_2 |
+action_result.data.\*.ignored_ids.\* | string | | invalid_id |
+action_result.summary.trashed_emails.\* | string | | email_id_1 email_id_2 |
+action_result.summary.ignored_ids.\* | string | | invalid_id |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'untrash email'
+
+Restore emails from trash in a user's mailbox (idempotent).
+
+Removes one or more emails from the Trash label by their message IDs. If a
+message ID doesn't exist, it is treated as successful and added to ignored_ids.
+
+Args:
+params: Action parameters with email and message IDs
+soar: SOAR client instance
+asset: Asset configuration object
+
+Returns:
+Summary of untrashed and ignored email IDs
+
+Raises:
+ActionFailure: If no valid email IDs are provided, or if any untrash
+operation fails for a reason other than the message not existing (404)
+
+Type: **generic** <br>
+Read only: **True**
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**id** | required | Email message IDs to untrash (comma-separated) | string | `gmail email id` |
+**email** | required | Email address of mailbox owner | string | `email` |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.id | string | `gmail email id` | |
+action_result.parameter.email | string | `email` | |
+action_result.data.\*.untrashed_emails.\* | string | | email_id_1 email_id_2 |
+action_result.data.\*.ignored_ids.\* | string | | invalid_id |
+action_result.summary.untrashed_emails.\* | string | | email_id_1 email_id_2 |
+action_result.summary.ignored_ids.\* | string | | invalid_id |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'add label'
+
+Add labels to emails in a user's mailbox using Gmail batchModify.
+
+Applies one or more label IDs to one or more messages.
+
+Args:
+params: Action parameters with email, message IDs, and label IDs
+soar: SOAR client instance
+asset: Asset configuration object
+
+Returns:
+Summary of labeled email IDs
+
+Raises:
+ActionFailure: If no valid email IDs or label IDs are provided, if more
+than 1000 message IDs are supplied, or if the batch modify request
+fails
+
+Type: **generic** <br>
+Read only: **True**
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**id** | required | Email message IDs to label (comma-separated) | string | `gmail email id` |
+**email** | required | Email address of mailbox owner | string | `email` |
+**label_ids** | required | Label IDs to add (comma-separated, for example: STARRED,IMPORTANT or Label_1234567890) | string | `gmail label` |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.id | string | `gmail email id` | |
+action_result.parameter.email | string | `email` | |
+action_result.parameter.label_ids | string | `gmail label` | |
+action_result.data.\*.labeled_emails.\* | string | | email_id_1 email_id_2 |
+action_result.summary.labeled_emails.\* | string | | email_id_1 email_id_2 |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
