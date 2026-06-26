@@ -90,17 +90,6 @@ def list_users(
     List users in the Google Workspace domain.
 
     Uses the Admin SDK to retrieve users with pagination support.
-
-    Args:
-        params: Action parameters with optional max_items and page_token
-        soar: SOAR client instance
-        asset: Asset configuration object
-
-    Returns:
-        List of user profiles
-
-    Raises:
-        ActionFailure: If user listing fails
     """
     raw_max = params.max_items if params.max_items is not None else 500.0
     if not float(raw_max).is_integer():
@@ -210,15 +199,4 @@ def list_users(
 
 
 def render_list_users_view(output: list[GetUsersOutput]) -> dict:
-    """
-    View handler for list_users action.
-
-    Formats the user list output for display in the custom view template.
-
-    Args:
-        output: The list of GetUsersOutput from the list_users action
-
-    Returns:
-        Dictionary with users list for template rendering
-    """
     return {"users": output}

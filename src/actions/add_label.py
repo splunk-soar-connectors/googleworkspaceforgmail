@@ -62,19 +62,6 @@ def add_label(params: AddLabelParams, soar: SOARClient, asset) -> AddLabelSummar
     Add labels to emails in a user's mailbox using Gmail batchModify.
 
     Applies one or more label IDs to one or more messages.
-
-    Args:
-        params: Action parameters with email, message IDs, and label IDs
-        soar: SOAR client instance
-        asset: Asset configuration object
-
-    Returns:
-        Summary of labeled email IDs
-
-    Raises:
-        ActionFailure: If no valid email IDs or label IDs are provided, if more
-            than 1000 message IDs are supplied, or if the batch modify request
-            fails
     """
     logger.progress(f"Adding labels to emails in {params.email}...")
 

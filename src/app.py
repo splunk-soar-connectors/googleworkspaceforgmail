@@ -255,9 +255,8 @@ class Asset(BaseAsset):
         """
         Poll Gmail and yield parsed email objects with metadata and (optionally) IOCs.
 
-        Args:
-            max_emails: How many emails to retrieve
-            force_extract_iocs: Ignore the asset settings and always extract IPs/domains/hashes
+        If force_extract_iocs is True, asset IOC extraction settings are ignored and all
+        IPs, domains, and hashes are always extracted.
         """
         logger.progress("Starting Gmail poll...")
 

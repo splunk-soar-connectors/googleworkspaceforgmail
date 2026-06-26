@@ -43,141 +43,37 @@ the configured domain. <br>
 [get user](#action-get-user) - Retrieve user profile information.
 
 Uses the Gmail API to get user profile metadata including message and
-thread counts.
-
-Args:
-params: Action parameters containing email address
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-User profile information
-
-Raises:
-ActionFailure: If user retrieval fails <br>
+thread counts. <br>
 [list users](#action-list-users) - List users in the Google Workspace domain.
 
-Uses the Admin SDK to retrieve users with pagination support.
-
-Args:
-params: Action parameters with optional max_items and page_token
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-List of user profiles
-
-Raises:
-ActionFailure: If user listing fails <br>
+Uses the Admin SDK to retrieve users with pagination support. <br>
 [run query](#action-run-query) - Search emails in a user's mailbox.
 
 Constructs a Gmail query from provided filters and returns matching emails
-with pagination support.
-
-Args:
-params: Action parameters for search filters
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-List of matching email messages
-
-Raises:
-ActionFailure: If search fails <br>
+with pagination support. <br>
 [delete email](#action-delete-email) - Delete emails from a user's mailbox (idempotent).
 
 Deletes one or more emails by their message IDs. If a message ID doesn't exist
-(likely already deleted), it's treated as successful and added to ignored_ids.
-
-Args:
-params: Action parameters with email and message IDs
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-Summary of deleted and ignored/already-deleted email IDs
-
-Raises:
-ActionFailure: If no valid email IDs are provided, or if any deletion
-fails for a reason other than the message already being deleted (404) <br>
+(likely already deleted), it's treated as successful and added to ignored_ids. <br>
 [get email](#action-get-email) - Retrieve and parse email details.
 
 Fetches email from Gmail API, parses MIME structure, extracts IOCs and
-optionally downloads attachments and raw email to vault.
-
-Args:
-params: Action parameters
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-Parsed email with extracted data
-
-Raises:
-ActionFailure: If email retrieval fails <br>
+optionally downloads attachments and raw email to vault. <br>
 [send email](#action-send-email) - Send email via Gmail.
 
 Constructs MIME message with attachments, respecting 25MB size limit.
-Optionally creates send-as alias before sending.
-
-Args:
-params: Action parameters
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-Send result with message ID and thread ID
-
-Raises:
-ActionFailure: If email send fails <br>
+Optionally creates send-as alias before sending. <br>
 [trash email](#action-trash-email) - Move emails to trash in a user's mailbox (idempotent).
 
 Moves one or more emails to the Trash label by their message IDs. If a
-message ID doesn't exist, it is treated as successful and added to ignored_ids.
-
-Args:
-params: Action parameters with email and message IDs
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-Summary of trashed and ignored/already-trashed email IDs
-
-Raises:
-ActionFailure: If no valid email IDs are provided, or if any trash
-operation fails for a reason other than the message not existing (404) <br>
+message ID doesn't exist, it is treated as successful and added to ignored_ids. <br>
 [untrash email](#action-untrash-email) - Restore emails from trash in a user's mailbox (idempotent).
 
 Removes one or more emails from the Trash label by their message IDs. If a
-message ID doesn't exist, it is treated as successful and added to ignored_ids.
-
-Args:
-params: Action parameters with email and message IDs
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-Summary of untrashed and ignored email IDs
-
-Raises:
-ActionFailure: If no valid email IDs are provided, or if any untrash
-operation fails for a reason other than the message not existing (404) <br>
+message ID doesn't exist, it is treated as successful and added to ignored_ids. <br>
 [add label](#action-add-label) - Add labels to emails in a user's mailbox using Gmail batchModify.
 
-Applies one or more label IDs to one or more messages.
-
-Args:
-params: Action parameters with email, message IDs, and label IDs
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-Summary of labeled email IDs
-
-Raises:
-ActionFailure: If no valid email IDs or label IDs are provided, if more
-than 1000 message IDs are supplied, or if the batch modify request
-fails <br>
+Applies one or more label IDs to one or more messages. <br>
 [make request](#action-make-request) - make request
 
 ## action: 'on poll'
@@ -256,17 +152,6 @@ Retrieve user profile information.
 Uses the Gmail API to get user profile metadata including message and
 thread counts.
 
-Args:
-params: Action parameters containing email address
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-User profile information
-
-Raises:
-ActionFailure: If user retrieval fails
-
 Type: **generic** <br>
 Read only: **True**
 
@@ -295,17 +180,6 @@ summary.total_objects_successful | numeric | | 1 |
 List users in the Google Workspace domain.
 
 Uses the Admin SDK to retrieve users with pagination support.
-
-Args:
-params: Action parameters with optional max_items and page_token
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-List of user profiles
-
-Raises:
-ActionFailure: If user listing fails
 
 Type: **generic** <br>
 Read only: **True**
@@ -355,17 +229,6 @@ Search emails in a user's mailbox.
 
 Constructs a Gmail query from provided filters and returns matching emails
 with pagination support.
-
-Args:
-params: Action parameters for search filters
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-List of matching email messages
-
-Raises:
-ActionFailure: If search fails
 
 Type: **generic** <br>
 Read only: **True**
@@ -423,18 +286,6 @@ Delete emails from a user's mailbox (idempotent).
 Deletes one or more emails by their message IDs. If a message ID doesn't exist
 (likely already deleted), it's treated as successful and added to ignored_ids.
 
-Args:
-params: Action parameters with email and message IDs
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-Summary of deleted and ignored/already-deleted email IDs
-
-Raises:
-ActionFailure: If no valid email IDs are provided, or if any deletion
-fails for a reason other than the message already being deleted (404)
-
 Type: **generic** <br>
 Read only: **True**
 
@@ -466,17 +317,6 @@ Retrieve and parse email details.
 
 Fetches email from Gmail API, parses MIME structure, extracts IOCs and
 optionally downloads attachments and raw email to vault.
-
-Args:
-params: Action parameters
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-Parsed email with extracted data
-
-Raises:
-ActionFailure: If email retrieval fails
 
 Type: **generic** <br>
 Read only: **True**
@@ -535,17 +375,6 @@ Send email via Gmail.
 Constructs MIME message with attachments, respecting 25MB size limit.
 Optionally creates send-as alias before sending.
 
-Args:
-params: Action parameters
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-Send result with message ID and thread ID
-
-Raises:
-ActionFailure: If email send fails
-
 Type: **generic** <br>
 Read only: **True**
 
@@ -596,18 +425,6 @@ Move emails to trash in a user's mailbox (idempotent).
 Moves one or more emails to the Trash label by their message IDs. If a
 message ID doesn't exist, it is treated as successful and added to ignored_ids.
 
-Args:
-params: Action parameters with email and message IDs
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-Summary of trashed and ignored/already-trashed email IDs
-
-Raises:
-ActionFailure: If no valid email IDs are provided, or if any trash
-operation fails for a reason other than the message not existing (404)
-
 Type: **generic** <br>
 Read only: **True**
 
@@ -640,18 +457,6 @@ Restore emails from trash in a user's mailbox (idempotent).
 Removes one or more emails from the Trash label by their message IDs. If a
 message ID doesn't exist, it is treated as successful and added to ignored_ids.
 
-Args:
-params: Action parameters with email and message IDs
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-Summary of untrashed and ignored email IDs
-
-Raises:
-ActionFailure: If no valid email IDs are provided, or if any untrash
-operation fails for a reason other than the message not existing (404)
-
 Type: **generic** <br>
 Read only: **True**
 
@@ -682,19 +487,6 @@ summary.total_objects_successful | numeric | | 1 |
 Add labels to emails in a user's mailbox using Gmail batchModify.
 
 Applies one or more label IDs to one or more messages.
-
-Args:
-params: Action parameters with email, message IDs, and label IDs
-soar: SOAR client instance
-asset: Asset configuration object
-
-Returns:
-Summary of labeled email IDs
-
-Raises:
-ActionFailure: If no valid email IDs or label IDs are provided, if more
-than 1000 message IDs are supplied, or if the batch modify request
-fails
 
 Type: **generic** <br>
 Read only: **True**

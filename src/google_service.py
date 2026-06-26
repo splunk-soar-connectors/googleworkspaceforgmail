@@ -42,15 +42,7 @@ class GoogleServiceBuilder:
     """Helper class for creating authenticated Google API services."""
 
     def __init__(self, key_json: str):
-        """
-        Initialize with a service account JSON key.
-
-        Args:
-            key_json: JSON string containing service account credentials
-
-        Raises:
-            ActionFailure: If the key JSON is invalid
-        """
+        """Initialize with a service account JSON key."""
         try:
             self.key_dict = json.loads(key_json)
         except json.JSONDecodeError as e:
@@ -63,21 +55,7 @@ class GoogleServiceBuilder:
         scopes: list[str],
         delegated_user: str | None = None,
     ):
-        """
-        Build an authenticated Google API service.
-
-        Args:
-            api_name: Name of the API (e.g., 'gmail', 'admin')
-            api_version: Version of the API (e.g., 'v1', 'directory_v1')
-            scopes: List of OAuth scopes to request
-            delegated_user: Email address for domain-wide delegation
-
-        Returns:
-            Authenticated Google API service resource
-
-        Raises:
-            ActionFailure: If credential creation or service building fails
-        """
+        """Build an authenticated Google API service."""
         try:
             credentials = service_account.Credentials.from_service_account_info(
                 self.key_dict, scopes=scopes
