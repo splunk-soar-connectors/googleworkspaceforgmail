@@ -110,17 +110,6 @@ def get_email(params: GetEmailParams, soar: SOARClient, asset) -> list[GetEmailO
 
     Fetches email from Gmail API, parses MIME structure, extracts IOCs and
     optionally downloads attachments and raw email to vault.
-
-    Args:
-        params: Action parameters
-        soar: SOAR client instance
-        asset: Asset configuration object
-
-    Returns:
-        Parsed email with extracted data
-
-    Raises:
-        ActionFailure: If email retrieval fails
     """
     logger.progress(f"Retrieving email with message ID {params.internet_message_id}...")
 
@@ -348,15 +337,4 @@ def get_email(params: GetEmailParams, soar: SOARClient, asset) -> list[GetEmailO
 
 
 def render_get_email_view(output: list[GetEmailOutput]) -> dict:
-    """
-    View handler for get_email action.
-
-    Formats the email output for display in the custom view template.
-
-    Args:
-        output: The GetEmailOutput from the get_email action
-
-    Returns:
-        Dictionary with emails list for template rendering
-    """
     return {"emails": output}

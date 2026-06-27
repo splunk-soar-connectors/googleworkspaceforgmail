@@ -55,18 +55,6 @@ def trash_email(params: TrashEmailParams, soar: SOARClient, asset) -> TrashEmail
 
     Moves one or more emails to the Trash label by their message IDs. If a
     message ID doesn't exist, it is treated as successful and added to ignored_ids.
-
-    Args:
-        params: Action parameters with email and message IDs
-        soar: SOAR client instance
-        asset: Asset configuration object
-
-    Returns:
-        Summary of trashed and ignored/already-trashed email IDs
-
-    Raises:
-        ActionFailure: If no valid email IDs are provided, or if any trash
-            operation fails for a reason other than the message not existing (404)
     """
     logger.progress(f"Trashing emails from {params.email}...")
 

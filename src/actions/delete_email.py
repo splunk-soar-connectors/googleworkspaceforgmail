@@ -57,18 +57,6 @@ def delete_email(
 
     Deletes one or more emails by their message IDs. If a message ID doesn't exist
     (likely already deleted), it's treated as successful and added to ignored_ids.
-
-    Args:
-        params: Action parameters with email and message IDs
-        soar: SOAR client instance
-        asset: Asset configuration object
-
-    Returns:
-        Summary of deleted and ignored/already-deleted email IDs
-
-    Raises:
-        ActionFailure: If no valid email IDs are provided, or if any deletion
-            fails for a reason other than the message already being deleted (404)
     """
     logger.progress(f"Deleting emails from {params.email}...")
 

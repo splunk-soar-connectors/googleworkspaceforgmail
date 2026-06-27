@@ -103,17 +103,6 @@ def run_query(params: RunQueryParams, soar: SOARClient, asset) -> list[RunQueryO
 
     Constructs a Gmail query from provided filters and returns matching emails
     with pagination support.
-
-    Args:
-        params: Action parameters for search filters
-        soar: SOAR client instance
-        asset: Asset configuration object
-
-    Returns:
-        List of matching email messages
-
-    Raises:
-        ActionFailure: If search fails
     """
     logger.progress(f"Searching emails in {params.email}...")
 
