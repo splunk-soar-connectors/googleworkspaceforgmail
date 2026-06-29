@@ -105,19 +105,7 @@ class SendEmailOutput(ActionOutput):
 def _create_send_as_alias(
     admin_service, gmail_service, user_email: str, alias_email: str, alias_name: str
 ) -> None:
-    """
-    Create alias and send-as setting if they don't exist.
-
-    Args:
-        admin_service: Admin Directory service
-        gmail_service: Gmail service
-        user_email: User's primary email
-        alias_email: Alias email address
-        alias_name: Display name for alias
-
-    Raises:
-        ActionFailure: If alias creation fails
-    """
+    """Create alias and send-as setting if they don't exist."""
     # Step 1: Create alias in Admin SDK
     logger.progress(f"Creating alias {alias_email}...")
     alias_body = {"alias": alias_email}
@@ -167,17 +155,6 @@ def send_email(params: SendEmailParams, soar: SOARClient, asset) -> SendEmailOut
 
     Constructs MIME message with attachments, respecting 25MB size limit.
     Optionally creates send-as alias before sending.
-
-    Args:
-        params: Action parameters
-        soar: SOAR client instance
-        asset: Asset configuration object
-
-    Returns:
-        Send result with message ID and thread ID
-
-    Raises:
-        ActionFailure: If email send fails
     """
     from_email = params.from_
     logger.progress("Building email message...")

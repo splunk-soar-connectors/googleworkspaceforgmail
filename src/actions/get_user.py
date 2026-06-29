@@ -52,17 +52,6 @@ def get_user(params: GetUserParams, soar: SOARClient, asset) -> GetUserOutput:
 
     Uses the Gmail API to get user profile metadata including message and
     thread counts.
-
-    Args:
-        params: Action parameters containing email address
-        soar: SOAR client instance
-        asset: Asset configuration object
-
-    Returns:
-        User profile information
-
-    Raises:
-        ActionFailure: If user retrieval fails
     """
     logger.progress(f"Retrieving user profile for {params.email}")
 
@@ -89,15 +78,4 @@ def get_user(params: GetUserParams, soar: SOARClient, asset) -> GetUserOutput:
 
 
 def render_get_user_view(output: list[GetUserOutput]) -> dict:
-    """
-    View handler for get_user action.
-
-    Formats the user profile output for display in the custom view template.
-
-    Args:
-        output: The GetUserOutput from the get_user action
-
-    Returns:
-        Dictionary with users list for template rendering
-    """
     return {"users": output}

@@ -59,18 +59,6 @@ def untrash_email(
 
     Removes one or more emails from the Trash label by their message IDs. If a
     message ID doesn't exist, it is treated as successful and added to ignored_ids.
-
-    Args:
-        params: Action parameters with email and message IDs
-        soar: SOAR client instance
-        asset: Asset configuration object
-
-    Returns:
-        Summary of untrashed and ignored email IDs
-
-    Raises:
-        ActionFailure: If no valid email IDs are provided, or if any untrash
-            operation fails for a reason other than the message not existing (404)
     """
     logger.progress(f"Untrashing emails from {params.email}...")
 
