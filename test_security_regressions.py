@@ -27,6 +27,13 @@ class GmailSecurityTests(unittest.TestCase):
         assert "email.from_|escapejs" in template  # noqa: S101
         assert "email.download_email_vault_id|escapejs" in template  # noqa: S101
 
+    def test_poll_pagination_has_page_and_progress_guards(self):
+        source = (ROOT / "src/app.py").read_text()
+
+        assert "MAX_POLL_PAGES = 100" in source  # noqa: S101
+        assert "pages_fetched > MAX_POLL_PAGES" in source  # noqa: S101
+        assert "next_page_token in seen_page_tokens" in source  # noqa: S101
+
 
 if __name__ == "__main__":
     unittest.main()

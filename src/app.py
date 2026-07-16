@@ -59,6 +59,8 @@ from .actions.untrash_email import UntrashEmailSummary
 
 logger = getLogger()
 
+MAX_POLL_PAGES = 100
+
 
 class IngestManner(StrEnum):
     OLDEST_FIRST: str = "oldest first"
@@ -296,8 +298,15 @@ class Asset(BaseAsset):
         if page_token := state.get("page_token"):
             kwargs["pageToken"] = page_token
         ingest_manner = IngestManner(self.ingest_manner)
+        seen_page_tokens = set()
+        pages_fetched = 0
 
         while True:
+            pages_fetched += 1
+            if pages_fetched > MAX_POLL_PAGES:
+                raise ActionFailure(
+                    f"Gmail polling exceeded the safety limit of {MAX_POLL_PAGES} pages"
+                )
             search_response = service.users().messages().list(**kwargs).execute()
             page_messages = search_response.get("messages", [])
             messages.extend(page_messages)
@@ -307,6 +316,9 @@ class Asset(BaseAsset):
 
             if not (next_page_token := search_response.get("nextPageToken")):
                 break
+            if next_page_token in seen_page_tokens:
+                raise ActionFailure("Gmail polling returned a repeated page token")
+            seen_page_tokens.add(next_page_token)
             if (
                 ingest_manner == IngestManner.LATEST_FIRST
                 and len(messages) >= max_emails
