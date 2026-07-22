@@ -83,7 +83,7 @@
             <tr>
               <td>
                 <a href="javascript:;"
-                   onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ email.to }}' }], 0, {{ container.id }}, null, false);">
+                   onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ email.to|escapejs }}' }], 0, {{ container.id }}, null, false);">
                   {{ email.to }}
                   &nbsp;
                   <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -91,7 +91,7 @@
               </td>
               <td>
                 <a href="javascript:;"
-                   onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ email.from_ }}' }], 0, {{ container.id }}, null, false);">
+                   onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ email.from_|escapejs }}' }], 0, {{ container.id }}, null, false);">
                   {{ email.from_ }}
                   &nbsp;
                   <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -101,7 +101,7 @@
               <td>
                 {% if email.download_email_vault_id %}
                   <a href="javascript:;"
-                     onclick="context_menu(this, [{'contains': ['vault id'], 'value': '{{ email.download_email_vault_id }}' }], 0, {{ container.id }}, null, false);">
+                     onclick="context_menu(this, [{'contains': ['vault id'], 'value': '{{ email.download_email_vault_id|escapejs }}' }], 0, {{ container.id }}, null, false);">
                     {{ email.download_email_vault_id }}
                     &nbsp;
                     <span class="fa fa-caret-down" style="font-size: smaller;"></span>

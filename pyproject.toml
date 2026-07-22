@@ -53,6 +53,9 @@ required-environments = [
     "sys_platform == 'linux' and platform_machine == 'x86_64' and python_version == '3.14'",
 ]
 
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
 [tool.ruff]
 output-format = "full"  # <full|concise>
 fix = true
