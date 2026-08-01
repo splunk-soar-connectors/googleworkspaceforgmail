@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import email
 from pathlib import Path
 from unittest.mock import MagicMock, PropertyMock, patch
 
@@ -90,12 +91,13 @@ def test_list_users_widget_escapes_javascript_context_values():
     assert "{{ user.primary_email|escapejs }}" in template
 
 
-def test_email_parser_extracts_mixed_case_url_schemes():
-    parsed = extract_email_data(
-        "Subject: links\r\nContent-Type: text/plain; charset=utf-8\r\n"
-        "Content-Transfer-Encoding: 8bit\r\n\r\nHTTPS://EVIL-UPPER.TEST/path "
-        "hTtPs://mixed-case.test/path"
+def test_email_parser_extracts_mixed_case_and_internationalized_urls():
+    raw_email = (
+        b"Subject: links\r\nContent-Type: text/plain; charset=utf-8\r\n"
+        b"Content-Transfer-Encoding: 8bit\r\n\r\nHTTPS://EVIL-UPPER.TEST/path "
+        + "hTtPs://пример.рф/путь".encode()
     )
+    parsed = extract_email_data(email.message_from_bytes(raw_email).as_string())
 
     assert "HTTPS://EVIL-UPPER.TEST/path" in parsed.urls
-    assert "hTtPs://mixed-case.test/path" in parsed.urls
+    assert "hTtPs://пример.рф/путь" in parsed.urls
