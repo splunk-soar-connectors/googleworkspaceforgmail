@@ -16,6 +16,7 @@ from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
 from soar_sdk.exceptions import ActionFailure
+from soar_sdk.extras.email import extract_email_data
 
 from src.app import Asset
 
@@ -87,3 +88,14 @@ def test_list_users_widget_escapes_javascript_context_values():
     template = (Path(__file__).parents[1] / "templates" / "list_users.html").read_text()
 
     assert "{{ user.primary_email|escapejs }}" in template
+
+
+def test_email_parser_extracts_mixed_case_url_schemes():
+    parsed = extract_email_data(
+        "Subject: links\r\nContent-Type: text/plain; charset=utf-8\r\n"
+        "Content-Transfer-Encoding: 8bit\r\n\r\nHTTPS://EVIL-UPPER.TEST/path "
+        "hTtPs://mixed-case.test/path"
+    )
+
+    assert "HTTPS://EVIL-UPPER.TEST/path" in parsed.urls
+    assert "hTtPs://mixed-case.test/path" in parsed.urls
