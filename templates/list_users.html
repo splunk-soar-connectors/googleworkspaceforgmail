@@ -81,7 +81,7 @@
               <td>{{ user.name.full_name }}</td>
               <td>
                 <a href="javascript:;"
-                   onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ user.primary_email }}' }], 0, {{ container.id }}, null, false);">
+                   onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ user.primary_email|escapejs }}' }], 0, {{ container.id }}, null, false);">
                   {{ user.primary_email }}
                   &nbsp;
                   <span class="fa fa-caret-down" style="font-size: smaller;"></span>
