@@ -81,3 +81,9 @@ def test_get_email_widget_escapes_javascript_context_values():
     assert "{{ email.to|escapejs }}" in template
     assert "{{ email.from_|escapejs }}" in template
     assert "{{ email.download_email_vault_id|escapejs }}" in template
+
+
+def test_list_users_widget_escapes_javascript_context_values():
+    template = (Path(__file__).parents[1] / "templates" / "list_users.html").read_text()
+
+    assert "{{ user.primary_email|escapejs }}" in template
