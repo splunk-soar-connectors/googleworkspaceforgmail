@@ -14,7 +14,6 @@
 from dataclasses import dataclass, asdict
 import re
 import base64
-import email
 from email.utils import parseaddr, parsedate_to_datetime
 from datetime import UTC, datetime
 from enum import StrEnum
@@ -371,10 +370,8 @@ class Asset(BaseAsset):
                 logger.warning(f"Message {message_id} has no raw content")
                 continue
             raw_email_bytes = base64.urlsafe_b64decode(raw_b64.encode("utf-8"))
-            msg = email.message_from_bytes(raw_email_bytes)
-            rfc822_str = msg.as_string()
             parsed = extract_email_data(
-                rfc822_str,
+                raw_email_bytes,
                 email_id=message_id,
                 include_attachment_content=self.extract_attachments
                 or force_extract_iocs,

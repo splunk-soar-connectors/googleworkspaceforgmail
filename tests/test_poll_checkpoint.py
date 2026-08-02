@@ -63,10 +63,11 @@ def test_latest_first_checkpoint_waits_for_continuation_to_finish():
         ingest_manner="latest first",
         max_containers=1,
     )
+    extractor = MagicMock(return_value=_parsed_email())
 
     with (
         patch("src.app.GoogleServiceBuilder") as builder,
-        patch("src.app.extract_email_data", return_value=_parsed_email()),
+        patch("src.app.extract_email_data", new=extractor),
         patch.object(
             Asset, "ingest_state", new_callable=PropertyMock, return_value=state
         ),
@@ -94,3 +95,5 @@ def test_latest_first_checkpoint_waits_for_continuation_to_finish():
     )
     assert second_list_call.kwargs["pageToken"] == "next-page"
     assert second_list_call.kwargs["maxResults"] == 1
+    assert extractor.call_count == 2
+    assert all(isinstance(call.args[0], bytes) for call in extractor.call_args_list)
