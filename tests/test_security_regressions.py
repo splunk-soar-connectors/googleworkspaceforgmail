@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import base64
 import email
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
@@ -20,6 +22,7 @@ from soar_sdk.exceptions import ActionFailure
 from soar_sdk.extras.email import extract_email_data
 
 from src.app import Asset
+from src.actions.get_email import GetEmailParams, get_email
 
 
 def _gmail_service(page_responses):
@@ -101,3 +104,46 @@ def test_email_parser_extracts_mixed_case_and_internationalized_urls():
 
     assert "HTTPS://EVIL-UPPER.TEST/path" in parsed.urls
     assert "hTtPs://пример.рф/путь" in parsed.urls
+
+
+def test_get_email_passes_raw_bytes_directly_to_bounded_extractor():
+    raw_email = b"Subject: test\r\nFrom: sender@example.com\r\n\r\nbody"
+    service = MagicMock()
+    users = service.users.return_value
+    users.messages.return_value.list.return_value.execute.return_value = {
+        "messages": [{"id": "message-id"}]
+    }
+    users.messages.return_value.get.return_value.execute.return_value = {
+        "id": "message-id",
+        "threadId": "thread-id",
+        "raw": base64.urlsafe_b64encode(raw_email).decode(),
+    }
+    parsed = SimpleNamespace(
+        body=SimpleNamespace(plain_text="body", html=None),
+        headers=SimpleNamespace(
+            raw_headers={
+                "Subject": "test",
+                "From": "sender@example.com",
+            }
+        ),
+        urls=[],
+        attachments=[],
+    )
+    extractor = MagicMock(return_value=parsed)
+
+    with (
+        patch("src.actions.get_email.GoogleServiceBuilder") as builder,
+        patch("src.actions.get_email.extract_email_data", new=extractor),
+    ):
+        builder.return_value.build_service.return_value = service
+        get_email(
+            GetEmailParams(
+                email="recipient@example.com",
+                internet_message_id="internet-message-id",
+                format="raw",
+            ),
+            MagicMock(),
+            SimpleNamespace(key_json="{}"),
+        )
+
+    assert extractor.call_args.args[0] == raw_email
