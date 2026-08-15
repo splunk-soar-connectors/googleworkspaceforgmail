@@ -737,40 +737,50 @@ app.register_action(
     "actions.get_user.get_user",
     view_handler=render_get_user_view,
     view_template="get_user.html",
+    read_only=True,
 )
 app.register_action(
     "actions.get_users.list_users",
     view_handler=render_list_users_view,
     view_template="list_users.html",
+    read_only=True,
 )
 app.register_action(
-    "actions.run_query.run_query", render_as="table", summary_type=RunQuerySummary
+    "actions.run_query.run_query",
+    render_as="table",
+    summary_type=RunQuerySummary,
+    read_only=True,
 )
 app.register_action(
     "actions.delete_email.delete_email",
     render_as="table",
     summary_type=DeleteEmailSummary,
+    read_only=True,
 )
 app.register_action(
     "actions.get_email.get_email",
     view_handler=render_get_email_view,
     view_template="get_email.html",
+    read_only=True,
 )
-app.register_action("actions.send_email.send_email", render_as="table")
+app.register_action("actions.send_email.send_email", render_as="table", read_only=True)
 app.register_action(
     "actions.trash_email.trash_email",
     render_as="table",
     summary_type=TrashEmailSummary,
+    read_only=True,
 )
 app.register_action(
     "actions.untrash_email.untrash_email",
     render_as="table",
     summary_type=UntrashEmailSummary,
+    read_only=True,
 )
 app.register_action(
     "actions.add_label.add_label",
     render_as="table",
     summary_type=AddLabelSummary,
+    read_only=True,
 )
 
 from .actions import make_request  # noqa: F401
