@@ -755,7 +755,7 @@ app.register_action(
     "actions.delete_email.delete_email",
     render_as="table",
     summary_type=DeleteEmailSummary,
-    read_only=True,
+    read_only=False,
 )
 app.register_action(
     "actions.get_email.get_email",
@@ -763,24 +763,24 @@ app.register_action(
     view_template="get_email.html",
     read_only=True,
 )
-app.register_action("actions.send_email.send_email", render_as="table", read_only=True)
+app.register_action("actions.send_email.send_email", render_as="table", read_only=False)
 app.register_action(
     "actions.trash_email.trash_email",
     render_as="table",
     summary_type=TrashEmailSummary,
-    read_only=True,
+    read_only=False,
 )
 app.register_action(
     "actions.untrash_email.untrash_email",
     render_as="table",
     summary_type=UntrashEmailSummary,
-    read_only=True,
+    read_only=False,
 )
 app.register_action(
     "actions.add_label.add_label",
     render_as="table",
     summary_type=AddLabelSummary,
-    read_only=True,
+    read_only=False,
 )
 
 from .actions import make_request  # noqa: F401
