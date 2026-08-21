@@ -287,7 +287,7 @@ Deletes one or more emails by their message IDs. If a message ID doesn't exist
 (likely already deleted), it's treated as successful and added to ignored_ids.
 
 Type: **generic** <br>
-Read only: **True**
+Read only: **False**
 
 #### Action Parameters
 
@@ -376,7 +376,7 @@ Constructs MIME message with attachments, respecting 25MB size limit.
 Optionally creates send-as alias before sending.
 
 Type: **generic** <br>
-Read only: **True**
+Read only: **False**
 
 #### Action Parameters
 
@@ -426,7 +426,7 @@ Moves one or more emails to the Trash label by their message IDs. If a
 message ID doesn't exist, it is treated as successful and added to ignored_ids.
 
 Type: **generic** <br>
-Read only: **True**
+Read only: **False**
 
 #### Action Parameters
 
@@ -458,7 +458,7 @@ Removes one or more emails from the Trash label by their message IDs. If a
 message ID doesn't exist, it is treated as successful and added to ignored_ids.
 
 Type: **generic** <br>
-Read only: **True**
+Read only: **False**
 
 #### Action Parameters
 
@@ -489,7 +489,7 @@ Add labels to emails in a user's mailbox using Gmail batchModify.
 Applies one or more label IDs to one or more messages.
 
 Type: **generic** <br>
-Read only: **True**
+Read only: **False**
 
 #### Action Parameters
 
