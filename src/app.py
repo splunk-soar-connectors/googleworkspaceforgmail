@@ -367,8 +367,9 @@ class Asset(BaseAsset):
                 .execute()
             )
             if not (raw_b64 := full_message.get("raw")):
-                logger.warning(f"Message {message_id} has no raw content")
-                continue
+                raise ActionFailure(
+                    f"Gmail message {message_id} has no raw content; checkpoint was not advanced"
+                )
             raw_email_bytes = base64.urlsafe_b64decode(raw_b64.encode("utf-8"))
             parsed = extract_email_data(
                 raw_email_bytes,

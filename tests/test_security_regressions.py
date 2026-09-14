@@ -80,6 +80,42 @@ def test_poll_enforces_page_safety_limit():
     assert page_number == 2
 
 
+@pytest.mark.parametrize("ingest_manner", ["latest first", "oldest first"])
+def test_poll_missing_raw_fails_without_advancing_checkpoint(ingest_manner: str):
+    state = {"last_email_epoch": 100}
+    service = _gmail_service(
+        [
+            {"messages": [{"id": "missing-raw"}], "nextPageToken": "next-page"},
+            {"messages": []},
+        ]
+    )
+    service.users.return_value.messages.return_value.get.return_value.execute.return_value = {
+        "id": "missing-raw",
+        "internalDate": "300000",
+    }
+    asset = Asset(
+        login_email="user@example.com",
+        key_json="{}",
+        ingest_manner=ingest_manner,
+        max_containers=1,
+    )
+
+    with (
+        patch("src.app.GoogleServiceBuilder") as builder,
+        patch.object(
+            Asset, "ingest_state", new_callable=PropertyMock, return_value=state
+        ),
+    ):
+        builder.return_value.build_service.return_value = service
+        with pytest.raises(ActionFailure, match="has no raw content"):
+            list(asset.fetch_and_parse_emails(max_emails=1))
+
+    assert state["last_email_epoch"] == 100
+    assert "page_token" not in state
+    assert "latest_first_high_water" not in state
+    assert "processed_message_ids" not in state
+
+
 def test_get_email_widget_escapes_javascript_context_values():
     template = (Path(__file__).parents[1] / "templates" / "get_email.html").read_text()
 
