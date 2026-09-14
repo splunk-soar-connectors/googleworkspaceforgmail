@@ -14,7 +14,6 @@
 from dataclasses import dataclass, asdict
 import re
 import base64
-import email
 from email.utils import parseaddr, parsedate_to_datetime
 from datetime import UTC, datetime
 from enum import StrEnum
@@ -60,6 +59,7 @@ from .actions.untrash_email import UntrashEmailSummary
 logger = getLogger()
 
 MAX_POLL_PAGES = 100
+LATEST_FIRST_HIGH_WATER_KEY = "latest_first_high_water"
 
 
 class IngestManner(StrEnum):
@@ -295,13 +295,25 @@ class Asset(BaseAsset):
 
         messages = []
         kwargs = {"userId": self.login_email, "q": query, "labelIds": [label_id]}
-        if page_token := state.get("page_token"):
-            kwargs["pageToken"] = page_token
+        page_token = None
         ingest_manner = IngestManner(self.ingest_manner)
-        seen_page_tokens = set()
+        if ingest_manner == IngestManner.LATEST_FIRST and (
+            page_token := state.get("page_token")
+        ):
+            kwargs["pageToken"] = page_token
+        elif ingest_manner == IngestManner.OLDEST_FIRST:
+            state.pop("page_token", None)
+            state.pop(LATEST_FIRST_HIGH_WATER_KEY, None)
+        seen_page_tokens = {page_token} if page_token else set()
         pages_fetched = 0
+        continuation_token = None
 
         while True:
+            if ingest_manner == IngestManner.LATEST_FIRST:
+                remaining = max_emails - len(messages)
+                if remaining <= 0:
+                    break
+                kwargs["maxResults"] = min(remaining, 500)
             pages_fetched += 1
             if pages_fetched > MAX_POLL_PAGES:
                 raise ActionFailure(
@@ -309,6 +321,8 @@ class Asset(BaseAsset):
                 )
             search_response = service.users().messages().list(**kwargs).execute()
             page_messages = search_response.get("messages", [])
+            if ingest_manner == IngestManner.LATEST_FIRST:
+                page_messages = page_messages[: max_emails - len(messages)]
             messages.extend(page_messages)
             logger.progress(
                 f"Fetched {len(page_messages)} messages, total so far: {len(messages)}"
@@ -323,6 +337,7 @@ class Asset(BaseAsset):
                 ingest_manner == IngestManner.LATEST_FIRST
                 and len(messages) >= max_emails
             ):
+                continuation_token = next_page_token
                 break
             # Keep only a rolling window to avoid unbounded memory growth;
             # we'll take the tail (oldest = last returned) after pagination.
@@ -352,13 +367,12 @@ class Asset(BaseAsset):
                 .execute()
             )
             if not (raw_b64 := full_message.get("raw")):
-                logger.warning(f"Message {message_id} has no raw content")
-                continue
+                raise ActionFailure(
+                    f"Gmail message {message_id} has no raw content; checkpoint was not advanced"
+                )
             raw_email_bytes = base64.urlsafe_b64decode(raw_b64.encode("utf-8"))
-            msg = email.message_from_bytes(raw_email_bytes)
-            rfc822_str = msg.as_string()
             parsed = extract_email_data(
-                rfc822_str,
+                raw_email_bytes,
                 email_id=message_id,
                 include_attachment_content=self.extract_attachments
                 or force_extract_iocs,
@@ -382,6 +396,33 @@ class Asset(BaseAsset):
                 extracted_domains,
                 extracted_hashes,
             )
+
+        if ingest_manner == IngestManner.LATEST_FIRST:
+            if continuation_token:
+                state["page_token"] = continuation_token
+            else:
+                state.pop("page_token", None)
+
+
+def _commit_poll_checkpoint(
+    ingest_state: dict, ingest_manner: IngestManner, max_email_epoch: int
+) -> None:
+    """Commit a checkpoint without stranding a latest-first continuation."""
+    if ingest_manner == IngestManner.LATEST_FIRST:
+        high_water = max(
+            int(ingest_state.get(LATEST_FIRST_HIGH_WATER_KEY, 0)), max_email_epoch
+        )
+        if ingest_state.get("page_token"):
+            if high_water:
+                ingest_state[LATEST_FIRST_HIGH_WATER_KEY] = high_water
+            return
+        if high_water:
+            ingest_state["last_email_epoch"] = high_water
+        ingest_state.pop(LATEST_FIRST_HIGH_WATER_KEY, None)
+        return
+
+    if max_email_epoch:
+        ingest_state["last_email_epoch"] = max_email_epoch
 
 
 def _extract_address(header_value: str | None) -> str | None:
@@ -543,9 +584,9 @@ def on_poll(
         container_count += 1
 
     ingest_state["processed_message_ids"] = processed_message_ids
-    if max_email_epoch:
-        ingest_state["last_email_epoch"] = max_email_epoch
-    ingest_state.pop("page_token", None)
+    _commit_poll_checkpoint(
+        ingest_state, IngestManner(asset.ingest_manner), max_email_epoch
+    )
     logger.progress(f"Poll complete. Created {container_count} containers.")
 
 
@@ -695,9 +736,9 @@ def on_es_poll(
         findings_count += 1
 
     ingest_state["processed_message_ids"] = processed_message_ids
-    if max_email_epoch:
-        ingest_state["last_email_epoch"] = max_email_epoch
-    ingest_state.pop("page_token", None)
+    _commit_poll_checkpoint(
+        ingest_state, IngestManner(asset.ingest_manner), max_email_epoch
+    )
     logger.progress(f"ES Poll complete. Created {findings_count} findings.")
 
 
