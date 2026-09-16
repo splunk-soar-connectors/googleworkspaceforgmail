@@ -1,5 +1,7 @@
 **Unreleased**
 
+* - Updated the bundled httplib2 dependency to 0.32.0.
+
 * - Updated the bundled joserfc dependency to 1.6.8.
 
 * - Updated the bundled urllib3 dependency to 2.7.0.
