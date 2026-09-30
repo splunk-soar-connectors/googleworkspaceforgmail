@@ -1,3 +1,4 @@
 **Unreleased**
 
 * Replaced the unsupported `escapejs` widget filter with Jinja-compatible JSON escaping.
+* Updated the Splunk SOAR SDK to 6.1.1.
