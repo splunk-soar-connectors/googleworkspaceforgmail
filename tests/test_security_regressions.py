@@ -116,12 +116,13 @@ def test_poll_missing_raw_fails_without_advancing_checkpoint(ingest_manner: str)
     assert "processed_message_ids" not in state
 
 
-def test_get_email_widget_escapes_javascript_context_values():
+def test_get_email_widget_uses_jinja_json_for_context_values():
     template = (Path(__file__).parents[1] / "templates" / "get_email.html").read_text()
 
-    assert "{{ email.to|escapejs }}" in template
-    assert "{{ email.from_|escapejs }}" in template
-    assert "{{ email.download_email_vault_id|escapejs }}" in template
+    assert "{{ email.to|tojson }}" in template
+    assert "{{ email.from_|tojson }}" in template
+    assert "{{ email.download_email_vault_id|tojson }}" in template
+    assert "escapejs" not in template
 
 
 def test_list_users_widget_escapes_javascript_context_values():
