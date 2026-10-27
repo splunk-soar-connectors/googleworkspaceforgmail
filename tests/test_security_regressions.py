@@ -20,6 +20,7 @@ from unittest.mock import MagicMock, PropertyMock, patch
 import pytest
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.extras.email import extract_email_data
+from soar_sdk.views.template_renderer import JinjaTemplateRenderer
 
 from src.app import Asset
 from src.actions.get_email import GetEmailParams, get_email
@@ -125,10 +126,22 @@ def test_get_email_widget_uses_jinja_json_for_context_values():
     assert "escapejs" not in template
 
 
-def test_list_users_widget_escapes_javascript_context_values():
-    template = (Path(__file__).parents[1] / "templates" / "list_users.html").read_text()
+def test_list_users_widget_renders_email_as_json_with_sdk_renderer():
+    renderer = JinjaTemplateRenderer(str(Path(__file__).parents[1] / "templates"))
+    rendered = renderer.render_template(
+        "list_users.html",
+        {
+            "users": [
+                {
+                    "name": {"full_name": "Test Analyst"},
+                    "primary_email": "alice'o@example.test",
+                }
+            ],
+            "container": {"id": 1},
+        },
+    )
 
-    assert "{{ user.primary_email|escapejs }}" in template
+    assert '"value": "alice\\u0027o@example.test"' in rendered
 
 
 def test_email_parser_extracts_mixed_case_and_internationalized_urls():
