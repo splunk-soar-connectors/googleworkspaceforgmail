@@ -21,8 +21,6 @@ from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Param, Params
 from soar_sdk.logging import getLogger
 
-import email as email_module
-
 from soar_sdk.extras.email import extract_email_data
 
 from google_service import GoogleServiceBuilder, GMAIL_READ_SCOPE
@@ -178,11 +176,8 @@ def get_email(params: GetEmailParams, soar: SOARClient, asset) -> list[GetEmailO
 
         logger.progress("Parsing email message...")
         raw_email_bytes = base64.urlsafe_b64decode(raw_email_b64.encode("utf-8"))
-        msg = email_module.message_from_bytes(raw_email_bytes)
-        rfc822_str = msg.as_string()
-
         parsed = extract_email_data(
-            rfc822_str,
+            raw_email_bytes,
             email_id=message_id,
             include_attachment_content=params.extract_attachments,
         )

@@ -18,6 +18,7 @@ from soar_sdk.action_results import ActionOutput, OutputField
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Param, Params
 from soar_sdk.logging import getLogger
+from googleapiclient.errors import HttpError
 
 from google_service import GoogleServiceBuilder, GMAIL_SEND_SCOPE
 
@@ -89,18 +90,14 @@ def delete_email(
             ).execute()
             deleted_ids.append(email_id)
             logger.progress(f"Deleted email {email_id}")
-        except Exception as e:
-            error_str = str(e).lower()
-            # Treat 404 (not found) and 400 "invalid id value" as ignorable
-            if (
-                "404" in error_str
-                or "not found" in error_str
-                or "invalid id value" in error_str
-            ):
-                logger.progress(f"Email {email_id} not found or invalid ID (ignored)")
+        except HttpError as e:
+            if e.resp.status == 404:
+                logger.progress(f"Email {email_id} not found (ignored)")
                 ignored_ids.append(email_id)
             else:
                 raise ActionFailure(f"Failed to delete email {email_id}: {e}") from e
+        except Exception as e:
+            raise ActionFailure(f"Failed to delete email {email_id}: {e}") from e
 
     logger.progress(
         f"Successfully deleted {len(deleted_ids)} emails, {len(ignored_ids)} ignored/already-deleted"
