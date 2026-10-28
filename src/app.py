@@ -367,9 +367,15 @@ class Asset(BaseAsset):
                 .execute()
             )
             if not (raw_b64 := full_message.get("raw")):
-                raise ActionFailure(
-                    f"Gmail message {message_id} has no raw content; checkpoint was not advanced"
+                # Gmail documents raw content for messages.get(format="raw"):
+                # https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages
+                # Under our current understanding of that API, this branch cannot
+                # occur. Keep the defensive warning and continue so an unexpected
+                # response cannot indefinitely block ingestion of healthy mail.
+                logger.warning(
+                    f"Message {message_id} has no raw content despite format='raw'; skipping"
                 )
+                continue
             raw_email_bytes = base64.urlsafe_b64decode(raw_b64.encode("utf-8"))
             parsed = extract_email_data(
                 raw_email_bytes,

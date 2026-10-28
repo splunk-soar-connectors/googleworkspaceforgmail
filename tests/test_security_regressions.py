@@ -20,9 +20,10 @@ from unittest.mock import MagicMock, PropertyMock, patch
 import pytest
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.extras.email import extract_email_data
+from soar_sdk.params import OnPollParams
 from soar_sdk.views.template_renderer import JinjaTemplateRenderer
 
-from src.app import Asset
+from src.app import Asset, on_poll
 from src.actions.get_email import GetEmailParams, get_email
 
 
@@ -82,23 +83,37 @@ def test_poll_enforces_page_safety_limit():
 
 
 @pytest.mark.parametrize("ingest_manner", ["latest first", "oldest first"])
-def test_poll_missing_raw_fails_without_advancing_checkpoint(ingest_manner: str):
+@pytest.mark.parametrize("raw_fields", [{}, {"raw": ""}], ids=["missing", "empty"])
+def test_poll_unexpected_missing_raw_warns_and_continues(
+    ingest_manner: str, raw_fields: dict
+):
+    # Synthetic API-contract violation: Gmail documents raw content for format=raw.
     state = {"last_email_epoch": 100}
     service = _gmail_service(
         [
-            {"messages": [{"id": "missing-raw"}], "nextPageToken": "next-page"},
-            {"messages": []},
+            {
+                "messages": [
+                    {"id": "healthy-before"},
+                    {"id": "unexpected-no-raw"},
+                    {"id": "healthy-after"},
+                ]
+            }
         ]
     )
-    service.users.return_value.messages.return_value.get.return_value.execute.return_value = {
-        "id": "missing-raw",
-        "internalDate": "300000",
-    }
+    raw = base64.urlsafe_b64encode(
+        b"Subject: healthy message\r\nFrom: sender@example.com\r\n"
+        b"To: recipient@example.com\r\n\r\nbody"
+    ).decode()
+    service.users.return_value.messages.return_value.get.return_value.execute.side_effect = [
+        {"id": "healthy-before", "internalDate": "300000", "raw": raw},
+        {"id": "unexpected-no-raw", "internalDate": "250000", **raw_fields},
+        {"id": "healthy-after", "internalDate": "200000", "raw": raw},
+    ]
     asset = Asset(
         login_email="user@example.com",
         key_json="{}",
         ingest_manner=ingest_manner,
-        max_containers=1,
+        max_containers=3,
     )
 
     with (
@@ -106,15 +121,23 @@ def test_poll_missing_raw_fails_without_advancing_checkpoint(ingest_manner: str)
         patch.object(
             Asset, "ingest_state", new_callable=PropertyMock, return_value=state
         ),
+        patch("src.app.logger.warning") as warning,
     ):
         builder.return_value.build_service.return_value = service
-        with pytest.raises(ActionFailure, match="has no raw content"):
-            list(asset.fetch_and_parse_emails(max_emails=1))
+        results = list(
+            on_poll.__wrapped__(OnPollParams(), MagicMock(), asset)  # type: ignore[attr-defined]
+        )
 
-    assert state["last_email_epoch"] == 100
+    assert [result.source_data_identifier for result in results] == [
+        "healthy-before",
+        "healthy-after",
+    ]
+    warning.assert_called_once()
+    assert "unexpected-no-raw" in warning.call_args.args[0]
+    assert state["last_email_epoch"] == 300
     assert "page_token" not in state
     assert "latest_first_high_water" not in state
-    assert "processed_message_ids" not in state
+    assert state["processed_message_ids"] == ["healthy-before", "healthy-after"]
 
 
 def test_get_email_widget_uses_jinja_json_for_context_values():
