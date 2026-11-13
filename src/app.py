@@ -252,13 +252,20 @@ class Asset(BaseAsset):
         ).execute()
 
     def fetch_and_parse_emails(
-        self, max_emails: int, force_extract_iocs: bool = False
+        self,
+        max_emails: int,
+        force_extract_iocs: bool = False,
+        *,
+        checkpoint_per_email: bool = False,
     ) -> Iterator[ExtractedEmail]:
         """
         Poll Gmail and yield parsed email objects with metadata and (optionally) IOCs.
 
         If force_extract_iocs is True, asset IOC extraction settings are ignored and all
         IPs, domains, and hashes are always extracted.
+
+        checkpoint_per_email stages pending IDs for ES batch checkpoints. It is
+        disabled by default so classic polling keeps its existing state handling.
         """
         logger.progress("Starting Gmail poll...")
 
@@ -293,7 +300,10 @@ class Asset(BaseAsset):
         query = " ".join(query_parts)
         logger.progress(f"Searching for emails with query: {query}...")
 
-        messages = []
+        pending_ids = (
+            state.get("es_pending_message_ids", []) if checkpoint_per_email else []
+        )
+        messages = [{"id": message_id} for message_id in pending_ids]
         kwargs = {"userId": self.login_email, "q": query, "labelIds": [label_id]}
         page_token = None
         ingest_manner = IngestManner(self.ingest_manner)
@@ -306,9 +316,11 @@ class Asset(BaseAsset):
             state.pop(LATEST_FIRST_HIGH_WATER_KEY, None)
         seen_page_tokens = {page_token} if page_token else set()
         pages_fetched = 0
-        continuation_token = None
+        continuation_token = (
+            state.get("es_pending_next_page_token") if pending_ids else None
+        )
 
-        while True:
+        while not pending_ids:
             if ingest_manner == IngestManner.LATEST_FIRST:
                 remaining = max_emails - len(messages)
                 if remaining <= 0:
@@ -321,6 +333,12 @@ class Asset(BaseAsset):
                 )
             search_response = service.users().messages().list(**kwargs).execute()
             page_messages = search_response.get("messages", [])
+            if checkpoint_per_email:
+                page_messages = [
+                    item
+                    for item in page_messages
+                    if item["id"] not in processed_message_ids
+                ]
             if ingest_manner == IngestManner.LATEST_FIRST:
                 page_messages = page_messages[: max_emails - len(messages)]
             messages.extend(page_messages)
@@ -349,12 +367,15 @@ class Asset(BaseAsset):
             kwargs["pageToken"] = next_page_token
         logger.progress(f"Found {len(messages)} total messages")
 
-        if ingest_manner == IngestManner.OLDEST_FIRST:
-            messages = messages[-max_emails:]
-        else:
-            messages = messages[:max_emails]
+        if not pending_ids:
+            if ingest_manner == IngestManner.OLDEST_FIRST:
+                messages = messages[-max_emails:]
+            else:
+                messages = messages[:max_emails]
 
-        for message_info in messages:
+        for position, message_info in enumerate(messages):
+            if checkpoint_per_email and position >= max_emails:
+                break
             message_id = message_info["id"]
             if message_id in processed_message_ids:
                 logger.debug(f"Skipping already-processed message {message_id}")
@@ -366,6 +387,20 @@ class Asset(BaseAsset):
                 .get(userId=self.login_email, id=message_id, format="raw")
                 .execute()
             )
+            if checkpoint_per_email:
+                remaining = [item["id"] for item in messages[position + 1 :]]
+                if remaining:
+                    state["es_pending_message_ids"] = remaining
+                    state["es_pending_next_page_token"] = continuation_token
+                else:
+                    state.pop("es_pending_message_ids", None)
+                    state.pop("es_pending_next_page_token", None)
+                    if ingest_manner == IngestManner.LATEST_FIRST:
+                        if continuation_token:
+                            state["page_token"] = continuation_token
+                        else:
+                            state.pop("page_token", None)
+
             if not (raw_b64 := full_message.get("raw")):
                 # Gmail documents raw content for messages.get(format="raw"):
                 # https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages
@@ -403,7 +438,9 @@ class Asset(BaseAsset):
                 extracted_hashes,
             )
 
-        if ingest_manner == IngestManner.LATEST_FIRST:
+        if ingest_manner == IngestManner.LATEST_FIRST and (
+            not checkpoint_per_email or not state.get("es_pending_message_ids")
+        ):
             if continuation_token:
                 state["page_token"] = continuation_token
             else:
@@ -610,12 +647,16 @@ def on_es_poll(
             max_emails = asset.max_containers
 
     ingest_state = asset.ingest_state
-    processed_message_ids = ingest_state.get("processed_message_ids", [])
+    processed_message_ids = list(ingest_state.get("processed_message_ids", []))
     findings_count = 0
-    max_email_epoch = 0
+    max_email_epoch = max(
+        int(ingest_state.get("es_pending_high_water", 0)),
+        int(ingest_state.get(LATEST_FIRST_HIGH_WATER_KEY, 0)),
+        int(ingest_state.get("last_email_epoch", 0)),
+    )
 
     for email_obj in asset.fetch_and_parse_emails(
-        max_emails=max_emails, force_extract_iocs=True
+        max_emails=max_emails, force_extract_iocs=True, checkpoint_per_email=True
     ):
         parsed = email_obj.parsed
         inner_result = _extract_inner_email(parsed)
@@ -728,23 +769,33 @@ def on_es_poll(
                 attachments=email_attachments,
             )
 
-        yield Finding(
-            rule_title=title,
-            attachments=attachments,
-            email=finding_email,
-        )
-
         processed_message_ids.append(email_obj.message_id)
         if len(processed_message_ids) > 1000:
             processed_message_ids = processed_message_ids[-1000:]
         internal_date_ms = int(email_obj.full_message.get("internalDate", "0"))
         max_email_epoch = max(max_email_epoch, internal_date_ms // 1000)
         findings_count += 1
+        ingest_state["processed_message_ids"] = list(processed_message_ids)
+        # Keep the window cursor fixed while an SDK-checkpointed batch still
+        # has pending IDs. IDs are staged before yielding to the SDK.
+        if ingest_state.get("es_pending_message_ids"):
+            ingest_state["es_pending_high_water"] = max_email_epoch
+        else:
+            ingest_state.pop("es_pending_high_water", None)
+            _commit_poll_checkpoint(
+                ingest_state, IngestManner(asset.ingest_manner), max_email_epoch
+            )
 
-    ingest_state["processed_message_ids"] = processed_message_ids
-    _commit_poll_checkpoint(
-        ingest_state, IngestManner(asset.ingest_manner), max_email_epoch
-    )
+        yield Finding(
+            rule_title=title,
+            attachments=attachments,
+            email=finding_email,
+        )
+
+    if not ingest_state.get("es_pending_message_ids"):
+        _commit_poll_checkpoint(
+            ingest_state, IngestManner(asset.ingest_manner), max_email_epoch
+        )
     logger.progress(f"ES Poll complete. Created {findings_count} findings.")
 
 
