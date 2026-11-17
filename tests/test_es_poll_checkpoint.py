@@ -30,8 +30,7 @@ def raw_email(identifier):
 @pytest.fixture
 def runtime(monkeypatch, mocker):
     app = module.app
-    if not hasattr(app.soar_client, "_get_es_finding_context"):
-        pytest.skip("Requires the AR-2061 SDK wheel; see TESTING_ES_POLL.md")
+    mocker.patch("soar_sdk.decorators._es_poll.sleep")
     asset = make_asset()
     saved = {}
     mocker.patch.object(
@@ -93,7 +92,7 @@ def test_failed_batch_replays_without_repeating_successful_batches(runtime, mann
     expected = expected_order(context)
     context.failed = expected[2]
     assert module.on_es_poll(OnESPollParams())
-    assert context.sent == expected[:4]
+    assert context.sent == expected[:4] + [expected[2]] * 2
     result = module.app.actions_manager.add_result.call_args.args[0]
     assert result.get_summary()["failed"] == 1
     assert not context.asset.ingest_state.in_transaction
@@ -222,7 +221,7 @@ def test_latest_first_page_token_replays_failed_window(runtime):
     context.failed = "mail-4"
     context.sent.clear()
     assert module.on_es_poll(OnESPollParams())
-    assert context.sent == ["mail-4", "mail-3"]
+    assert context.sent == ["mail-4", "mail-3", "mail-4", "mail-4"]
     assert context.asset.ingest_state["page_token"] == "2"
     context.failed = None
     context.sent.clear()
