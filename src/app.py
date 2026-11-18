@@ -19,6 +19,9 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from collections.abc import Generator, Iterator
 from urllib.parse import urlparse
+from pydantic import ValidationError
+from logging import DEBUG, Filter, LogRecord, getLogger as get_standard_logger
+
 from soar_sdk.abstract import SOARClient
 from soar_sdk.app import App
 from soar_sdk.models import Finding
@@ -57,6 +60,155 @@ from .actions.trash_email import TrashEmailSummary
 from .actions.untrash_email import UntrashEmailSummary
 
 logger = getLogger()
+
+
+class _EmailParserLogFilter(Filter):
+    """Keep released SDK parser debug events without echoing message data."""
+
+    def filter(self, record: LogRecord) -> bool:
+        source = record.pathname.replace("\\", "/")
+        parser_event = record.levelno == DEBUG and source.endswith(
+            (
+                "/soar_sdk/extras/email/utils.py",
+                "/soar_sdk/extras/email/email_data.py",
+            )
+        )
+        http_event = (
+            record.name == "httpx"
+            and isinstance(record.msg, str)
+            and record.msg.startswith("HTTP Request:")
+        )
+        if parser_event or http_event:
+            args = record.args
+            record.msg = (
+                "SDK email parser debug event; message details omitted"
+                if parser_event
+                else "HTTP request completed; URL omitted"
+            )
+            record.args = ()
+            if http_event and isinstance(args, tuple) and len(args) >= 4:
+                method, status = args[0], args[3]
+                if (
+                    isinstance(method, str)
+                    and method
+                    in {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
+                    and type(status) is int
+                    and 100 <= status <= 599
+                ):
+                    record.msg = "%s request returned HTTP %s; URL omitted"
+                    record.args = (method, status)
+            record.exc_info = None
+            record.exc_text = None
+            record.stack_info = None
+        return True
+
+
+logger.addFilter(_EmailParserLogFilter())
+get_standard_logger("httpx").addFilter(_EmailParserLogFilter())
+
+
+def _email_failure_reason(error: Exception) -> str:
+    """Describe a failure using only allowlisted metadata, never exception text."""
+    kind = type(error).__name__
+    status = next(
+        (
+            value
+            for value in (
+                getattr(error, "status_code", None),
+                getattr(getattr(error, "response", None), "status_code", None),
+                getattr(getattr(error, "resp", None), "status", None),
+            )
+            if type(value) is int and 100 <= value <= 599
+        ),
+        None,
+    )
+    if status is None:
+        # Graph wraps HTTP failures in ActionFailure. Read only its fixed status
+        # prefix; never include the response body or remainder of the message.
+        match = re.match(
+            r"(?:API Error|Error|Empty response with status) ([1-5][0-9]{2})(?::|$)",
+            str(error),
+        )
+        if match:
+            status = int(match[1])
+    if status is not None:
+        reason = {
+            400: "invalid_request",
+            401: "authentication",
+            403: "permission_denied",
+            404: "not_found",
+            410: "gone",
+            413: "payload_too_large",
+            422: "invalid_data",
+            429: "rate_limited",
+        }.get(status, "service_unavailable" if status >= 500 else "http_error")
+        return f"HTTP {status} {reason} ({kind})"
+    if isinstance(error, ValidationError):
+        issue = error.errors(
+            include_input=False, include_context=False, include_url=False
+        )[0]
+        field = next(iter(issue["loc"]), "payload")
+        if field not in {
+            "rule_title",
+            "email",
+            "attachments",
+            "headers",
+            "urls",
+            "raw_email_link",
+            "file_name",
+            "data",
+            "severity",
+            "urgency",
+            "finding_source",
+            "security_domain",
+        }:
+            field = "payload"
+        rule = issue["type"]
+        if rule not in {
+            "missing",
+            "string_type",
+            "string_too_long",
+            "string_too_short",
+            "int_parsing",
+            "bool_parsing",
+            "url_parsing",
+            "list_type",
+            "dict_type",
+            "value_error",
+            "bytes_type",
+            "literal_error",
+            "extra_forbidden",
+        }:
+            rule = "invalid_value"
+        return f"validation field={field} rule={rule}"
+    if kind in {
+        "TimeoutError",
+        "Timeout",
+        "ReadTimeout",
+        "ConnectTimeout",
+        "WriteTimeout",
+        "PoolTimeout",
+    }:
+        reason = "timeout"
+    elif kind in {"SSLError", "SSLCertVerificationError", "CertificateError"}:
+        reason = "tls_error"
+    elif isinstance(error, ConnectionError) or kind in {
+        "ConnectError",
+        "gaierror",
+        "IMAP4.abort",
+        "abort",
+    }:
+        reason = "connection_failed"
+    elif isinstance(error, UnicodeError) or type(error).__module__ == "binascii":
+        reason = "invalid_encoding"
+    elif kind == "JSONDecodeError":
+        reason = "invalid_json"
+    elif isinstance(error, (ValueError, TypeError)):
+        reason = "invalid_data"
+    else:
+        reason = "processing_failed"
+    return f"{reason} ({kind})"
+
 
 MAX_POLL_PAGES = 100
 LATEST_FIRST_HIGH_WATER_KEY = "latest_first_high_water"
@@ -193,7 +345,10 @@ class Asset(BaseAsset):
                     if domain and not is_ip(domain):
                         extracted_domains.add(domain)
                 except ValueError as e:
-                    logger.debug(f"Failed to extract domain from URL {url}: {e}")
+                    logger.debug(
+                        "Email URL domain extraction failed: %s",
+                        _email_failure_reason(e),
+                    )
         extracted_domains = list(extracted_domains)
 
         extracted_hashes = []
@@ -252,13 +407,20 @@ class Asset(BaseAsset):
         ).execute()
 
     def fetch_and_parse_emails(
-        self, max_emails: int, force_extract_iocs: bool = False
+        self,
+        max_emails: int,
+        force_extract_iocs: bool = False,
+        *,
+        checkpoint_per_email: bool = False,
     ) -> Iterator[ExtractedEmail]:
         """
         Poll Gmail and yield parsed email objects with metadata and (optionally) IOCs.
 
         If force_extract_iocs is True, asset IOC extraction settings are ignored and all
         IPs, domains, and hashes are always extracted.
+
+        checkpoint_per_email stages pending IDs for ES batch checkpoints. It is
+        disabled by default so classic polling keeps its existing state handling.
         """
         logger.progress("Starting Gmail poll...")
 
@@ -267,6 +429,11 @@ class Asset(BaseAsset):
         last_email_epoch = state.get("last_email_epoch", 0)
         label_cache = state.setdefault("label_cache", {})
         processed_message_ids = state.get("processed_message_ids", [])
+        skipped_ids = (
+            set(state.get("es_skipped_message_ids", []))
+            if checkpoint_per_email
+            else set()
+        )
 
         # Get Gmail client
         service = GoogleServiceBuilder(self.key_json).build_service(
@@ -293,7 +460,10 @@ class Asset(BaseAsset):
         query = " ".join(query_parts)
         logger.progress(f"Searching for emails with query: {query}...")
 
-        messages = []
+        pending_ids = (
+            state.get("es_pending_message_ids", []) if checkpoint_per_email else []
+        )
+        messages = [{"id": message_id} for message_id in pending_ids]
         kwargs = {"userId": self.login_email, "q": query, "labelIds": [label_id]}
         page_token = None
         ingest_manner = IngestManner(self.ingest_manner)
@@ -306,9 +476,11 @@ class Asset(BaseAsset):
             state.pop(LATEST_FIRST_HIGH_WATER_KEY, None)
         seen_page_tokens = {page_token} if page_token else set()
         pages_fetched = 0
-        continuation_token = None
+        continuation_token = (
+            state.get("es_pending_next_page_token") if pending_ids else None
+        )
 
-        while True:
+        while not pending_ids:
             if ingest_manner == IngestManner.LATEST_FIRST:
                 remaining = max_emails - len(messages)
                 if remaining <= 0:
@@ -321,6 +493,13 @@ class Asset(BaseAsset):
                 )
             search_response = service.users().messages().list(**kwargs).execute()
             page_messages = search_response.get("messages", [])
+            if checkpoint_per_email:
+                page_messages = [
+                    item
+                    for item in page_messages
+                    if item["id"] not in processed_message_ids
+                    and item["id"] not in skipped_ids
+                ]
             if ingest_manner == IngestManner.LATEST_FIRST:
                 page_messages = page_messages[: max_emails - len(messages)]
             messages.extend(page_messages)
@@ -349,49 +528,85 @@ class Asset(BaseAsset):
             kwargs["pageToken"] = next_page_token
         logger.progress(f"Found {len(messages)} total messages")
 
-        if ingest_manner == IngestManner.OLDEST_FIRST:
-            messages = messages[-max_emails:]
-        else:
-            messages = messages[:max_emails]
+        if not pending_ids:
+            if ingest_manner == IngestManner.OLDEST_FIRST:
+                messages = messages[-max_emails:]
+            else:
+                messages = messages[:max_emails]
 
-        for message_info in messages:
+        for position, message_info in enumerate(messages):
+            if checkpoint_per_email and position >= max_emails:
+                break
             message_id = message_info["id"]
-            if message_id in processed_message_ids:
+            if checkpoint_per_email:
+                processed_message_ids = state.get("processed_message_ids", [])
+            if message_id in processed_message_ids or message_id in skipped_ids:
                 logger.debug(f"Skipping already-processed message {message_id}")
                 continue
             logger.debug(f"Fetching message {message_id}")
-            full_message = (
-                service.users()
-                .messages()
-                .get(userId=self.login_email, id=message_id, format="raw")
-                .execute()
-            )
-            if not (raw_b64 := full_message.get("raw")):
-                # Gmail documents raw content for messages.get(format="raw"):
-                # https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages
-                # Under our current understanding of that API, this branch cannot
-                # occur. Keep the defensive warning and continue so an unexpected
-                # response cannot indefinitely block ingestion of healthy mail.
-                logger.warning(
-                    f"Message {message_id} has no raw content despite format='raw'; skipping"
+            if checkpoint_per_email:
+                remaining = [item["id"] for item in messages[position + 1 :]]
+                if remaining:
+                    state["es_pending_message_ids"] = remaining
+                    state["es_pending_next_page_token"] = continuation_token
+                else:
+                    state.pop("es_pending_message_ids", None)
+                    state.pop("es_pending_next_page_token", None)
+                    if ingest_manner == IngestManner.LATEST_FIRST:
+                        if continuation_token:
+                            state["page_token"] = continuation_token
+                        else:
+                            state.pop("page_token", None)
+
+            full_message = {}
+            stage = "fetch"
+            try:
+                full_message = (
+                    service.users()
+                    .messages()
+                    .get(userId=self.login_email, id=message_id, format="raw")
+                    .execute()
                 )
+                if not (raw_b64 := full_message.get("raw")):
+                    if checkpoint_per_email:
+                        raise ValueError("Missing raw email")
+                    logger.warning(
+                        f"Message {message_id} has no raw content despite format='raw'; skipping"
+                    )
+                    continue
+                stage = "decode"
+                raw_email_bytes = base64.urlsafe_b64decode(raw_b64.encode("utf-8"))
+                stage = "parse"
+                parsed = extract_email_data(
+                    raw_email_bytes,
+                    email_id=message_id,
+                    include_attachment_content=self.extract_attachments
+                    or force_extract_iocs,
+                )
+                stage = "extract_iocs"
+                extracted_ips, extracted_urls, extracted_domains, extracted_hashes = (
+                    self._extract_iocs(parsed, force_extract_iocs)
+                )
+                if self.auto_reply:
+                    self._auto_reply(parsed)
+                if self.forwarding_address:
+                    self._forward_email(parsed)
+            except Exception as error:
+                if not checkpoint_per_email:
+                    raise
+                logger.warning(
+                    "Skipping ES email %s at %s: %s",
+                    message_id,
+                    stage,
+                    _email_failure_reason(error),
+                )
+                # Without metadata there is no timestamp to move beyond. Keep
+                # the skipped identity durably, not only in the bounded ID cache.
+                if not full_message.get("internalDate"):
+                    skipped_ids.add(message_id)
+                    state["es_skipped_message_ids"] = sorted(skipped_ids)
+                _checkpoint_es_email(state, message_id, full_message, ingest_manner)
                 continue
-            raw_email_bytes = base64.urlsafe_b64decode(raw_b64.encode("utf-8"))
-            parsed = extract_email_data(
-                raw_email_bytes,
-                email_id=message_id,
-                include_attachment_content=self.extract_attachments
-                or force_extract_iocs,
-            )
-
-            extracted_ips, extracted_urls, extracted_domains, extracted_hashes = (
-                self._extract_iocs(parsed, force_extract_iocs)
-            )
-
-            if self.auto_reply:
-                self._auto_reply(parsed)
-            if self.forwarding_address:
-                self._forward_email(parsed)
 
             yield ExtractedEmail(
                 message_id,
@@ -403,7 +618,9 @@ class Asset(BaseAsset):
                 extracted_hashes,
             )
 
-        if ingest_manner == IngestManner.LATEST_FIRST:
+        if ingest_manner == IngestManner.LATEST_FIRST and (
+            not checkpoint_per_email or not state.get("es_pending_message_ids")
+        ):
             if continuation_token:
                 state["page_token"] = continuation_token
             else:
@@ -466,8 +683,12 @@ def _extract_inner_email(
         try:
             inner = extract_email_data(att.content, include_attachment_content=False)
             return inner, i
-        except Exception:
-            logger.warning(f"Failed to parse inner email attachment: {att.filename}")
+        except Exception as error:
+            logger.warning(
+                "Inner email attachment %s could not be parsed: %s",
+                i,
+                _email_failure_reason(error),
+            )
     return None
 
 
@@ -596,6 +817,150 @@ def on_poll(
     logger.progress(f"Poll complete. Created {container_count} containers.")
 
 
+def _checkpoint_es_email(
+    state: dict, message_id: str, full_message: dict, ingest_manner: IngestManner
+) -> int:
+    """Retain processed IDs and advance past successful or skipped messages."""
+    processed = list(state.get("processed_message_ids", []))
+    if message_id not in processed:
+        processed.append(message_id)
+    state["processed_message_ids"] = processed[-1000:]
+    try:
+        email_epoch = int(full_message.get("internalDate", "0")) // 1000
+    except (ValueError, TypeError):
+        email_epoch = 0
+    high_water = max(
+        int(state.get("es_pending_high_water", 0)),
+        int(state.get(LATEST_FIRST_HIGH_WATER_KEY, 0)),
+        int(state.get("last_email_epoch", 0)),
+        email_epoch,
+    )
+    if state.get("es_pending_message_ids"):
+        state["es_pending_high_water"] = high_water
+    else:
+        state.pop("es_pending_high_water", None)
+        _commit_poll_checkpoint(state, ingest_manner, high_water)
+    return high_water
+
+
+def _build_es_finding(email_obj: ExtractedEmail) -> Finding:
+    """Prepare one email before advancing its source checkpoint."""
+    parsed = email_obj.parsed
+    inner_result = _extract_inner_email(parsed)
+
+    # Build finding title
+    sender = (
+        _extract_address(parsed.headers.from_address)
+        or parsed.headers.from_address
+        or "Unknown sender"
+    )
+    if inner_result is not None:
+        inner_email, inner_att_index = inner_result
+        original_sender = (
+            _extract_address(inner_email.headers.from_address)
+            or inner_email.headers.from_address
+            or "Unknown sender"
+        )
+        inner_subject = inner_email.headers.subject
+        if inner_subject:
+            title = f"{sender} reported email from {original_sender} - {inner_subject}"
+        else:
+            date_str = _format_date_fallback(inner_email.headers.date)
+            title = f"{sender} reported email from {original_sender} - No subject ({date_str})"
+    else:
+        outer_subject = parsed.headers.subject
+        if outer_subject:
+            title = f"{sender} reported email - {outer_subject}"
+        else:
+            date_str = _format_date_fallback(parsed.headers.date)
+            title = f"{sender} reported email - No subject ({date_str})"
+    if len(title) > 100:
+        title = title[:97] + "..."
+
+    # Build attachments list; insert inner EML right after the raw outer email
+    attachments = [
+        FindingAttachment(
+            file_name=f"email_{email_obj.message_id}.eml",
+            data=parsed.raw_email.encode("utf-8"),
+            is_raw_email=True,
+        ),
+    ]
+    email_attachments = []
+    inner_att_finding = None
+
+    for idx, att in enumerate(parsed.attachments):
+        finding_att = None
+        if att.content is not None:
+            data = (
+                att.content
+                if isinstance(att.content, bytes)
+                else att.content.encode("utf-8")
+            )
+            finding_att = FindingAttachment(
+                file_name=att.filename,
+                data=data,
+                is_raw_email=False,
+            )
+        email_attachments.append(
+            FindingEmailAttachment(
+                filename=att.filename,
+                filesize=att.size,
+            )
+        )
+        if (
+            inner_result is not None
+            and idx == inner_att_index
+            and finding_att is not None
+        ):
+            inner_att_finding = finding_att
+        elif finding_att is not None:
+            attachments.append(finding_att)
+
+    if inner_att_finding is not None:
+        attachments.insert(1, inner_att_finding)
+
+    # Build FindingEmail; use inner email data and populate reporter when forwarded
+    if inner_result is not None:
+        inner_email_attachments = [
+            FindingEmailAttachment(
+                filename=att.filename,
+                filesize=att.size,
+            )
+            for att in inner_email.attachments
+        ]
+        reporter = FindingEmailReporter(
+            from_=sender,
+            to=parsed.headers.to,
+            cc=parsed.headers.cc,
+            bcc=parsed.headers.bcc,
+            subject=parsed.headers.subject,
+            message_id=parsed.headers.message_id,
+            id=email_obj.message_id,
+            body=(parsed.body.plain_text or parsed.body.html or None),
+            date=parsed.headers.date,
+        )
+        finding_email = FindingEmail(
+            headers=asdict(inner_email.headers),
+            body=(inner_email.body.plain_text or inner_email.body.html or None),
+            urls=inner_email.urls,
+            attachments=inner_email_attachments,
+            reporter=reporter,
+        )
+    else:
+        finding_email = FindingEmail(
+            headers=asdict(parsed.headers),
+            body=(parsed.body.plain_text or parsed.body.html or None),
+            urls=parsed.urls,
+            attachments=email_attachments,
+        )
+
+    return Finding(
+        rule_title=title,
+        attachments=attachments,
+        email=finding_email,
+    )
+
+
 @app.on_es_poll()
 def on_es_poll(
     params: OnESPollParams, soar: SOARClient, asset: Asset
@@ -610,142 +975,46 @@ def on_es_poll(
             max_emails = asset.max_containers
 
     ingest_state = asset.ingest_state
-    processed_message_ids = ingest_state.get("processed_message_ids", [])
     findings_count = 0
-    max_email_epoch = 0
+    max_email_epoch = max(
+        int(ingest_state.get("es_pending_high_water", 0)),
+        int(ingest_state.get(LATEST_FIRST_HIGH_WATER_KEY, 0)),
+        int(ingest_state.get("last_email_epoch", 0)),
+    )
 
     for email_obj in asset.fetch_and_parse_emails(
-        max_emails=max_emails, force_extract_iocs=True
+        max_emails=max_emails, force_extract_iocs=True, checkpoint_per_email=True
     ):
-        parsed = email_obj.parsed
-        inner_result = _extract_inner_email(parsed)
-
-        # Build finding title
-        sender = (
-            _extract_address(parsed.headers.from_address)
-            or parsed.headers.from_address
-            or "Unknown sender"
-        )
-        if inner_result is not None:
-            inner_email, inner_att_index = inner_result
-            original_sender = (
-                _extract_address(inner_email.headers.from_address)
-                or inner_email.headers.from_address
-                or "Unknown sender"
+        finding = None
+        try:
+            finding = _build_es_finding(email_obj)
+        except Exception as error:
+            logger.warning(
+                "Skipping ES email %s at build: %s",
+                email_obj.message_id,
+                _email_failure_reason(error),
             )
-            inner_subject = inner_email.headers.subject
-            if inner_subject:
-                title = (
-                    f"{sender} reported email from {original_sender} - {inner_subject}"
-                )
-            else:
-                date_str = _format_date_fallback(inner_email.headers.date)
-                title = f"{sender} reported email from {original_sender} - No subject ({date_str})"
-        else:
-            outer_subject = parsed.headers.subject
-            if outer_subject:
-                title = f"{sender} reported email - {outer_subject}"
-            else:
-                date_str = _format_date_fallback(parsed.headers.date)
-                title = f"{sender} reported email - No subject ({date_str})"
-        if len(title) > 100:
-            title = title[:97] + "..."
+        max_email_epoch = _checkpoint_es_email(
+            ingest_state,
+            email_obj.message_id,
+            email_obj.full_message,
+            IngestManner(asset.ingest_manner),
+        )
+        if finding is not None:
+            findings_count += 1
+            yield finding
 
-        # Build attachments list; insert inner EML right after the raw outer email
-        attachments = [
-            FindingAttachment(
-                file_name=f"email_{email_obj.message_id}.eml",
-                data=parsed.raw_email.encode("utf-8"),
-                is_raw_email=True,
+    if not ingest_state.get("es_pending_message_ids"):
+        _commit_poll_checkpoint(
+            ingest_state,
+            IngestManner(asset.ingest_manner),
+            max(
+                max_email_epoch,
+                int(ingest_state.get("last_email_epoch", 0)),
+                int(ingest_state.get(LATEST_FIRST_HIGH_WATER_KEY, 0)),
             ),
-        ]
-        email_attachments = []
-        inner_att_finding = None
-
-        for idx, att in enumerate(parsed.attachments):
-            finding_att = None
-            if att.content is not None:
-                data = (
-                    att.content
-                    if isinstance(att.content, bytes)
-                    else att.content.encode("utf-8")
-                )
-                finding_att = FindingAttachment(
-                    file_name=att.filename,
-                    data=data,
-                    is_raw_email=False,
-                )
-            email_attachments.append(
-                FindingEmailAttachment(
-                    filename=att.filename,
-                    filesize=att.size,
-                )
-            )
-            if (
-                inner_result is not None
-                and idx == inner_att_index
-                and finding_att is not None
-            ):
-                inner_att_finding = finding_att
-            elif finding_att is not None:
-                attachments.append(finding_att)
-
-        if inner_att_finding is not None:
-            attachments.insert(1, inner_att_finding)
-
-        # Build FindingEmail; use inner email data and populate reporter when forwarded
-        if inner_result is not None:
-            inner_email_attachments = [
-                FindingEmailAttachment(
-                    filename=att.filename,
-                    filesize=att.size,
-                )
-                for att in inner_email.attachments
-            ]
-            reporter = FindingEmailReporter(
-                from_=sender,
-                to=parsed.headers.to,
-                cc=parsed.headers.cc,
-                bcc=parsed.headers.bcc,
-                subject=parsed.headers.subject,
-                message_id=parsed.headers.message_id,
-                id=email_obj.message_id,
-                body=(parsed.body.plain_text or parsed.body.html or None),
-                date=parsed.headers.date,
-            )
-            finding_email = FindingEmail(
-                headers=asdict(inner_email.headers),
-                body=(inner_email.body.plain_text or inner_email.body.html or None),
-                urls=inner_email.urls,
-                attachments=inner_email_attachments,
-                reporter=reporter,
-            )
-        else:
-            finding_email = FindingEmail(
-                headers=asdict(parsed.headers),
-                body=(parsed.body.plain_text or parsed.body.html or None),
-                urls=parsed.urls,
-                attachments=email_attachments,
-            )
-
-        yield Finding(
-            rule_title=title,
-            attachments=attachments,
-            email=finding_email,
         )
-
-        processed_message_ids.append(email_obj.message_id)
-        if len(processed_message_ids) > 1000:
-            processed_message_ids = processed_message_ids[-1000:]
-        internal_date_ms = int(email_obj.full_message.get("internalDate", "0"))
-        max_email_epoch = max(max_email_epoch, internal_date_ms // 1000)
-        findings_count += 1
-
-    ingest_state["processed_message_ids"] = processed_message_ids
-    _commit_poll_checkpoint(
-        ingest_state, IngestManner(asset.ingest_manner), max_email_epoch
-    )
-    logger.progress(f"ES Poll complete. Created {findings_count} findings.")
+    logger.progress(f"ES Poll complete. Prepared {findings_count} findings.")
 
 
 @app.test_connectivity()
