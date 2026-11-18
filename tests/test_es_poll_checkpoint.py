@@ -86,20 +86,20 @@ def runtime(monkeypatch, mocker):
 
 
 @pytest.mark.parametrize("manner", ["oldest first", "latest first"])
-def test_failed_batch_replays_without_repeating_successful_batches(runtime, manner):
+def test_failed_email_is_skipped_without_replaying_processed_mail(runtime, manner):
     context = runtime
     context.asset.ingest_manner = manner
     expected = expected_order(context)
     context.failed = expected[2]
     assert module.on_es_poll(OnESPollParams())
-    assert context.sent == expected[:4] + [expected[2]] * 2
+    assert context.sent == expected[:4] + [expected[2]] * 2 + expected[4:]
     result = module.app.actions_manager.add_result.call_args.args[0]
     assert result.get_summary()["failed"] == 1
     assert not context.asset.ingest_state.in_transaction
     context.failed = None
     context.sent.clear()
     assert module.on_es_poll(OnESPollParams())
-    assert context.sent == expected[2:]
+    assert context.sent == []
     assert not context.asset.ingest_state.in_transaction
 
 
@@ -117,7 +117,7 @@ def test_equal_timestamps_retain_previously_checkpointed_ids(runtime):
     context.failed = None
     context.sent.clear()
     assert module.on_es_poll(OnESPollParams())
-    assert context.sent == expected[2:]
+    assert context.sent == []
     context.sent.clear()
     assert module.on_es_poll(OnESPollParams())
     assert context.sent == []
@@ -203,13 +203,13 @@ def test_latest_first_pending_window_survives_new_mail_arrival(runtime):
     context.failed = None
     context.sent.clear()
     assert module.on_es_poll(OnESPollParams())
-    assert context.sent == expected[2:]
+    assert context.sent == ["mail-7"]
     context.sent.clear()
     assert module.on_es_poll(OnESPollParams())
-    assert context.sent == ["mail-7"]
+    assert context.sent == []
 
 
-def test_latest_first_page_token_replays_failed_window(runtime):
+def test_latest_first_page_token_advances_past_failed_email(runtime):
     context = runtime
     context.asset.ingest_manner = "latest first"
     context.asset.first_run_max_emails = 2
@@ -222,14 +222,14 @@ def test_latest_first_page_token_replays_failed_window(runtime):
     context.sent.clear()
     assert module.on_es_poll(OnESPollParams())
     assert context.sent == ["mail-4", "mail-3", "mail-4", "mail-4"]
-    assert context.asset.ingest_state["page_token"] == "2"
+    assert context.asset.ingest_state["page_token"] == "4"
     context.failed = None
     context.sent.clear()
     assert module.on_es_poll(OnESPollParams())
-    assert context.sent == ["mail-4", "mail-3"]
+    assert context.sent == ["mail-2", "mail-1"]
     context.sent.clear()
     assert module.on_es_poll(OnESPollParams())
-    assert context.sent == ["mail-2", "mail-1"]
+    assert context.sent == []
     assert "page_token" not in context.asset.ingest_state
     assert context.asset.ingest_state["last_email_epoch"] == int(
         datetime.fromisoformat(context.rows["mail-6"]["receivedDateTime"]).timestamp()
@@ -246,4 +246,115 @@ def test_missing_raw_email_does_not_strand_pending_ids(runtime):
     assert "page_token" not in context.asset.ingest_state
     context.sent.clear()
     assert module.on_es_poll(OnESPollParams())
+    assert context.sent == []
+
+
+@pytest.mark.parametrize("manner", ["oldest first", "latest first"])
+@pytest.mark.parametrize("bad_number", [1, 3, 6])
+@pytest.mark.parametrize("kind", ["fetch", "base64", "parse", "build", "missing_raw"])
+def test_individual_message_failure_advances_persisted_checkpoint(
+    runtime, mocker, manner, bad_number, kind, capsys
+):
+    context = runtime
+    context.asset.ingest_manner = manner
+    bad_id = f"mail-{bad_number}"
+    private_error = "private-message-body-never-log"
+    if kind == "build":
+        original = module._build_es_finding
+
+        def build(email_obj):
+            if email_obj.message_id == bad_id:
+                raise ValueError(private_error)
+            return original(email_obj)
+
+        mocker.patch.object(module, "_build_es_finding", side_effect=build)
+    elif kind == "parse":
+        original = module.extract_email_data
+
+        def parse(raw, *, email_id, **kwargs):
+            if email_id == bad_id:
+                raise ValueError(private_error)
+            return original(raw, email_id=email_id, **kwargs)
+
+        mocker.patch.object(module, "extract_email_data", side_effect=parse)
+    else:
+        service = module.GoogleServiceBuilder.return_value.build_service.return_value
+        get = service.users.return_value.messages.return_value.get
+        original = get.side_effect
+
+        def fetch(**kwargs):
+            if kind == "fetch" and kwargs["id"] == bad_id:
+                raise RuntimeError(private_error)
+            response = original(**kwargs).execute()
+            if kwargs["id"] == bad_id:
+                if kind == "missing_raw":
+                    response.pop("raw")
+                else:
+                    response["raw"] = "a"
+            return SimpleNamespace(execute=lambda: response)
+
+        get.side_effect = fetch
+    expected = [
+        identifier for identifier in expected_order(context) if identifier != bad_id
+    ]
+    assert module.on_es_poll(OnESPollParams())
+    assert context.sent == expected
+    logs = capsys.readouterr().out
+    assert "Skipping" in logs
+    assert private_error not in logs
+    context.asset._ingest_state = AssetState(
+        module.app.actions_manager, "ingest", "1", encrypted=False
+    )
+    context.sent.clear()
+    assert module.on_es_poll(OnESPollParams())
+    assert context.sent == []
+
+
+@pytest.mark.parametrize("kind", ["fetch", "base64", "build"])
+def test_all_failed_messages_do_not_replay(runtime, mocker, kind):
+    context = runtime
+    if kind == "build":
+        mocker.patch.object(
+            module, "_build_es_finding", side_effect=ValueError("Synthetic failure")
+        )
+    else:
+        service = module.GoogleServiceBuilder.return_value.build_service.return_value
+        get = service.users.return_value.messages.return_value.get
+        original = get.side_effect
+
+        def fetch(**kwargs):
+            if kind == "fetch":
+                raise RuntimeError("Synthetic failure")
+            response = original(**kwargs).execute()
+            response["raw"] = "a"
+            return SimpleNamespace(execute=lambda: response)
+
+        get.side_effect = fetch
+    assert module.on_es_poll(OnESPollParams())
+    assert context.sent == []
+    assert set(context.asset.ingest_state["processed_message_ids"]) == set(context.rows)
+    assert module.on_es_poll(OnESPollParams())
+    assert context.sent == []
+
+
+def test_latest_first_continuation_advances_past_parse_failure(runtime):
+    context = runtime
+    context.asset.ingest_manner = "latest first"
+    context.asset.first_run_max_emails = context.asset.max_containers = 2
+    context.no_raw = "mail-5"
+    for _ in range(4):
+        assert module.on_es_poll(OnESPollParams())
+    assert context.sent == ["mail-6", "mail-4", "mail-3", "mail-2", "mail-1"]
+    assert not context.asset.ingest_state.get("page_token")
+
+
+def test_mailbox_listing_failure_does_not_advance_checkpoint(runtime):
+    context = runtime
+    service = module.GoogleServiceBuilder.return_value.build_service.return_value
+    service.users.return_value.messages.return_value.list.side_effect = RuntimeError(
+        "Synthetic listing failure"
+    )
+    before = context.asset.ingest_state.get_all()
+    assert not module.on_es_poll(OnESPollParams())
+    assert context.asset.ingest_state.get_all() == before
     assert context.sent == []
