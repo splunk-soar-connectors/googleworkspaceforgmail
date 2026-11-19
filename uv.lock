@@ -508,7 +508,7 @@ requires-dist = [
     { name = "oauth2client", specifier = ">=4.1.3,<5" },
     { name = "pyasn1-modules", specifier = ">=0.2.8,<1" },
     { name = "rsa", specifier = ">=4.9,<5" },
-    { name = "splunk-soar-sdk", extras = ["email"], specifier = ">=7.2.2" },
+    { name = "splunk-soar-sdk", extras = ["email"], specifier = ">=7.3.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -1301,7 +1301,7 @@ wheels = [
 
 [[package]]
 name = "splunk-soar-sdk"
-version = "7.2.2"
+version = "7.3.0"
 source = { registry = "https://pypi.python.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -1331,9 +1331,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/87/b9/1701fc9969c01dd4df2001e8ebf3f45434ac7718f8ac7d965e10b61aff75/splunk_soar_sdk-7.2.2.tar.gz", hash = "sha256:8cafeecdd4d2288628fdc99fd8a7b1a5aeb88bc4f74537100e557c8110260d23", size = 1112969, upload-time = "2026-11-18T18:01:29.897Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f6/9b/6fbd61dc94f451dc5d42947a925ab17ebbca25bd484c74af2be54a261ef5/splunk_soar_sdk-7.3.0.tar.gz", hash = "sha256:16611582071f6d1785a178448054276f6ad452eda35e14a382f5dcedc5738e11", size = 1118094, upload-time = "2026-11-19T23:22:32.719Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/da/d3/da612bc9fb4c4876be6e490209dcc065d7a37eb3534272266682da34420f/splunk_soar_sdk-7.2.2-py3-none-any.whl", hash = "sha256:2f1a43853ec689ab6751e4ea2ff6f828cf776896b13bc163a7776d1c4535ea40", size = 256391, upload-time = "2026-11-18T18:01:28Z" },
+    { url = "https://files.pythonhosted.org/packages/dd/9f/81f1b87d4e6cb5df70a9bf1d57185366f5fe9036fdf290665e11abe10ffb/splunk_soar_sdk-7.3.0-py3-none-any.whl", hash = "sha256:58e4ce97a5fad624e5a3d4582f38218e0354c424f17573be5e161d98edd41e27", size = 258705, upload-time = "2026-11-19T23:22:31.377Z" },
 ]
 
 [package.optional-dependencies]
