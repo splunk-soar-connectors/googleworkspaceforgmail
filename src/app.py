@@ -59,6 +59,8 @@ from .actions.delete_email import DeleteEmailSummary
 from .actions.trash_email import TrashEmailSummary
 from .actions.untrash_email import UntrashEmailSummary
 
+from .poll_errors import MailPollError, diagnose_es_poll
+
 logger = getLogger()
 
 
@@ -452,6 +454,8 @@ class Asset(BaseAsset):
                     label_cache[label_name] = label_id
                     break
             else:
+                if checkpoint_per_email:
+                    raise MailPollError("mailbox")
                 raise ActionFailure(f"Label {label_name} not found")
 
         query_parts = []
@@ -962,6 +966,7 @@ def _build_es_finding(email_obj: ExtractedEmail) -> Finding:
 
 
 @app.on_es_poll()
+@diagnose_es_poll
 def on_es_poll(
     params: OnESPollParams, soar: SOARClient, asset: Asset
 ) -> Generator[Finding, int | None]:

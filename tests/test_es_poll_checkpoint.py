@@ -358,3 +358,33 @@ def test_mailbox_listing_failure_does_not_advance_checkpoint(runtime):
     assert not module.on_es_poll(OnESPollParams())
     assert context.asset.ingest_state.get_all() == before
     assert context.sent == []
+
+
+@pytest.mark.parametrize(
+    "status, reason",
+    [(401, "authentication"), (403, "authentication"), (404, "mailbox")],
+)
+def test_initial_setup_failure_reports_safe_reason(runtime, status, reason):
+    error = RuntimeError("private-password private-mailbox private-response")
+    error.status_code = status
+    module.GoogleServiceBuilder.return_value.build_service.side_effect = error
+    assert not module.on_es_poll(OnESPollParams())
+    output = module.app.actions_manager.add_result.call_args.args[0]
+    summary = output.get_summary()
+    assert summary["polling_failed"] is True
+    assert summary["created"] == summary["failed"] == 0
+    assert "private-password" not in repr(vars(output))
+    assert summary["polling_errors"][0]["reason"] == reason
+    assert f"reason={reason}" in output.get_message()
+
+
+def test_missing_configured_folder_is_a_safe_mailbox_failure(runtime):
+    runtime.asset.label = "private-missing-label"
+    assert not module.on_es_poll(OnESPollParams())
+    output = module.app.actions_manager.add_result.call_args.args[0]
+    summary = output.get_summary()
+    assert summary["polling_failed"] is True
+    assert summary["created"] == summary["failed"] == 0
+    assert not runtime.sent
+    assert "private-missing" not in repr(vars(output))
+    assert summary["polling_errors"][0]["reason"] == "mailbox"
