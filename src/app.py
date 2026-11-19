@@ -22,6 +22,8 @@ from urllib.parse import urlparse
 from pydantic import ValidationError
 from logging import DEBUG, Filter, LogRecord, getLogger as get_standard_logger
 
+from soar_sdk.exceptions import PollingError
+from soar_sdk.polling import diagnose_es_poll
 from soar_sdk.abstract import SOARClient
 from soar_sdk.app import App
 from soar_sdk.models import Finding
@@ -59,7 +61,7 @@ from .actions.delete_email import DeleteEmailSummary
 from .actions.trash_email import TrashEmailSummary
 from .actions.untrash_email import UntrashEmailSummary
 
-from .poll_errors import MailPollError, diagnose_es_poll
+from .poll_errors import _setup_reason
 
 logger = getLogger()
 
@@ -455,7 +457,7 @@ class Asset(BaseAsset):
                     break
             else:
                 if checkpoint_per_email:
-                    raise MailPollError("mailbox")
+                    raise PollingError("mailbox")
                 raise ActionFailure(f"Label {label_name} not found")
 
         query_parts = []
@@ -966,7 +968,7 @@ def _build_es_finding(email_obj: ExtractedEmail) -> Finding:
 
 
 @app.on_es_poll()
-@diagnose_es_poll
+@diagnose_es_poll(_setup_reason)
 def on_es_poll(
     params: OnESPollParams, soar: SOARClient, asset: Asset
 ) -> Generator[Finding, int | None]:

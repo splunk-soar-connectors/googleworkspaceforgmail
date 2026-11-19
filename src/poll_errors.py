@@ -2,25 +2,9 @@
 """Safe setup diagnostics for direct ES polling."""
 
 import re
-from functools import wraps
-from contextlib import suppress
 
 from google.auth.exceptions import DefaultCredentialsError, MalformedError, RefreshError
 from soar_sdk.exceptions import ActionFailure
-
-
-class MailPollError(ActionFailure):
-    """Carry an allowlisted reason without retaining upstream error contents."""
-
-    def __init__(self, code: str, status_code: int | None = None) -> None:
-        self.polling_error_code = code
-        self.status_code = status_code
-        super().__init__(
-            {
-                "authentication": "Mail authentication or authorization failed. Check asset credentials and permissions.",
-                "mailbox": "Mailbox or folder is unavailable. Check the configured mailbox and access permissions.",
-            }[code]
-        )
 
 
 def _setup_reason(error: Exception) -> tuple[str, int | None] | None:
@@ -89,23 +73,3 @@ def _setup_reason(error: Exception) -> tuple[str, int | None] | None:
             break
         error = cause
     return None
-
-
-def diagnose_es_poll(handler):
-    """Preserve polling/checkpoints while classifying propagated setup failures."""
-
-    @wraps(handler)
-    def wrapped(*args, **kwargs):
-        try:
-            yield from handler(*args, **kwargs)
-        except MailPollError:
-            raise
-        except Exception as error:
-            reason = None
-            with suppress(Exception):
-                reason = _setup_reason(error)
-            if reason is not None:
-                raise MailPollError(*reason) from None
-            raise
-
-    return wrapped
