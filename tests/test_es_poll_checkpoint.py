@@ -10,7 +10,7 @@ from datetime import UTC, datetime, timedelta
 from email.message import EmailMessage
 from types import SimpleNamespace
 
-import httpx
+import httpx2
 import pytest
 from soar_sdk.asset_state import AssetState
 from soar_sdk.params import OnESPollParams
@@ -72,15 +72,15 @@ def runtime(monkeypatch, mocker):
             ).isoformat(),
         }
 
-    def create(client, url, *, content, headers):
-        payload = json.loads(content)
+    def create(_client, request):
+        payload = json.loads(request.content)
         identifier = re.search(r"mail-\d+$", payload["rule_title"]).group()
         context.sent.append(identifier)
         if identifier == context.failed:
-            return httpx.Response(429)
-        return httpx.Response(201, json={"_time": "now", "finding_id": identifier})
+            return httpx2.Response(429)
+        return httpx2.Response(201, json={"_time": "now", "finding_id": identifier})
 
-    mocker.patch.object(httpx.Client, "post", autospec=True, side_effect=create)
+    mocker.patch.object(httpx2.Client, "send", autospec=True, side_effect=create)
     mock_mailbox(context, mocker)
     return context
 
@@ -92,7 +92,11 @@ def test_failed_email_is_skipped_without_replaying_processed_mail(runtime, manne
     expected = expected_order(context)
     context.failed = expected[2]
     assert module.on_es_poll(OnESPollParams())
-    assert context.sent == expected[:4] + [expected[2]] * 2 + expected[4:]
+    # The SDK processes each batch concurrently, then retries failed items.
+    assert sorted(context.sent[:2]) == sorted(expected[:2])
+    assert sorted(context.sent[2:4]) == sorted(expected[2:4])
+    assert context.sent[4:6] == [expected[2]] * 2
+    assert sorted(context.sent[6:]) == sorted(expected[4:])
     result = module.app.actions_manager.add_result.call_args.args[0]
     assert result.get_summary()["failed"] == 1
     assert not context.asset.ingest_state.in_transaction
@@ -215,18 +219,19 @@ def test_latest_first_page_token_advances_past_failed_email(runtime):
     context.asset.first_run_max_emails = 2
     context.asset.max_containers = 2
     assert module.on_es_poll(OnESPollParams())
-    assert context.sent == ["mail-6", "mail-5"]
+    assert sorted(context.sent) == ["mail-5", "mail-6"]
     assert context.asset.ingest_state["page_token"] == "2"
     assert not context.asset.ingest_state.get("last_email_epoch")
     context.failed = "mail-4"
     context.sent.clear()
     assert module.on_es_poll(OnESPollParams())
-    assert context.sent == ["mail-4", "mail-3", "mail-4", "mail-4"]
+    assert sorted(context.sent[:2]) == ["mail-3", "mail-4"]
+    assert context.sent[2:] == ["mail-4", "mail-4"]
     assert context.asset.ingest_state["page_token"] == "4"
     context.failed = None
     context.sent.clear()
     assert module.on_es_poll(OnESPollParams())
-    assert context.sent == ["mail-2", "mail-1"]
+    assert sorted(context.sent) == ["mail-1", "mail-2"]
     context.sent.clear()
     assert module.on_es_poll(OnESPollParams())
     assert context.sent == []
@@ -241,7 +246,7 @@ def test_missing_raw_email_does_not_strand_pending_ids(runtime):
     context.asset.ingest_manner = "latest first"
     context.no_raw = "mail-1"
     assert module.on_es_poll(OnESPollParams())
-    assert context.sent == [f"mail-{i}" for i in range(6, 1, -1)]
+    assert sorted(context.sent) == [f"mail-{i}" for i in range(2, 7)]
     assert "es_pending_message_ids" not in context.asset.ingest_state
     assert "page_token" not in context.asset.ingest_state
     context.sent.clear()
@@ -298,7 +303,7 @@ def test_individual_message_failure_advances_persisted_checkpoint(
         identifier for identifier in expected_order(context) if identifier != bad_id
     ]
     assert module.on_es_poll(OnESPollParams())
-    assert context.sent == expected
+    assert sorted(context.sent) == sorted(expected)
     logs = capsys.readouterr().out
     assert "Skipping" in logs
     assert private_error not in logs
@@ -344,7 +349,7 @@ def test_latest_first_continuation_advances_past_parse_failure(runtime):
     context.no_raw = "mail-5"
     for _ in range(4):
         assert module.on_es_poll(OnESPollParams())
-    assert context.sent == ["mail-6", "mail-4", "mail-3", "mail-2", "mail-1"]
+    assert sorted(context.sent) == ["mail-1", "mail-2", "mail-3", "mail-4", "mail-6"]
     assert not context.asset.ingest_state.get("page_token")
 
 

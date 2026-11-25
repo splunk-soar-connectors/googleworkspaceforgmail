@@ -5,7 +5,7 @@ import binascii
 import importlib
 import logging
 
-import httpx
+import httpx2
 from types import SimpleNamespace
 
 import pytest
@@ -196,9 +196,9 @@ def test_filter_preserves_other_safe_events(path, level):
 def test_real_httpx_request_log_omits_signed_url_and_credentials(caplog, capsys):
     url = "https://upload.example/email?X-Amz-Signature=private-signature"
     with (
-        caplog.at_level(logging.INFO, logger="httpx"),
-        httpx.Client(
-            transport=httpx.MockTransport(lambda request: httpx.Response(201))
+        caplog.at_level(logging.INFO, logger="httpx2"),
+        httpx2.Client(
+            transport=httpx2.MockTransport(lambda request: httpx2.Response(201))
         ) as client,
     ):
         assert (
