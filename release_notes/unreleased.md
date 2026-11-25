@@ -1,3 +1,1 @@
 **Unreleased**
-
-* Updated the SOAR SDK to improve Enterprise Security polling throughput and report TLS failure reasons.
